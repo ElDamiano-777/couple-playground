@@ -1,5 +1,13 @@
 # Änderungen
 
+## 0.1.3 — 2026-10-31
+
+### Entwicklung
+
+- Entwicklungsassistent arbeitet knapp, beginnt mit dem Ergebnis und bietet drei nummerierte nächste Schritte in der jeweiligen Gesprächssprache.
+- Gelegentliche kurze Produkt-Denkanstöße helfen beim Ausgestalten eigener Ideen, ohne die Umsetzung aufzuhalten.
+- Aufgaben-Agenten mit abgestuften Modell- und Denkaufwandsvorgaben vorbereitet; Grenzen automatischer Modellwahl ausdrücklich dokumentiert.
+
 ## 0.1.2 — 2026-10-31
 
 ### Build
