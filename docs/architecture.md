@@ -11,3 +11,6 @@
 - Workflow testet das gebaute Artefakt, veröffentlicht nach erfolgreicher Prüfung und kontrolliert danach die ausgelieferte Commit-Kennung und JS-/CSS-Dateien.
 - Kein Backend eingerichtet. Es gibt keine scheinbare Paarverbindung. Ein späterer Backend-Schritt wird in Issue #1 anhand serverseitiger Positiv- und Negativtests dokumentiert.
 - Technische und fachliche Ziele nicht vermischen: neue Spiel-/Fragen-/Trackingfunktionen erst auf Wunsch entwickeln.
+- AGENTS.md legt Caveman Full, BLUF, drei auswählbare Folgeprompts und gelegentliche kurze Produkt-Denkanstöße fest. Sprache folgt der aktuellen Nachricht; Kostenentscheidungen werden nicht an die Nutzerin ausgelagert.
+- .codex/agents enthält drei Aufgaben-Agenten mit Modell-/Effort-Vorgaben (Luna/low, Sol/medium, Sol/high). Auswahl ist eine laufzeitabhängige Arbeitsregel; die Dateien garantieren weder Unterstützung in jeder Cloud-Umgebung noch einen Wechsel des Hauptmodells. Die tatsächliche Nutzung unter ihrer Identität wurde noch nicht geprüft.
+- Quellenstand 31.10.2026: [Modellauswahl](https://learn.chatgpt.com/docs/models), [Aufgaben-Agenten und TOML-Schema](https://learn.chatgpt.com/docs/agent-configuration/subagents), [Cloud-Modellgrenzen](https://learn.chatgpt.com/docs/enterprise/workspace-model-availability). Kein separat bezahlter API-Router eingerichtet.
