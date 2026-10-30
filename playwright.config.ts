@@ -1,4 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
+
+// Codex Cloud provides Chromium but no administrator access to install WebKit's OS libraries.
+// GitHub Actions always uses the pinned Playwright browsers and runs both projects.
+const systemChromium = process.env.GITHUB_ACTIONS !== `true` && process.platform === `linux` && existsSync(`/usr/bin/chromium`)
+  ? `/usr/bin/chromium` : undefined;
 
 export default defineConfig({
   testDir: `./tests`,
@@ -11,8 +17,8 @@ export default defineConfig({
     trace: `retain-on-failure`,
   },
   projects: [
-    { name: `chromium`, use: { ...devices[`Desktop Chrome`] } },
-    { name: `iphone-webkit`, use: { ...devices[`iPhone 13`], defaultBrowserType: `webkit` } },
+    { name: `chromium`, use: { ...devices[`Desktop Chrome`], browserName: `chromium`, launchOptions: { executablePath: systemChromium } } },
+    { name: `iphone-webkit`, use: { ...devices[`iPhone 13`], browserName: `webkit` } },
   ],
   webServer: {
     command: `npm run preview`,
