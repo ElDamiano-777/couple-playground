@@ -18,6 +18,7 @@
 - Fester App-Link: https://eldamiano-777.github.io/couple-playground/ — verbindliche Konfiguration in app.config.json.
 - Hosting: GitHub Pages. Projektpfad /couple-playground/ beibehalten; keine Vercel-/Sites-Registrierung oder Hostingwechsel ohne Auftrag.
 - Lokal: Node.js 24, npm ci, npm run dev. Prüfung: npm run verify. Cloud-Setup: bash scripts/cloud-setup.sh.
+- In Codex Cloud: npm run verify:cloud prüft Build und den vorhandenen Chromium ohne Administratorinstallation. Beide Browser einschließlich iPhone-WebKit sind weiterhin verbindliche Pflichtprüfung in GitHub Actions. Vor deren Erfolg weder mergen noch veröffentlichen; die Cloud-Vorprüfung ersetzt diese Prüfung nicht.
 - Repository ist auf Damians ausdrücklichen Wunsch öffentlich. Niemals echte Paar-Inhalte oder Geheimnisse committen.
 - Aktuell nur lokale Notizen. Keine Anmeldung oder gemeinsame Datenhaltung eingerichtet. Keine Synchronisation, Verschlüsselung oder Paarverbindung behaupten, bevor sie implementiert und geprüft ist.
 - Der Agent kann Produktwünsche technisch planen; neue kostenpflichtige Dienste oder bestehende Fremdprojekte darf er dafür nicht eigenmächtig verwenden.

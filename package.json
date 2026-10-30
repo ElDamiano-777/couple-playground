@@ -1,6 +1,6 @@
 {
   "name": "couple-playground",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "engines": {
@@ -12,6 +12,7 @@
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "test:smoke": "playwright test",
     "verify": "npm run build && npm run test:smoke",
+    "verify:cloud": "npm run build && playwright test --project=chromium",
     "verify:live": "node scripts/verify-live.mjs",
     "setup:cloud": "bash scripts/cloud-setup.sh"
   },

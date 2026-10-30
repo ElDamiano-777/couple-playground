@@ -15,7 +15,7 @@
 1. Die Nutzerin braucht ihren eigenen GitHub- und ChatGPT-Zugang. Ihr GitHub-Benutzername ist noch unbekannt; keine Einladung auf Verdacht versenden.
 2. Damian fügt ausschließlich ihre bestätigte GitHub-Identität als Mitarbeiterin dieses Repositorys hinzu. Lesender Zugriff auf öffentliches GitHub reicht zum Veröffentlichen nicht aus.
 3. In ihrem ChatGPT-Konto GitHub verbinden und eine Codex-Cloud-Umgebung mit diesem Repository einrichten. Umgebungen nicht automatisch zwischen persönlichen Konten als geteilt voraussetzen.
-4. Node.js 24 bereitstellen; Setup-Skript: bash scripts/cloud-setup.sh. Netzwerkzugriff für npm und Playwright-Browserdownloads zulassen. Der Browser-Test-Webserver läuft nur innerhalb des Testsystems.
+4. Node.js 24 bereitstellen; Setup-Skript: bash scripts/cloud-setup.sh. Netzwerkzugriff für npm und nötigenfalls cdn.playwright.dev zulassen. Codex Cloud stellt /usr/bin/chromium bereit; keine Administratorinstallation versuchen. Cloud-Vorprüfung: npm run verify:cloud. GitHub Actions prüft unverändert beide Browser vor Merge und Veröffentlichung. Der Browser-Test-Webserver läuft nur innerhalb des Testsystems.
 5. GitHub-Schreibzugriff für Branch, PR und Auto-Merge sowie lesenden Zugriff auf Actions-Ergebnisse prüfen. Keine Geheimnisse aus anderen Projekten hinzufügen.
 6. Einmal einen kleinen Wunsch von ihrem eigenen iPhone aus diktieren, Commit/PR und automatische Veröffentlichung vollständig durchführen und den Live-Link prüfen.
 7. Die App in Safari öffnen, „Teilen → Zum Home-Bildschirm“ verwenden. Installation und Aktualisierung auf dem echten Gerät prüfen.
@@ -40,6 +40,7 @@
 - Agent muss auf alle Jobs einschließlich Publish und Liveprüfung warten. Grün für Build allein genügt nicht.
 - Releasekennung: version.json enthält den exakten Git-Commit. Der Agent prüft ihn gegen den gerade veröffentlichten main-Commit.
 - Standardprüfung lokal: npm run verify. Liveprüfung: EXPECTED_SHA=<voller Commit> npm run verify:live.
+- In der separat gestarteten Cloud-Einrichtung unter Damians Konto bestanden Build und acht Chromium-Tests. WebKit konnte dort mangels Administratorrechten nicht eingerichtet werden; deshalb übernimmt die verpflichtende GitHub-Prüfung beide Browser. Die Cloud-Konfiguration muss vor Nutzung noch gespeichert und veröffentlicht werden.
 
 ## Kosten und Grenzen
 
