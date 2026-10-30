@@ -1,0 +1,70 @@
+name: Check and publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: Build and smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run verify
+      - uses: actions/upload-pages-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          path: dist
+
+  deploy:
+    name: Publish tested app
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Require current main before publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: test "$(gh api repos/$GITHUB_REPOSITORY/commits/main --jq .sha)" = "$GITHUB_SHA"
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Publish checked artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify published commit and app assets
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: node scripts/verify-live.mjs
+      - name: Write clear app link
+        run: |
+          echo '## Deine App / Твоё приложение' >> "$GITHUB_STEP_SUMMARY"
+          echo 'https://eldamiano-777.github.io/couple-playground/' >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
