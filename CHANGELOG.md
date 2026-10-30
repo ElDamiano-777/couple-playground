@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.1.1 — 2026-10-31
+
+### Build
+
+- Veröffentlichte Version und App-Dateien zuverlässig prüfen; das Prüfskript wird vor der Veröffentlichung ebenfalls auf Typfehler geprüft.
+
 ## 0.1.0 — 2026-10-31
 
 ### Neu
