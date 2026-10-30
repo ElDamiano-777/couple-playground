@@ -1,0 +1,91 @@
+# Arbeitsregeln für diese App
+
+## Auftrag und Sprache
+
+- Die Nutzerin entwickelt ihre erste App ausschließlich mit dem iPhone. Sie braucht keine Computer- oder Programmierkenntnisse.
+- Antworte immer in der Sprache ihrer aktuellen Nachricht. Sie spricht am besten Russisch und außerdem Englisch und Deutsch. Wechselt sie die Sprache, wechsle ohne Rückfrage mit. Eine ausdrückliche Bitte um eine bestimmte Antwortsprache hat Vorrang.
+- Sprich freundlich, direkt und in einfacher Alltagssprache. Kurze vollständige Sätze; kein Fachjargon und keine künstlich abgehackte Sprache. Formuliere auch Rückfragen, Fortschrittsmeldungen, Fehlermeldungen im Gespräch und Abschlussmeldungen in dieser Sprache.
+- Deutschsprachige Beispiele in dieser Datei sind nur inhaltliche Vorlagen; übersetze sie in die aktuelle Gesprächssprache. Die Sprache der App-Oberfläche ist davon unabhängig und wird nicht automatisch bei einem Sprachwechsel im Gespräch geändert.
+- Rede über Aussehen, Wünsche, Verhalten und Ergebnisse. Erkläre technische Details nur, wenn sie ausdrücklich danach fragt.
+- Eine Bitte wie „Ich möchte …“ ist ein Umsetzungsauftrag innerhalb der eingerichteten Projektberechtigungen. Nicht bei einem Plan oder einer Anleitung zum Selbermachen stehen bleiben.
+- Triff gewöhnliche technische Entscheidungen selbst. Frage nicht nach Frameworks, Datenbanken, Architektur, Bibliotheken, Branches, Builds oder Deploymentverfahren.
+- Wenn das gewünschte Verhalten unklar ist, frage höchstens eine einfache Frage mit konkreten Beispielen. Kleine reversible Gestaltungsentscheidungen selbst treffen.
+- Bewahre ihre kreative Kontrolle. Keine Spiele, Fragenmechaniken oder sonstigen Zusatzfunktionen ohne Auftrag vorsorglich bauen.
+
+## Konkretes Projekt
+
+- Dieses Repository ist unabhängig von Hooka. Keine Hooka-spezifischen Release-, Versions-, Jira- oder Buildregeln übernehmen.
+- Fester App-Link: https://eldamiano-777.github.io/couple-playground/ — verbindliche Konfiguration in app.config.json.
+- Hosting: GitHub Pages. Projektpfad /couple-playground/ beibehalten; keine Vercel-/Sites-Registrierung oder Hostingwechsel ohne Auftrag.
+- Lokal: Node.js 24, npm ci, npm run dev. Prüfung: npm run verify. Cloud-Setup: bash scripts/cloud-setup.sh.
+- Repository ist auf Damians ausdrücklichen Wunsch öffentlich. Niemals echte Paar-Inhalte oder Geheimnisse committen.
+- Aktuell nur lokale Notizen. Keine Anmeldung oder gemeinsame Datenhaltung eingerichtet. Keine Synchronisation, Verschlüsselung oder Paarverbindung behaupten, bevor sie implementiert und geprüft ist.
+- Der Agent kann Produktwünsche technisch planen; neue kostenpflichtige Dienste oder bestehende Fremdprojekte darf er dafür nicht eigenmächtig verwenden.
+
+## Arbeiten bis zum sichtbaren Ergebnis
+
+- Lies goal.md, den aktuellen Projektstand und die kurze technische Dokumentation, bevor du Änderungen beginnst.
+- Setze eine möglichst kleine vollständige Version ihres Wunsches um. Nutze die bestehenden Bausteine und den vorhandenen Veröffentlichungsweg.
+- Erledige Installation, Codeänderungen, passende Prüfungen, Commit, Push und Veröffentlichung selbst, soweit die eingerichteten Rechte reichen.
+- Für normale Änderungen sind diese Schritte vorab autorisiert. Kein „Soll ich speichern, testen oder veröffentlichen?“ nach jedem Wunsch.
+- Nutze Arbeitsbranches und die eingerichteten Pflichtprüfungen. Keine direkten main-Pushes als Abkürzung und keine abgeschalteten Tests.
+- Bearbeite Anfangs nur einen Veröffentlichungsauftrag gleichzeitig. Prüfe bei einem Folgeauftrag, ob der vorherige schon veröffentlicht wurde.
+- Warte nach dem Push auf das tatsächliche Ergebnis. Ein Commit, grüner Build oder gestartetes Deployment bedeutet noch nicht, dass die Änderung in ihrer App sichtbar ist.
+- Lies die feste App-Adresse aus der Projektkonfiguration. Erfinde keine URL und liefere keine kurzlebige Vorschau als dauerhafte App-Adresse.
+- Verifiziere die ausgelieferte Änderung beziehungsweise Commit-Kennung auf der festen Adresse, bevor du Erfolg meldest.
+
+## Veröffentlichung auf GitHub
+
+- Neue Änderung auf codex/<kurzer-name>, Commit und Push. PR nach main öffnen, passende Pflichtprüfungen abwarten und Auto-Merge aktivieren, soweit die Rechte das erlauben. Keine Reviewanfrage an zufällige Personen senden.
+- Änderungen an Prüfregeln, Zugriffen, Geheimnissen und zerstörerischen Datenoperationen brauchen Damians ausdrücklichen Auftrag. Unklare Freigaben nicht aus einer normalen Featurebitte ableiten.
+- Nach Merge auf den Workflow „Check and publish“ und dessen Liveprüfung warten. Build-Erfolg allein genügt nicht.
+- Prüfe den aktuellen main-Commit gegen version.json an der festen App-Adresse. Alternativ EXPECTED_SHA=<Commit> npm run verify:live verwenden. Auch die ausgelieferten JS-/CSS-Dateien müssen erreichbar sein.
+- Wenn Veröffentlichung nicht möglich ist, den geprüften Commit/PR erhalten und die konkrete fehlende Berechtigung kurz erklären. Kein „fertig“ behaupten.
+- Erledigte Änderungen in CHANGELOG.md festhalten. Technischen Stand in docs/architecture.md und offene Einrichtung in docs/owner-setup.md korrekt halten.
+- Prüfungen laufen vor dem Pages-Deploy. Eine automatische Rücknahme nach einem fehlgeschlagenen Livecheck ist noch nicht eingerichtet; keinen solchen Schutz behaupten.
+
+## Abschlussmeldung
+
+- Bei Erfolg maximal drei kurze Punkte: was sich geändert hat, der klickbare feste App-Link, wo sie die Änderung findet.
+- Beispiel für den Aufbau: „Die neue Frage ist jetzt da. Öffne [Deine App](die tatsächliche konfigurierte App-Adresse) und tippe unten auf Fragen.“ Den Beispieltext niemals mit einer erfundenen Adresse ausgeben.
+- Falls ein installierter App-Stand noch geöffnet ist, erkläre den getesteten einfachen Aktualisierungsschritt. Niemals „Cache leeren“, Entwicklerwerkzeuge öffnen oder Neuinstallation als normale Updateanleitung verlangen.
+- Sage nur „fertig“ oder „jetzt sichtbar“, wenn das überprüft wurde. Wenn die Veröffentlichung noch läuft oder nicht beobachtet werden kann, benenne genau diesen Zustand in Alltagssprache.
+
+## Fehler und Grenzen
+
+- Untersuche und behebe gewöhnliche technische Fehler selbst. Gib keine Terminalbefehle, Logdateien oder Buildfehler als Arbeitsauftrag an die Nutzerin weiter.
+- Behaupte keine Fehlerfreiheit. Smoke-Tests senken das Risiko; sie beweisen nicht, dass jeder denkbare Ablauf funktioniert.
+- Bei fehlgeschlagener Veröffentlichung bleibt möglichst die letzte funktionierende Version aktiv. Setze den eingerichteten Wiederherstellungsweg ein und prüfe dessen Ergebnis.
+- Wenn nach Veröffentlichung ein Fehler auffällt, stelle nach Möglichkeit die vorige funktionierende Version wieder her. Keine blinden Datenbank-Rollbacks.
+- Falls du wirklich blockiert bist, verstecke das nicht. Sage kurz, was noch nicht verfügbar ist, ob die bisherige App nutzbar ist und ob eine Freigabe oder Kontoverbindung fehlt.
+- Konto-, Kosten- oder Berechtigungsprobleme gehören an den in owner-setup genannten Verantwortlichen Damian. Nachrichten an ihn nur über einen ausdrücklich autorisierten Weg senden; ansonsten den notwendigen Schritt festhalten und der Nutzerin einfach erklären.
+- Komplexität allein bedeutet nicht „unmöglich“. Schlage zuerst eine kleine nutzbare Variante vor. Beispiel: „Das ist für den ersten Versuch sehr aufwendig. Wir können zunächst jeden Tag eine vorbereitete Frage anzeigen.“
+- Bei fehlenden Fähigkeiten oder Plattformgrenzen kurz erklären, was nicht geht, und die beste erreichbare Alternative nennen. Keine erfundenen Zusagen.
+
+## App-Verhalten
+
+- Die App bleibt eine für das iPhone gestaltete PWA mit einem festen Link und Home-Bildschirm-Symbol.
+- Neue Ansichten müssen auf schmalen Bildschirmen bedienbar sein. Ladezustände, leere Ansichten und Fehler verständlich gestalten.
+- Gemeinsame Inhalte brauchen ein separates Backend; lokale Notizen sind ausdrücklich nur für ein Gerät. Wenn ein Wunsch gemeinsames Speichern voraussetzt, den offenen Backend-Schritt benennen und mit Damian klären. Keine scheinbare gemeinsame Speicherung bauen.
+- Ohne Netz keinen erfolgreichen Speichervorgang vortäuschen.
+- Anmeldungen, gespeicherte Inhalte und offene Eingaben bei normalen Updates erhalten. Kein automatisches Neuladen mitten in der Eingabe.
+- Private Inhalte und Anmeldeantworten nicht im Service Worker zwischenspeichern.
+
+## Daten, Kosten und Zuständigkeit
+
+- Vor jeder neuen Datenart klären, ob Inhalte persönlich oder für beide sichtbar sind. Technische Umsetzung selbst wählen; fachliche Sichtbarkeit nicht erraten.
+- Zugriff serverseitig an die angemeldete Person und Paarzugehörigkeit binden. Eine versteckte Schaltfläche ist kein Zugriffsschutz.
+- Vor Änderungen an Anmeldung, Paarbeitritt oder Sichtbarkeit die kritischen erlaubten und verbotenen Abläufe festhalten und gezielt testen, einschließlich direkter Datenzugriffe.
+- Keine echten persönlichen Antworten in Prompts, Tests, Logs oder Repository übernehmen. Tests nutzen erfundene Konten und Inhalte.
+- Keine privilegierten Schlüssel in App, Repository oder Antworten schreiben.
+- Bestehende Live-Daten niemals zum Testen zurücksetzen oder löschen. Schemaänderungen zuerst im Testprojekt prüfen; gewöhnliche Erweiterungen kompatibel gestalten.
+- Kostenpflichtige Käufe, öffentliche Freigaben, zerstörerische Änderungen und neue Empfänger persönlicher Daten sind keine Routineentscheidungen. Dafür ist die passende ausdrückliche Freigabe nötig; technische Optionen nicht auf die Nutzerin abwälzen.
+- „Nimm die letzte Änderung zurück“ mit dem vorgesehenen Rücknahmeweg umsetzen. Persönliche Inhalte dabei erhalten.
+
+## Prüfungen
+
+- Nutze die dokumentierten Standardprüfungen. Prüfe den geänderten Ablauf und wichtige Nachbarfunktionen; keine endlosen unnötigen Wiederholungen.
+- Bei Änderungen an gemeinsamen Inhalten das Speichern und Lesen mit zwei getrennten Sitzungen prüfen.
+- Bei Änderungen an Zugriffen zusätzlich fremde und nicht angemeldete Anfragen prüfen.
+- Veröffentlichung nur über den eingerichteten Prüfweg. Prüfungen oder Rechte nicht abschwächen, um schneller „fertig“ sagen zu können.
+- Halte den tatsächlichen Projektstand für den nächsten Agenten kurz aktuell. Behaupte keine erledigten Schritte ohne Nachweis.
