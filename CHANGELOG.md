@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.1.4 — 2026-10-31
+
+### Entwicklung
+
+- Entwicklungsassistent erklärt bei passendem Anlass in wenigen einfachen Sätzen, wann eine Gesprächszusammenfassung, ein frischer Chat oder eine wiederverwendbare Arbeitsweise helfen kann.
+- Klare Übergaberegeln bewahren den tatsächlichen Arbeitsstand und halten private Gesprächsinhalte aus dem öffentlichen Projekt heraus.
+
 ## 0.1.3 — 2026-10-31
 
 ### Entwicklung
