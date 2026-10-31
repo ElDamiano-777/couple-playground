@@ -1,10 +1,17 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+async function enterAs(page: Page, name: `Masha` | `Damian` = `Masha`) {
+  await page.goto(`./`);
+  await page.getByRole(`button`, { name, exact: true }).click();
+}
 
 test(`personal welcome, navigation and narrow-screen layout work without script errors`, async ({ page }) => {
   const errors: string[] = [];
   page.on(`pageerror`, error => errors.push(error.message));
-  await page.goto(`./`);
+  await enterAs(page);
   await expect(page.getByRole(`heading`, { name: `Masheri!` })).toBeVisible();
+  await expect(page.locator(`html`)).toHaveAttribute(`lang`, `en`);
+  await expect(page.locator(`.welcome-hero`)).toHaveAttribute(`lang`, `ru`);
   await expect(page.getByRole(`link`, { name: `Open ChatGPT`, exact: true })).toHaveAttribute(`href`, `https://chatgpt.com/codex/cloud`);
   await page.getByRole(`button`, { name: `Your next idea`, exact: false }).click();
   await expect(page.getByRole(`heading`, { name: `Say it in your own words` })).toBeVisible();
@@ -16,7 +23,7 @@ test(`personal welcome, navigation and narrow-screen layout work without script 
 });
 
 test(`local note persists after reload and is honestly labelled as local`, async ({ page }) => {
-  await page.goto(`./`);
+  await enterAs(page);
   await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
   await expect(page.getByText(`Only on this phone for now. Not shared with your partner yet.`)).toBeVisible();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic test: walk by the sea`);
@@ -29,7 +36,7 @@ test(`local note persists after reload and is honestly labelled as local`, async
 
 test(`storage failure keeps draft and does not claim success`, async ({ page }) => {
   await page.addInitScript(() => { Storage.prototype.setItem = () => { throw new DOMException(`Full`, `QuotaExceededError`); }; });
-  await page.goto(`./`);
+  await enterAs(page);
   await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic unsaved draft`);
   await page.getByRole(`button`, { name: `Save thought` }).click();
@@ -40,7 +47,7 @@ test(`storage failure keeps draft and does not claim success`, async ({ page }) 
 
 test(`unreadable saved data is not silently overwritten`, async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem(`ryadom.notes.v1`, `{bad json`));
-  await page.goto(`./`);
+  await enterAs(page);
   await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
   await expect(page.getByRole(`status`)).toContainText(`we won’t overwrite them`);
   await page.getByLabel(`What would you like to remember?`).fill(`New draft`);
@@ -49,7 +56,7 @@ test(`unreadable saved data is not silently overwritten`, async ({ page }) => {
 });
 
 test(`notes render as text rather than executable markup`, async ({ page }) => {
-  await page.goto(`./`);
+  await enterAs(page);
   await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
   const text = `<img src=x onerror="window.bad=true">`;
   await page.getByLabel(`What would you like to remember?`).fill(text);
@@ -78,7 +85,7 @@ test(`PWA manifest, icon files and exact release metadata are served from the pr
 });
 
 test(`offline navigation has a clear fallback instead of a blank screen`, async ({ page, context }) => {
-  await page.goto(`./`);
+  await enterAs(page);
   await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.ready;
     if (!registration.active) throw new Error(`Service worker not active`);
@@ -91,9 +98,46 @@ test(`offline navigation has a clear fallback instead of a blank screen`, async 
 
 test(`update detection does not reload an unfinished draft`, async ({ page }) => {
   await page.route(`**/version.json*`, route => route.fulfill({ json: { commit: `f`.repeat(40) } }));
-  await page.goto(`./`);
+  await enterAs(page);
   await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic unfinished thought`);
   await expect(page.getByRole(`button`, { name: `Update`, exact: true })).toBeDisabled();
   await expect(page.getByLabel(`What would you like to remember?`)).toHaveValue(`Synthetic unfinished thought`);
+});
+
+
+test(`name choice is local, remembers the selection and can be changed`, async ({ page }) => {
+  await page.goto(`./`);
+  await expect(page.getByText(`This is just a name choice. It doesn’t protect or share your notes.`)).toBeVisible();
+  await page.getByRole(`button`, { name: `Damian`, exact: true }).click();
+  await expect(page.getByText(`Hi, Damian`)).toBeVisible();
+  await page.reload();
+  await expect(page.getByText(`Hi, Damian`)).toBeVisible();
+  await page.getByRole(`button`, { name: `More`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Change name` }).click();
+  await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
+  await page.reload();
+  await expect(page.getByText(`Hi, Masha`)).toBeVisible();
+});
+
+test(`older notes survive choosing a name`, async ({ page }) => {
+  await page.goto(`./`);
+  await page.evaluate(() => localStorage.setItem(`ryadom.notes.v1`, JSON.stringify([{ id: `old`, text: `Earlier thought`, createdAt: `2026-10-30T00:00:00.000Z` }])));
+  await page.reload();
+  await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
+  await page.reload();
+  await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
+  await expect(page.getByText(`Earlier thought`, { exact: true })).toBeVisible();
+});
+
+test(`unknown name prompts for a choice and storage failure still permits entry`, async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(`together.profile.v1`, `unknown`);
+    Storage.prototype.setItem = () => { throw new DOMException(`Full`, `QuotaExceededError`); };
+  });
+  await page.goto(`./`);
+  await expect(page.getByRole(`heading`, { name: `Who’s here?` })).toBeVisible();
+  await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
+  await expect(page.getByRole(`heading`, { name: `Masheri!` })).toBeVisible();
+  await expect(page.getByText(`We couldn’t save your name on this device. You can still use the app.`)).toBeVisible();
 });

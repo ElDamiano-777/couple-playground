@@ -3,6 +3,15 @@ import config from '../app.config.json';
 import { readNotes, saveNotes, type Note } from './storage';
 
 type Page = `home` | `notes` | `more`;
+type Profile = `masha` | `damian`;
+const profileKey = `together.profile.v1`;
+
+function readProfile(): Profile | null {
+  try {
+    const value = localStorage.getItem(profileKey);
+    return value === `masha` || value === `damian` ? value : null;
+  } catch { return null; }
+}
 
 function Icon({ name }: { name: `heart` | `home` | `note` | `more` | `arrow` | `plus` | `spark` }) {
   const paths = {
@@ -19,6 +28,8 @@ function Icon({ name }: { name: `heart` | `home` | `note` | `more` | `arrow` | `
 
 export default function App() {
   const [page, setPage] = useState<Page>(`home`);
+  const [profile, setProfile] = useState<Profile | null>(readProfile);
+  const [profileSaved, setProfileSaved] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
   const [draft, setDraft] = useState(``);
   const [message, setMessage] = useState(``);
@@ -61,6 +72,12 @@ export default function App() {
     return () => window.removeEventListener(`focus`, check);
   }, []);
 
+  function chooseProfile(value: Profile) {
+    try { localStorage.setItem(profileKey, value); setProfileSaved(true); }
+    catch { setProfileSaved(false); }
+    setProfile(value);
+  }
+
   function save(event: FormEvent) {
     event.preventDefault();
     if (!draft.trim() || loadFailed) return;
@@ -85,7 +102,7 @@ export default function App() {
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="header">
       <a className="wordmark" href={config.basePath} aria-label="Together — home"><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
-      <span className="edition"><span />Your story starts here</span>
+      <span className="edition"><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</span>
     </header>
 
     {!online && <div className="notice" role="status">You’re offline. You can still save notes on this phone.</div>}
@@ -94,28 +111,39 @@ export default function App() {
       <button disabled={!!draft.trim()} onClick={() => window.location.replace(`${config.appUrl}?v=${Date.now()}`)}>Update</button>
     </div>}
 
+    {!profileSaved && profile && <p className="profile-notice" aria-live="polite">We couldn’t save your name on this device. You can still use the app.</p>}
     <main id="main" className="main">
+      {!profile ? <section className="profile-choice">
+        <p className="eyebrow">A LITTLE SPACE FOR TWO</p>
+        <h1>Who’s here<span>?</span></h1>
+        <p className="intro">Choose your name to make this space feel like yours.</p>
+        <div className="profile-options">
+          <button className="primary" onClick={() => chooseProfile(`masha`)}>Masha</button>
+          <button className="primary" onClick={() => chooseProfile(`damian`)}>Damian</button>
+        </div>
+        <p className="small-print">This is just a name choice. It doesn’t protect or share your notes.</p>
+      </section> : <>
       {page === `home` && <>
-        <section className="hero welcome-hero" lang="en">
+        <section className="hero welcome-hero" lang="ru">
           <div className="hero-copy">
-            <p className="eyebrow">A LITTLE SPACE FOR THE TWO OF US</p>
+            <p className="eyebrow">МАЛЕНЬКОЕ ПРОСТРАНСТВО ДЛЯ НАС ДВОИХ</p>
             <h1>Masheri<span>!</span></h1>
-            <p className="welcome-lead">Nice to see you, my love.</p>
+            <p className="welcome-lead">Как же я рад тебя видеть, любимая.</p>
             <div className="welcome-message">
-              <p>Taking the first step might feel a little scary, but there’s nothing to be frightened of. You don’t need to know how any of this works. Your little app is already running — a blank canvas for you and your big love.</p>
-              <p>Now bring your agent and your imagination, and turn whatever you dream of into something real. Go crazy. There are (almost) no limits.</p>
-              <p>Your agent will take care of the complicated bits. If something isn’t possible, it will explain why in the simplest words and help you find another way.</p>
-              <p className="welcome-invitation">Now open ChatGPT and build some craziiiee cool stuff for us, my love :)</p>
-              <p className="welcome-signoff"><span>SUPERMUCH LOVE,</span><span>HUGS AND KISSES :**</span></p>
+              <p>Первый шаг может немного пугать, но бояться здесь нечего. Тебе не нужно разбираться, как всё устроено. Твоё маленькое приложение уже работает — это чистый лист для нас двоих.</p>
+              <p>Теперь зови своего помощника, включай фантазию и воплощай всё, что придёт в голову. Дай себе волю! Здесь (почти) нет границ.</p>
+              <p>Помощник возьмёт на себя всё сложное. Если что-то окажется невозможным, он объяснит это самыми простыми словами и поможет найти другой путь.</p>
+              <p className="welcome-invitation">А теперь открывай ChatGPT и создавай для нас что-нибудь безу-у-умно классное, моя любовь :)</p>
+              <p className="welcome-signoff"><span>ОЧЕНЬ СИЛЬНО ЛЮБЛЮ,</span><span>ОБНИМАЮ И ЦЕЛУЮ :**</span></p>
             </div>
-            <a className="primary welcome-cta" href="https://chatgpt.com/codex/cloud" target="_blank" rel="noopener noreferrer">Open ChatGPT <Icon name="arrow" /></a>
+            <a className="primary welcome-cta" lang="en" href="https://chatgpt.com/codex/cloud" target="_blank" rel="noopener noreferrer">Open ChatGPT <Icon name="arrow" /></a>
           </div>
           <div className="illustration" aria-hidden="true">
             <div className="orbit orbit-one" /><div className="orbit orbit-two" />
             <span className="little-star star-one">✦</span><span className="little-star star-two">✧</span>
-            <div className="heart-card heart-back"><Icon name="heart" /><span>you</span></div>
-            <div className="heart-card heart-front"><Icon name="heart" /><span>me</span></div>
-            <span className="tiny-label">better together</span>
+            <div className="heart-card heart-back"><Icon name="heart" /><span>ты</span></div>
+            <div className="heart-card heart-front"><Icon name="heart" /><span>я</span></div>
+            <span className="tiny-label">вместе лучше</span>
           </div>
         </section>
 
@@ -157,14 +185,16 @@ export default function App() {
         <p className="intro">You don’t need to know about computers. Just tell your agent what you’d like to change.</p>
         <div className="help-card"><span className="card-icon"><Icon name="spark" /></span><h2>Say it in your own words</h2><p>Open your chat with your agent, tap the microphone on your keyboard, and describe your idea. After making the change, your agent will send you the app link and tell you where to find it.</p><blockquote>“I’d love a shared list of date ideas here.”</blockquote><p className="muted">You can speak Russian, English or German.</p></div>
         <div className="help-card"><span className="card-icon peach"><Icon name="home" /></span><h2>Add it to your iPhone</h2><p>Open this app in Safari. Tap Share, then Add to Home Screen. Now you’ll have your own little app icon.</p></div>
+        <div className="help-card"><h2>Your name</h2><p>Currently: {profile === `masha` ? `Masha` : `Damian`}</p><button className="primary" onClick={() => { setProfile(null); setPage(`home`); window.scrollTo({ top: 0, behavior: `instant` }); }}>Change name</button></div>
         <div className="local-label"><span />This is a little demo. Notes stay in this browser and aren’t shared with your partner yet.</div>
         <p className="small-print">Clearing your browser data also removes these local notes. Other people using the same browser can read them.</p>
       </section>}
+      </>}
     </main>
 
     <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>
-    <nav className="bottom-nav" aria-label="Main navigation">
+    {profile && <nav className="bottom-nav" aria-label="Main navigation">
       {([{ id: `home`, icon: `home`, label: `Our space` }, { id: `notes`, icon: `note`, label: `Notes` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={page === item.id ? `active` : ``} aria-current={page === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Icon name={item.icon} /><span>{item.label}</span></button>)}
-    </nav>
+    </nav>}
   </div>;
 }

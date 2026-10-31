@@ -1,5 +1,15 @@
 # Änderungen
 
+## 0.1.7 — 2026-10-31
+
+### Neu
+
+- Einfache lokale Namensauswahl für Masha und Damian, jederzeit änderbar.
+
+### Geändert
+
+- Persönliche Begrüßung auf Russisch; die übrige Oberfläche bleibt Englisch.
+
 ## 0.1.6 — 2026-10-31
 
 ### Geändert
