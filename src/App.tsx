@@ -28,7 +28,7 @@ export default function App() {
 
   useEffect(() => {
     try { setNotes(readNotes()); }
-    catch { setLoadFailed(true); setMessage(`Не удалось открыть заметки. Попробуй открыть приложение ещё раз — мы не будем их перезаписывать.`); }
+    catch { setLoadFailed(true); setMessage(`We couldn’t open your notes. Try reopening the app — we won’t overwrite them.`); }
     const syncConnection = () => setOnline(navigator.onLine);
     window.addEventListener(`online`, syncConnection);
     window.addEventListener(`offline`, syncConnection);
@@ -69,9 +69,9 @@ export default function App() {
       saveNotes(next);
       setNotes(next);
       setDraft(``);
-      setMessage(`Сохранено на этом телефоне.`);
+      setMessage(`Saved on this phone.`);
     } catch {
-      setMessage(`Не получилось сохранить. Текст остался здесь — попробуй ещё раз.`);
+      setMessage(`We couldn’t save that. Your text is still here — please try again.`);
     }
   }
 
@@ -82,16 +82,16 @@ export default function App() {
   }
 
   return <div className="app">
-    <a className="skip-link" href="#main">К содержимому</a>
+    <a className="skip-link" href="#main">Skip to content</a>
     <header className="header">
-      <a className="wordmark" href={config.basePath} aria-label="Рядом — главная"><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>место для двоих</span></a>
-      <span className="edition"><span />Начало вашей истории</span>
+      <a className="wordmark" href={config.basePath} aria-label="Together — home"><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
+      <span className="edition"><span />Your story starts here</span>
     </header>
 
-    {!online && <div className="notice" role="status">Сейчас нет связи. Заметки можно сохранить на этом телефоне.</div>}
+    {!online && <div className="notice" role="status">You’re offline. You can still save notes on this phone.</div>}
     {updateReady && <div className="notice update" role="status">
-      <span>{draft.trim() ? `Есть обновление. Сначала сохрани свою заметку.` : `Для вас есть обновление.`}</span>
-      <button disabled={!!draft.trim()} onClick={() => window.location.replace(`${config.appUrl}?v=${Date.now()}`)}>Обновить</button>
+      <span>{draft.trim() ? `There’s an update. Save your note first.` : `There’s a little update for you.`}</span>
+      <button disabled={!!draft.trim()} onClick={() => window.location.replace(`${config.appUrl}?v=${Date.now()}`)}>Update</button>
     </div>}
 
     <main id="main" className="main">
@@ -120,51 +120,51 @@ export default function App() {
         </section>
 
         <section className="start-section" aria-labelledby="start-title">
-          <div className="section-label"><h2 id="start-title">Начнём с малого</h2><span>Без спешки. По-вашему.</span></div>
+          <div className="section-label"><h2 id="start-title">Start with something small</h2><span>No rush. Make it yours.</span></div>
           <div className="starter-grid">
             <button className="start-card note-card" onClick={() => navigate(`notes`)}>
-              <span className="card-icon"><Icon name="note" /></span><span className="card-copy"><strong>Мысль на потом</strong><span>Сохрани то, что не хочется забыть.</span></span><Icon name="arrow" />
+              <span className="card-icon"><Icon name="note" /></span><span className="card-copy"><strong>A thought for later</strong><span>Keep a little something you don’t want to forget.</span></span><Icon name="arrow" />
             </button>
             <button className="start-card create-card" onClick={() => navigate(`more`)}>
-              <span className="card-icon"><Icon name="spark" /></span><span className="card-copy"><strong>А дальше — твоя идея</strong><span>Придумай, каким станет ваше место.</span></span><Icon name="arrow" />
+              <span className="card-icon"><Icon name="spark" /></span><span className="card-copy"><strong>Your next idea</strong><span>Imagine what this space could become.</span></span><Icon name="arrow" />
             </button>
           </div>
         </section>
-        <aside className="gentle-note"><Icon name="heart" /><p>Это только начало. Здесь пока нет правил,<br />кроме одного: пусть вам будет хорошо вместе.</p></aside>
+        <aside className="gentle-note"><Icon name="heart" /><p>This is only the beginning. There’s just one rule:<br />make it something you’ll love together.</p></aside>
       </>}
 
       {page === `notes` && <section className="inner-page">
-        <p className="eyebrow">МАЛЕНЬКИЕ ВАЖНЫЕ ВЕЩИ</p>
-        <h1>Мысли на потом<span>.</span></h1>
-        <p className="intro">Идея для вечера, тёплые слова или что-то совсем ваше.</p>
-        <div className="local-label"><span />Пока только на этом телефоне. Общего доступа ещё нет.</div>
+        <p className="eyebrow">THE LITTLE THINGS THAT MATTER</p>
+        <h1>Thoughts for later<span>.</span></h1>
+        <p className="intro">An idea for an evening, a few kind words, or something just for you.</p>
+        <div className="local-label"><span />Only on this phone for now. Not shared with your partner yet.</div>
         <form className="note-form" onSubmit={save}>
-          <label htmlFor="thought">Что хочется сохранить?</label>
-          <textarea id="thought" value={draft} onChange={event => setDraft(event.target.value)} placeholder="Например, однажды встретить рассвет у моря…" rows={4} />
-          <button className="primary" disabled={!draft.trim() || loadFailed} type="submit">Сохранить мысль <Icon name="plus" /></button>
+          <label htmlFor="thought">What would you like to remember?</label>
+          <textarea id="thought" value={draft} onChange={event => setDraft(event.target.value)} placeholder="Maybe watching the sunrise by the sea one day…" rows={4} />
+          <button className="primary" disabled={!draft.trim() || loadFailed} type="submit">Save thought <Icon name="plus" /></button>
         </form>
         {message && <p className="feedback" role="status">{message}</p>}
-        <div className="saved-heading"><h2>Твои заметки</h2><span>{notes.length}</span></div>
-        {notes.length === 0 && !loadFailed && <div className="empty-state"><Icon name="note" /><p>Первая мысль может быть совсем маленькой.</p></div>}
+        <div className="saved-heading"><h2>Your notes</h2><span>{notes.length}</span></div>
+        {notes.length === 0 && !loadFailed && <div className="empty-state"><Icon name="note" /><p>Your first thought can be a tiny one.</p></div>}
         <div className="notes-list">{notes.map(note => <article className="saved-note" key={note.id}>
-          <time dateTime={note.createdAt}>{new Date(note.createdAt).toLocaleDateString(`ru-RU`, { day: `numeric`, month: `long` })}</time><p>{note.text}</p>
+          <time dateTime={note.createdAt}>{new Date(note.createdAt).toLocaleDateString(`en-GB`, { day: `numeric`, month: `long` })}</time><p>{note.text}</p>
         </article>)}</div>
       </section>}
 
       {page === `more` && <section className="inner-page">
-        <p className="eyebrow">ПУСТЬ ЭТО БУДЕТ ВАШИМ</p>
-        <h1>Всё начинается<br />с идеи<span>.</span></h1>
-        <p className="intro">Не нужно разбираться в компьютерах. Просто расскажи помощнику, что хочется изменить.</p>
-        <div className="help-card"><span className="card-icon"><Icon name="spark" /></span><h2>Скажи своими словами</h2><p>Открой свою беседу с помощником, нажми микрофон на клавиатуре и расскажи, что придумала. После изменения он даст ссылку на приложение и объяснит, где всё найти.</p><blockquote>«Хочу, чтобы здесь была наша общая коллекция идей для свиданий»</blockquote><p className="muted">Можно по-русски, по-английски или по-немецки.</p></div>
-        <div className="help-card"><span className="card-icon peach"><Icon name="home" /></span><h2>Добавь на экран iPhone</h2><p>Открой это приложение в Safari. Нажми «Поделиться», затем «На экран „Домой“». Теперь ваше место будет открываться по своему значку.</p></div>
-        <div className="local-label"><span />Пробная версия. Заметки хранятся в этом браузере и пока не передаются партнёру.</div>
-        <p className="small-print">Если удалить данные браузера, локальные заметки тоже удалятся. На общем устройстве их смогут прочитать другие пользователи браузера.</p>
+        <p className="eyebrow">MAKE IT YOURS</p>
+        <h1>It all starts<br />with an idea<span>.</span></h1>
+        <p className="intro">You don’t need to know about computers. Just tell your agent what you’d like to change.</p>
+        <div className="help-card"><span className="card-icon"><Icon name="spark" /></span><h2>Say it in your own words</h2><p>Open your chat with your agent, tap the microphone on your keyboard, and describe your idea. After making the change, your agent will send you the app link and tell you where to find it.</p><blockquote>“I’d love a shared list of date ideas here.”</blockquote><p className="muted">You can speak Russian, English or German.</p></div>
+        <div className="help-card"><span className="card-icon peach"><Icon name="home" /></span><h2>Add it to your iPhone</h2><p>Open this app in Safari. Tap Share, then Add to Home Screen. Now you’ll have your own little app icon.</p></div>
+        <div className="local-label"><span />This is a little demo. Notes stay in this browser and aren’t shared with your partner yet.</div>
+        <p className="small-print">Clearing your browser data also removes these local notes. Other people using the same browser can read them.</p>
       </section>}
     </main>
 
-    <footer className="footer"><span>С маленьких вещей начинается близость.</span><span className="footer-heart">♡</span><span>Рядом · первый шаг</span></footer>
-    <nav className="bottom-nav" aria-label="Основная навигация">
-      {([{ id: `home`, icon: `home`, label: `Наше место` }, { id: `notes`, icon: `note`, label: `Заметки` }, { id: `more`, icon: `more`, label: `Ещё` }] as const).map(item => <button key={item.id} className={page === item.id ? `active` : ``} aria-current={page === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Icon name={item.icon} /><span>{item.label}</span></button>)}
+    <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>
+    <nav className="bottom-nav" aria-label="Main navigation">
+      {([{ id: `home`, icon: `home`, label: `Our space` }, { id: `notes`, icon: `note`, label: `Notes` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={page === item.id ? `active` : ``} aria-current={page === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Icon name={item.icon} /><span>{item.label}</span></button>)}
     </nav>
   </div>;
 }

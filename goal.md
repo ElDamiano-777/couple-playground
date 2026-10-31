@@ -1,4 +1,4 @@
-# Рядом — место для двоих
+# Together — a place for two
 
 - Eine Person ohne Computerkenntnisse gestaltet ihre Couple-App ausschließlich vom iPhone aus mit einem Entwicklungsagenten.
 - Sie beschreibt Wünsche auf Russisch, Englisch oder Deutsch. Der Agent antwortet immer in der Sprache der aktuellen Nachricht.
@@ -8,7 +8,7 @@
 ## Aktueller Umfang
 
 - Mobile PWA mit Home-Bildschirm-Symbol, Offline-Hinweis und sicheren Aktualisierungen.
-- Russischer Startbildschirm, lokale Notizen und einfache Anleitung zur Weiterentwicklung.
+- Englische Oberfläche mit persönlicher Begrüßung, lokalen Notizen und einfacher Anleitung zur Weiterentwicklung. Die Sprache der Begrüßung ist davon unabhängig.
 - Lokale Notizen bleiben im aktuellen Browser. Sie sind kein gemeinsamer Datenspeicher und kein Beweis für eine Paarverbindung.
 - Gemeinsame Anmeldung, Einladungen und Synchronisation sind noch nicht eingerichtet. Die vorhandenen kostenlosen Supabase-Projektplätze sind belegt. Entscheidung des Eigentümers steht aus.
 - Ein öffentliches Repository und eine öffentlich erreichbare App enthalten keine eingebauten persönlichen Inhalte oder geheimen Schlüssel.

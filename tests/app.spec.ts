@@ -6,10 +6,10 @@ test(`personal welcome, navigation and narrow-screen layout work without script 
   await page.goto(`./`);
   await expect(page.getByRole(`heading`, { name: `Masheri!` })).toBeVisible();
   await expect(page.getByRole(`link`, { name: `Open ChatGPT`, exact: true })).toHaveAttribute(`href`, `https://chatgpt.com/codex/cloud`);
-  await page.getByRole(`button`, { name: `А дальше — твоя идея`, exact: false }).click();
-  await expect(page.getByRole(`heading`, { name: `Скажи своими словами` })).toBeVisible();
-  await expect(page.getByText(`Можно по-русски, по-английски или по-немецки.`)).toBeVisible();
-  await page.getByRole(`button`, { name: `Наше место`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Your next idea`, exact: false }).click();
+  await expect(page.getByRole(`heading`, { name: `Say it in your own words` })).toBeVisible();
+  await expect(page.getByText(`You can speak Russian, English or German.`)).toBeVisible();
+  await page.getByRole(`button`, { name: `Our space`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `Masheri!` })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
@@ -17,43 +17,43 @@ test(`personal welcome, navigation and narrow-screen layout work without script 
 
 test(`local note persists after reload and is honestly labelled as local`, async ({ page }) => {
   await page.goto(`./`);
-  await page.getByRole(`button`, { name: `Заметки`, exact: true }).click();
-  await expect(page.getByText(`Пока только на этом телефоне. Общего доступа ещё нет.`)).toBeVisible();
-  await page.getByLabel(`Что хочется сохранить?`).fill(`Synthetic test: walk by the sea`);
-  await page.getByRole(`button`, { name: `Сохранить мысль` }).click();
-  await expect(page.getByRole(`status`)).toHaveText(`Сохранено на этом телефоне.`);
+  await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
+  await expect(page.getByText(`Only on this phone for now. Not shared with your partner yet.`)).toBeVisible();
+  await page.getByLabel(`What would you like to remember?`).fill(`Synthetic test: walk by the sea`);
+  await page.getByRole(`button`, { name: `Save thought` }).click();
+  await expect(page.getByRole(`status`)).toHaveText(`Saved on this phone.`);
   await page.reload();
-  await page.getByRole(`button`, { name: `Заметки`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
   await expect(page.getByText(`Synthetic test: walk by the sea`, { exact: true })).toBeVisible();
 });
 
 test(`storage failure keeps draft and does not claim success`, async ({ page }) => {
   await page.addInitScript(() => { Storage.prototype.setItem = () => { throw new DOMException(`Full`, `QuotaExceededError`); }; });
   await page.goto(`./`);
-  await page.getByRole(`button`, { name: `Заметки`, exact: true }).click();
-  await page.getByLabel(`Что хочется сохранить?`).fill(`Synthetic unsaved draft`);
-  await page.getByRole(`button`, { name: `Сохранить мысль` }).click();
-  await expect(page.getByRole(`status`)).toContainText(`Не получилось сохранить`);
-  await expect(page.getByLabel(`Что хочется сохранить?`)).toHaveValue(`Synthetic unsaved draft`);
+  await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
+  await page.getByLabel(`What would you like to remember?`).fill(`Synthetic unsaved draft`);
+  await page.getByRole(`button`, { name: `Save thought` }).click();
+  await expect(page.getByRole(`status`)).toContainText(`We couldn’t save that`);
+  await expect(page.getByLabel(`What would you like to remember?`)).toHaveValue(`Synthetic unsaved draft`);
   await expect(page.locator(`.saved-note`)).toHaveCount(0);
 });
 
 test(`unreadable saved data is not silently overwritten`, async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem(`ryadom.notes.v1`, `{bad json`));
   await page.goto(`./`);
-  await page.getByRole(`button`, { name: `Заметки`, exact: true }).click();
-  await expect(page.getByRole(`status`)).toContainText(`не будем их перезаписывать`);
-  await page.getByLabel(`Что хочется сохранить?`).fill(`New draft`);
-  await expect(page.getByRole(`button`, { name: `Сохранить мысль` })).toBeDisabled();
+  await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
+  await expect(page.getByRole(`status`)).toContainText(`we won’t overwrite them`);
+  await page.getByLabel(`What would you like to remember?`).fill(`New draft`);
+  await expect(page.getByRole(`button`, { name: `Save thought` })).toBeDisabled();
   expect(await page.evaluate(() => localStorage.getItem(`ryadom.notes.v1`))).toBe(`{bad json`);
 });
 
 test(`notes render as text rather than executable markup`, async ({ page }) => {
   await page.goto(`./`);
-  await page.getByRole(`button`, { name: `Заметки`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
   const text = `<img src=x onerror="window.bad=true">`;
-  await page.getByLabel(`Что хочется сохранить?`).fill(text);
-  await page.getByRole(`button`, { name: `Сохранить мысль` }).click();
+  await page.getByLabel(`What would you like to remember?`).fill(text);
+  await page.getByRole(`button`, { name: `Save thought` }).click();
   await expect(page.locator(`.saved-note p`)).toHaveText(text);
   await expect(page.locator(`.saved-note img`)).toHaveCount(0);
 });
@@ -63,6 +63,7 @@ test(`PWA manifest, icon files and exact release metadata are served from the pr
   expect(manifestResponse.ok()).toBe(true);
   const manifest = await manifestResponse.json();
   expect(manifest.display).toBe(`standalone`);
+  expect(manifest.lang).toBe(`en`);
   expect(manifest.start_url).toBe(`/couple-playground/`);
   for (const icon of manifest.icons) {
     const response = await request.get(icon.src);
@@ -85,14 +86,14 @@ test(`offline navigation has a clear fallback instead of a blank screen`, async 
   await page.reload();
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole(`heading`, { name: `Скоро снова рядом` })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `You’re offline` })).toBeVisible();
 });
 
 test(`update detection does not reload an unfinished draft`, async ({ page }) => {
   await page.route(`**/version.json*`, route => route.fulfill({ json: { commit: `f`.repeat(40) } }));
   await page.goto(`./`);
-  await page.getByRole(`button`, { name: `Заметки`, exact: true }).click();
-  await page.getByLabel(`Что хочется сохранить?`).fill(`Synthetic unfinished thought`);
-  await expect(page.getByRole(`button`, { name: `Обновить`, exact: true })).toBeDisabled();
-  await expect(page.getByLabel(`Что хочется сохранить?`)).toHaveValue(`Synthetic unfinished thought`);
+  await page.getByRole(`button`, { name: `Notes`, exact: true }).click();
+  await page.getByLabel(`What would you like to remember?`).fill(`Synthetic unfinished thought`);
+  await expect(page.getByRole(`button`, { name: `Update`, exact: true })).toBeDisabled();
+  await expect(page.getByLabel(`What would you like to remember?`)).toHaveValue(`Synthetic unfinished thought`);
 });

@@ -1,8 +1,8 @@
 {
   "id": "/couple-playground/",
-  "name": "Рядом — место для двоих",
-  "short_name": "Рядом",
-  "lang": "ru",
+  "name": "Together — a place for two",
+  "short_name": "Together",
+  "lang": "en",
   "start_url": "/couple-playground/",
   "scope": "/couple-playground/",
   "display": "standalone",
