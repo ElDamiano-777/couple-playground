@@ -40,3 +40,11 @@
   .welcome-lead { font-size: 22px; margin-bottom: 25px; }
   .welcome-message p { font-size: 14px; line-height: 1.85; }
 }
+
+.profile-choice { max-width: 620px; margin: 9vh auto; padding: 2rem; text-align: center; }
+.profile-choice h1 { font-family: var(--font-display, Georgia, serif); font-size: clamp(2.7rem, 8vw, 4.5rem); margin: .5rem 0 1rem; }
+.profile-choice h1 span { color: #d27672; }
+.profile-options { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; margin: 2rem 0; }
+.profile-options button { min-width: 140px; justify-content: center; }
+.profile-choice .small-print { max-width: 360px; margin: auto; }
+.profile-notice { margin: 1rem auto; padding: .75rem 1rem; max-width: 620px; text-align: center; }
