@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.1.6 — 2026-10-31
+
+### Geändert
+
+- Oberfläche, Hinweise und Offline-Ansicht standardmäßig auf Englisch; die persönliche Begrüßung bleibt separat.
+- App-Name und Installationsanzeige lauten „Together“; bestehende lokale Notizen bleiben erhalten.
+
 ## 0.1.5 — 2026-10-31
 
 ### Geändert
