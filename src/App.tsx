@@ -96,19 +96,26 @@ export default function App() {
 
     <main id="main" className="main">
       {page === `home` && <>
-        <section className="hero">
+        <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">
-            <p className="eyebrow">ВАШЕ МАЛЕНЬКОЕ ПРОСТРАНСТВО</p>
-            <h1>Ближе друг<br />к другу<span>.</span></h1>
-            <p className="intro">Здесь будет всё ваше.<br />Маленькие радости, общие идеи<br className="mobile-break" /> и время только для двоих.</p>
-            <button className="primary" onClick={() => navigate(`notes`)}>Сохранить первую мысль <Icon name="arrow" /></button>
+            <p className="eyebrow">A LITTLE SPACE FOR THE TWO OF US</p>
+            <h1>Masheri<span>!</span></h1>
+            <p className="welcome-lead">Nice to see you, my love.</p>
+            <div className="welcome-message">
+              <p>Taking the first step might feel a little scary, but there’s nothing to be frightened of. You don’t need to know how any of this works. Your little app is already running — a blank canvas for you and your big love.</p>
+              <p>Now bring your agent and your imagination, and turn whatever you dream of into something real. Go crazy. There are (almost) no limits.</p>
+              <p>Your agent will take care of the complicated bits. If something isn’t possible, it will explain why in the simplest words and help you find another way.</p>
+              <p className="welcome-invitation">Now open ChatGPT and build some craziiiee cool stuff for us, my love :)</p>
+              <p className="welcome-signoff"><span>SUPERMUCH LOVE,</span><span>HUGS AND KISSES :**</span></p>
+            </div>
+            <a className="primary welcome-cta" href="https://chatgpt.com/codex/cloud" target="_blank" rel="noopener noreferrer">Open ChatGPT <Icon name="arrow" /></a>
           </div>
           <div className="illustration" aria-hidden="true">
             <div className="orbit orbit-one" /><div className="orbit orbit-two" />
             <span className="little-star star-one">✦</span><span className="little-star star-two">✧</span>
-            <div className="heart-card heart-back"><Icon name="heart" /><span>ты</span></div>
-            <div className="heart-card heart-front"><Icon name="heart" /><span>я</span></div>
-            <span className="tiny-label">лучше вместе</span>
+            <div className="heart-card heart-back"><Icon name="heart" /><span>you</span></div>
+            <div className="heart-card heart-front"><Icon name="heart" /><span>me</span></div>
+            <span className="tiny-label">better together</span>
           </div>
         </section>
 

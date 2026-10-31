@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.1.5 — 2026-10-31
+
+### Geändert
+
+- Persönliche englische Begrüßung für Masheri auf der Startseite, mit Liebesbotschaft und direktem Weg zu ChatGPT.
+
 ## 0.1.4 — 2026-10-31
 
 ### Entwicklung
