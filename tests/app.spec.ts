@@ -1,22 +1,23 @@
 import { test, expect } from '@playwright/test';
 
-test(`Russian home, navigation and narrow-screen layout work without script errors`, async ({ page }) => {
+test(`personal welcome, navigation and narrow-screen layout work without script errors`, async ({ page }) => {
   const errors: string[] = [];
   page.on(`pageerror`, error => errors.push(error.message));
   await page.goto(`./`);
-  await expect(page.getByRole(`heading`, { name: `Ближе друг к другу.` })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `Masheri!` })).toBeVisible();
+  await expect(page.getByRole(`link`, { name: `Open ChatGPT`, exact: true })).toHaveAttribute(`href`, `https://chatgpt.com/codex/cloud`);
   await page.getByRole(`button`, { name: `А дальше — твоя идея`, exact: false }).click();
   await expect(page.getByRole(`heading`, { name: `Скажи своими словами` })).toBeVisible();
   await expect(page.getByText(`Можно по-русски, по-английски или по-немецки.`)).toBeVisible();
   await page.getByRole(`button`, { name: `Наше место`, exact: true }).click();
-  await expect(page.getByRole(`heading`, { name: `Ближе друг к другу.` })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `Masheri!` })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
 });
 
 test(`local note persists after reload and is honestly labelled as local`, async ({ page }) => {
   await page.goto(`./`);
-  await page.getByRole(`button`, { name: `Сохранить первую мысль` }).click();
+  await page.getByRole(`button`, { name: `Заметки`, exact: true }).click();
   await expect(page.getByText(`Пока только на этом телефоне. Общего доступа ещё нет.`)).toBeVisible();
   await page.getByLabel(`Что хочется сохранить?`).fill(`Synthetic test: walk by the sea`);
   await page.getByRole(`button`, { name: `Сохранить мысль` }).click();
