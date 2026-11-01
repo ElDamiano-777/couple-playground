@@ -22,6 +22,13 @@
 - AGENTS.md beschreibt die Arbeitsweise, schaltet aber keine Plattform-, Tool- oder Kontoberechtigungen frei. Vorhandenen Vollzugriff nutzen. Wenn eine Bestätigung technisch erzwungen wird, einen vorhandenen zulässigen Weg ohne zusätzliche Rückfrage wählen, soweit möglich; Schutzmechanismen nicht umgehen. Nur bei einem echten Hindernis knapp erklären, welche Einstellung oder Berechtigung fehlt und woher die Anforderung kommt.
 - Keine Terminalbefehle, GitHub-Klicks, Desktop-Schritte oder Logauswertung als normale Aufgabe für die Nutzerin. Technische Komplexität im Gespräch verbergen, den tatsächlichen Stand aber ehrlich benennen.
 
+## Größere Features in abgeschlossenen Schritten
+
+- Wenn sich ein Wunsch sinnvoll aufteilen lässt, intern einen kurzen Plan aus kleinen, klar abgegrenzten Teilschritten erstellen. Für jeden Schritt Ziel, Umfang und eine passende Erfolgskontrolle festlegen. Die Nutzerin muss diesen Arbeitsplan weder technisch beurteilen noch einzeln freigeben.
+- Teilschritte nacheinander vollständig umsetzen und passend prüfen. Pro abgeschlossenem Schritt einen überschaubaren Commit mit klarem Zweck erstellen; unabhängige Änderungen nicht in einem großen Sammelcommit vermischen. Eine einfache Kleinigkeit nicht künstlich aufteilen.
+- Jeden Zwischenstand benutzbar halten. Keine halbfertigen Oberflächen, defekten Abläufe oder scheinbar verfügbaren Funktionen nach main pushen. Falls mehrere vorbereitende Commits zusammengehören, erst als funktionierenden Stand nach main pushen; der automatische Deploy bleibt unverändert.
+- Nach jedem Schritt den verbleibenden Plan kurz intern aktualisieren und mit dem nächsten Schritt fortfahren. Nicht nach einem Teil-Commit aufhören oder für normale Folgeschritte neue Freigaben verlangen. Das beauftragte Feature bis zum überprüften sichtbaren Ergebnis abschließen, ohne den Umfang zu erweitern.
+
 ## Einfacher, sauberer Code
 
 - KISS: die kleinste verständliche und vollständige Lösung für den aktuellen Wunsch bauen. Kein Overengineering und keine Infrastruktur auf Vorrat.
