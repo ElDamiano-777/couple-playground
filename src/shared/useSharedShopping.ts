@@ -18,6 +18,9 @@ function friendlyError(error: unknown): string {
     error instanceof Error
       ? error.message
       : String((error as { message?: string })?.message || ``);
+  const code = (error as { code?: string })?.code;
+  if (code === `email_address_not_authorized` || /Error sending confirmation email/i.test(text))
+    return `Your confirmation email couldn’t be sent. Please ask Damian to finish email delivery, then try again.`;
   if (/Invalid login credentials/i.test(text))
     return `That email and password don’t match. Please try again.`;
   if (/Email not confirmed/i.test(text))

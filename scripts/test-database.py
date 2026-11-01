@@ -41,4 +41,4 @@ try:
 except subprocess.CalledProcessError as error:
     raise RuntimeError('Disposable database test failed: ' + error.stderr) from error
 finally:
-    run('rm', '-f', container, check=False)
+    run('rm', '-f', '-v', container, check=False)

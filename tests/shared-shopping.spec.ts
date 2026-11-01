@@ -1,6 +1,9 @@
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 
 // Synthetic browser integration transport. Database/RLS tests exercise real PostgreSQL separately.
+// Mocked network routes must stay outside service-worker interception after reload.
+// The separate PWA smoke test still exercises the real service worker.
+test.use({ serviceWorkers: `block` });
 const api = `https://lyewmhtufesdccisqmin.supabase.co`;
 const home = `10000000-0000-4000-8000-000000000001`;
 const invitation = `a`.repeat(64);
@@ -21,6 +24,7 @@ function transport() {
   let rows: Row[] = [];
   let codeUsed = false;
   let failSave = false;
+  let failMail = false;
   const tokens = new Map<string, string>();
   async function attach(context: BrowserContext) {
     await context.route(`${api}/**`, async (route) => {
@@ -58,6 +62,7 @@ function transport() {
       if (url.pathname === `/auth/v1/logout`)
         return route.fulfill({ status: 204 });
       if (url.pathname === `/auth/v1/signup`) {
+        if (failMail) return reply({ msg: `Error sending confirmation email`, error_code: `email_address_not_authorized` }, 400);
         expect(url.searchParams.get(`redirect_to`)).toBe(
           `https://eldamiano-777.github.io/couple-playground/`,
         );
@@ -133,6 +138,7 @@ function transport() {
     failNextSave: () => {
       failSave = true;
     },
+    failConfirmationMail: () => { failMail = true; },
   };
 }
 
@@ -158,11 +164,13 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
 }) => {
   const server = transport();
   const first = await browser.newContext({
+    serviceWorkers: `block`,
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
   });
   const second = await browser.newContext({
+    serviceWorkers: `block`,
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
@@ -310,4 +318,16 @@ test(`registration asks for email confirmation and never claims that the account
   await expect(
     page.getByRole(`button`, { name: `Create our home`, exact: true }),
   ).toHaveCount(0);
+});
+
+test(`confirmation-mail setup failures explain the missing setup and preserve registration input`, async ({ page, context }) => {
+  const server = transport(); server.failConfirmationMail(); await server.attach(context);
+  await openShopping(page);
+  await page.getByRole(`button`, { name: `I’m new here — create an account`, exact: true }).click();
+  await page.getByLabel(`Your email`, { exact: true }).fill(`alpha@example.test`);
+  await page.getByLabel(`Password`, { exact: true }).fill(`Synthetic-Password-Only-123`);
+  await page.getByRole(`button`, { name: `Create account`, exact: true }).click();
+  await expect(page.getByRole(`alert`)).toContainText(`confirmation email couldn’t be sent`);
+  await expect(page.getByLabel(`Your email`, { exact: true })).toHaveValue(`alpha@example.test`);
+  await expect(page.getByRole(`button`, { name: `Create our home`, exact: true })).toHaveCount(0);
 });
