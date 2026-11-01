@@ -15,6 +15,8 @@
 
 ## Projektregeln — 2026-11-01
 
+- Kurze ADRs automatisch führen und vor Rückfragen lesen. Vorlage, Index und drei nachträglich belegte Entscheidungen zu Veröffentlichung, gemeinsamen Daten und dem POC-Login angelegt.
+
 - Günstigere Subagents bei erwarteter Token-/Kostenersparnis ausdrücklich selbstständig spawnen; kurze gezielte Übergaben, passende verfügbare Modelle und Prüfung durch den Hauptagenten festgelegt.
 
 - Original-Caveman-Skill unverändert und mit Herkunft/Lizenzen im Repo installiert. Full ist in .caveman.json voreingestellt und wird per AGENTS.md bei jeder neuen Projekt-Session angewendet.
