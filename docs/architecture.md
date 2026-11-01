@@ -1,5 +1,7 @@
 # Kleine Architektur
 
+- Gesättigte Palette: Violett `#8040be`, Pfirsich `#f8d2b2`, Salbei `#dcebbd` und Lavendel `#ead3fb` auf Creme `#fff7ed`. Foreground/Background-Kontrast der wichtigsten Textpaare mindestens 4,5:1. Globale CSS-, Familien-, Offline- und PWA-Themenfarben bleiben abgestimmt; Schriftgrößen und Abläufe unverändert.
+
 - Lesbarkeit: globale Grundschrift 17px/500, kräftigere Überschriften und dunklere Vordergrundfarben; Texteingaben verwenden 17px (Einladungscodes 16px); Navigations-/Hilfstexte sind ebenfalls vergrößert. `src/family/family.css` stimmt Familienkarten darauf ab. Mobile Breakpoints und Touch-Ziele bleiben bestehen. Keine Änderungen an Daten oder Abläufen.
 
 - Altersanzeige: `birth_date` bleibt der gespeicherte Fakt; `age.ts` berechnet daraus Jahre, Monate und Resttage für den gemeinsamen UTC-Kalendertag. Volle Monate folgen dem ursprünglichen Geburtstag, begrenzt auf den letzten Tag des Zielmonats (29. Februar → 28. Februar im Nicht-Schaltjahr). Fehlende/ungültige/zukünftige Daten liefern kein Alter. Null-Einheiten entfallen. `useAgeDate` erneuert die Anzeige an UTC-Mitternacht sowie bei Fokus/Rückkehr, ohne Neuladen oder Verlust offener Entwürfe. Keine zusätzlichen Daten, Migrationen oder Ereignisse. Tests prüfen Kalendergrenzen und Tageswechsel bei offener Eingabe.
