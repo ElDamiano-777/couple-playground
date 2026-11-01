@@ -15,7 +15,7 @@
 1. Die Nutzerin braucht ihren eigenen GitHub- und ChatGPT-Zugang. Das Konto masheri777 ist laut GitHub am 01.11.2026 Collaborator; keine weiteren Einladungen auf Verdacht versenden.
 2. Damian fügt ausschließlich ihre bestätigte GitHub-Identität als Mitarbeiterin dieses Repositorys hinzu. Lesender Zugriff auf öffentliches GitHub reicht zum Veröffentlichen nicht aus.
 3. In ihrem ChatGPT-Konto GitHub verbinden und eine Codex-Cloud-Umgebung mit diesem Repository einrichten. Umgebungen nicht automatisch zwischen persönlichen Konten als geteilt voraussetzen.
-4. Node.js 24 bereitstellen; Setup-Skript: bash scripts/cloud-setup.sh. Netzwerkzugriff für npm und nötigenfalls cdn.playwright.dev zulassen. Codex Cloud stellt /usr/bin/chromium bereit; keine Administratorinstallation versuchen. Cloud-Vorprüfung: npm run verify:cloud. GitHub Actions prüft unverändert beide Browser vor der Pages-Veröffentlichung. Der Browser-Test-Webserver läuft nur innerhalb des Testsystems.
+4. Node.js 24 bereitstellen; Setup-Skript: bash scripts/cloud-setup.sh. Netzwerkzugriff für npm und nötigenfalls cdn.playwright.dev zulassen. Codex Cloud stellt /usr/bin/chromium bereit; keine Administratorinstallation versuchen. Cloud-Vorprüfung: npm run verify:cloud. GitHub Actions prüft bei App-Änderungen iPhone-WebKit einmal auf main vor der Pages-Veröffentlichung. Der Browser-Test-Webserver läuft nur innerhalb des Testsystems.
 5. GitHub-Schreibzugriff auf main und lesenden Zugriff auf Actions-Ergebnisse prüfen. Falls Branchschutz einen PR verlangt, zusätzlich Branch-/PR-/Merge-Rechte prüfen. Keine Geheimnisse aus anderen Projekten hinzufügen.
 6. Einmal einen kleinen Wunsch von ihrem eigenen iPhone aus diktieren, main-Commit und automatische Veröffentlichung vollständig durchführen und den Live-Link prüfen.
 7. Die App in Safari öffnen, „Teilen → Zum Home-Bildschirm“ verwenden. Installation und Aktualisierung auf dem echten Gerät prüfen.
@@ -34,16 +34,16 @@
 
 ## Prüf- und Veröffentlichungsweg
 
-- PR: npm ci, Browserinstallation, Build und Smoke-Tests. Unvertrauenswürdige PRs bekommen keine Live-Geheimnisse.
+- App-PR: CI-Scope-Test, npm ci und Build ohne Browserinstallation. Entwicklungsdokumentation erhält nur einen schnellen Pflichtstatus. Unvertrauenswürdige PRs bekommen keine Live-Geheimnisse.
 - POC-Standard seit 01.11.2026: normale Änderungen direkt nach main committen und pushen. Die Nutzerin muss weder Push noch Veröffentlichung erneut bestätigen. Bestehende Branchschutzregeln nicht ändern; falls sie einen PR erzwingen, übernimmt der Agent diesen Weg vollständig.
-- Push nach main: denselben Prüfweg ausführen, ausschließlich dist als Pages-Artefakt hochladen, den aktuellen main-Stand prüfen und veröffentlichen.
+- App-Push nach main: Build und einmal iPhone-WebKit, ausschließlich dist als Pages-Artefakt hochladen, main-Stand prüfen und veröffentlichen. Entwicklungsdokumentation löst keinen App-Deploy aus.
 - Vor Veröffentlichung fehlgeschlagene Prüfungen verändern die ausgelieferte Version nicht. GitHub Pages bietet keinen eigenen privaten Produktionskandidaten; deshalb Browser-Smoke-Tests am gebauten Artefakt vor dem Deploy und HTTP-/Commitprüfung nach dem Deploy.
 - Die nachgelagerte Liveprüfung erkennt fehlende Assets oder eine falsche Commit-Version. Ein erkannter Fehler nach dem Deploy erfordert eine Rücknahme; eine automatische Rücknahme ist in dieser Grundversion noch nicht implementiert und darf nicht behauptet werden.
 - Wiederherstellung: Fehlercommit mit git revert als normalen main-Commit zurücknehmen; falls Branchschutz einen PR verlangt, diesen selbst abwickeln. Wenn main selbst keinen funktionsfähigen Build mehr erlaubt, den bekannten grünen Stand durch geprüfte Korrektur herstellen. Kein force-push und kein Löschen gespeicherter Inhalte.
-- Agent muss auf alle Jobs einschließlich Publish und Liveprüfung warten. Grün für Build allein genügt nicht.
-- Releasekennung: version.json enthält den exakten Git-Commit. Der Agent prüft ihn gegen den gerade veröffentlichten main-Commit.
-- Standardprüfung lokal: npm run verify. Liveprüfung: EXPECTED_SHA=<voller Commit> npm run verify:live.
-- In der separat gestarteten Cloud-Einrichtung unter Damians Konto bestanden Build und acht Chromium-Tests. WebKit konnte dort mangels Administratorrechten nicht eingerichtet werden; deshalb übernimmt die verpflichtende GitHub-Prüfung beide Browser. Die Cloud-Konfiguration muss vor Nutzung noch gespeichert und veröffentlicht werden.
+- Bei App-Änderungen auf Publish und zentralen Livecheck warten; erfolgreiche Ergebnisse ohne zusätzliche identische Handprüfung übernehmen. Bei Dokumentation genügt der bestätigte Stand auf main.
+- Releasekennung: version.json enthält den veröffentlichten App-Commit. Nach Dokumentations-Commits darf sie hinter main liegen.
+- Lokal gezielt prüfen; npm run verify bleibt als optionale Vollprüfung verfügbar. Liveprüfung manuell nur bei unklaren zentralen Ergebnissen: EXPECTED_SHA=<voller Commit> npm run verify:live.
+- In der separat gestarteten Cloud-Einrichtung unter Damians Konto bestanden Build und acht Chromium-Tests. WebKit konnte dort mangels Administratorrechten nicht eingerichtet werden; deshalb übernimmt GitHub die iPhone-WebKit-Prüfung. Die Cloud-Konfiguration muss vor Nutzung noch gespeichert und veröffentlicht werden.
 
 ## Kosten und Grenzen
 

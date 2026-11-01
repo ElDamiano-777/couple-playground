@@ -1,5 +1,10 @@
 # Änderungen
 
+## POC-Prüfaufwand — 2026-11-01
+
+- Entwicklungsdokumentation überspringt App-Build, Browser und Deploy. App-PRs bauen; main prüft iPhone-WebKit einmal vor Veröffentlichung.
+- Agenten prüfen gezielt, übernehmen zentrale Ergebnisse und vermeiden erneutes Laden unveränderter Dateien sowie unnötige Folgerunden.
+
 ## Lesbarkeit — 2026-11-01
 
 - Schrift im gesamten Haushalt größer, kräftiger und kontrastreicher: Einkaufsliste, Familienkarten, Formulare, Hinweise und Navigation.

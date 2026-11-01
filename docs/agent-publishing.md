@@ -1,11 +1,13 @@
-# Veröffentlichung auf GitHub
+# Veröffentlichung für den POC
 
-Pflichtlektüre vor jedem Push nach main.
+Lesen vor einem Push; bekannten Inhalt innerhalb derselben Session nicht erneut vollständig laden.
 
-- Neue Änderungen landen auf main. Den aktuellen Stand zuerst holen, vorhandene fremde Änderungen erhalten und die eigenen Änderungen normal committen und pushen. Kein Force-Push. Falls bestehender Branchschutz technisch einen PR verlangt, diesen selbst erstellen und nach erfolgreichen Pflichtprüfungen selbst mergen beziehungsweise Auto-Merge nutzen; keine manuelle Arbeit der Nutzerin verlangen und keinen Schutz abschalten.
-- Änderungen an Prüfregeln, bestehenden Zugriffen, Geheimnissen und zerstörerischen Datenoperationen brauchen Damians ausdrücklichen Auftrag. Unklare Freigaben nicht aus einer normalen Featurebitte ableiten.
-- Nach dem main-Push auf den Workflow „Check and publish“ einschließlich Veröffentlichung und Liveprüfung warten. Build-Erfolg allein genügt nicht.
-- Prüfe den aktuellen main-Commit gegen version.json an der festen App-Adresse. Alternativ EXPECTED_SHA=<Commit> npm run verify:live verwenden. Auch die ausgelieferten JS-/CSS-Dateien müssen erreichbar sein.
-- Wenn Veröffentlichung nicht möglich ist, den geprüften Commit/PR erhalten, ihr den Stand in Alltagssprache sagen und den Weiterleitungstext für Damian geben. Kein „fertig“ behaupten.
-- Erledigte Änderungen in CHANGELOG.md festhalten. Technischen Stand in docs/architecture.md und offene Einrichtung in docs/owner-setup.md korrekt halten.
-- Prüfungen laufen vor dem Pages-Deploy. Eine automatische Rücknahme nach einem fehlgeschlagenen Livecheck ist noch nicht eingerichtet; keinen solchen Schutz behaupten.
+- Eigene Änderungen nach main bringen, nötige PRs wegen bestehendem Branchschutz selbst abwickeln. Kein Force-Push und keine routinemäßige Freigabe von Masha.
+- Reine Entwicklungsdokumentation, AGENTS.md, ADRs und Agent-Konfiguration: Text und gegebenenfalls Links prüfen. Kein lokaler App-Build, keine Browserprüfung, kein Pages-Deploy und kein Abgleich mit version.json. Der Workflow erkennt diese Änderungen und liefert den vorhandenen Pflichtstatus ohne App-Arbeit. Abschluss bedeutet hier: Änderung liegt auf main.
+- App-, Test-, Workflow-, Schema- oder unbekannte Änderungen: lokal nur den betroffenen Ablauf prüfen, soweit sinnvoll. Keine lokale Vollprüfung als Standard. Im PR laufen CI-Scope-Prüfung und Build, ohne Browserinstallation. Auf main laufen Build und genau ein iPhone-WebKit-Smoke-Lauf vor dem Pages-Deploy. Der historische Statusname „Build and smoke tests“ bleibt für bestehenden Branchschutz erhalten.
+- Fehlende oder unklare Änderungserkennung führt zu App-Prüfungen, nicht zum Überspringen. Ein manueller Workflow-Lauf prüft ebenfalls die App.
+- Bei App-Änderungen auf „Check and publish“ warten. Meldet der passende main-Lauf erfolgreiche Veröffentlichung und Liveprüfung für den erwarteten Commit, diese als Nachweis verwenden. Dieselbe Liveprüfung nicht zusätzlich manuell wiederholen. Nur bei Fehlern, fehlenden Ergebnissen oder einem widersprüchlichen App-Stand gezielt nachprüfen.
+- Status etwa alle 45–60 Sekunden abfragen; Logs nur bei Fehlern und dann ausschnittweise lesen. Keine wiederholten Voll-Logs oder zusätzlichen Optimierungsrunden nach einem passenden grünen Ergebnis.
+- Nach einer Dokumentationsänderung darf version.json absichtlich einen älteren App-Commit zeigen. Das ist kein Deployfehler und kein Anlass für einen manuellen Neu-Deploy.
+- Changelog für abgeschlossene sichtbare Features und wichtige Arbeitsregeländerungen knapp pflegen. Architektur, Betriebsdokumentation und ADRs nur ändern, wenn sich deren Inhalt tatsächlich ändert; keine Statusnotizen in mehrere Dateien kopieren.
+- Neue Kosten, bestehende Zugriffe, Geheimnisse, zerstörerische Datenoperationen und Prüfregeländerungen brauchen Damians Auftrag. Diese vereinfachte POC-Prüfpolitik wurde am 01.11.2026 von ihm beauftragt; dafür nicht erneut fragen.

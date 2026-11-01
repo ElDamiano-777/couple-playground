@@ -9,7 +9,7 @@ Die Entwicklung erfolgt vom iPhone. Änderungen brauchen einen festen App-Link u
 
 ## Entscheidung und Grund
 
-GitHub Pages und der Projektpfad aus app.config.json bleiben bestehen. Ziel ist main. Erforderliche PRs, Prüfungen und Merge übernimmt der Agent; vorhandenen Branchschutz respektieren. Der Workflow prüft das Artefakt vor dem Deploy und danach den ausgelieferten Commit sowie App-Dateien. Erfolg erst nach Liveprüfung melden.
+GitHub Pages und der Projektpfad aus app.config.json bleiben bestehen. Ziel ist main. Erforderliche PRs, Prüfungen und Merge übernimmt der Agent; vorhandenen Branchschutz respektieren. Der Workflow prüft das Artefakt vor dem Deploy und danach den ausgelieferten Commit sowie App-Dateien. App-Erfolg erst nach Liveprüfung melden. Den proportionalen Prüfumfang präzisiert [0004](0004-proportionale-poc-pruefungen.md).
 
 ## Folgen und Neubewertung
 
