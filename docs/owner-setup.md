@@ -80,6 +80,8 @@ Noch zu beobachten: echte E-Mail-Zustellung, beiderseitiger erster Beitritt und 
 
 ## Gemeinsame Kinder-/Tierkarten (0.2.2)
 
+- Optionales Geburtsdatum ab Migration `20261101060000_family_birthdays.sql`: vorhandene Karten bleiben ohne Datum, bis es ausdrücklich eingegeben wird. Dieselben beiden Haushaltskonten sehen und bearbeiten es. Speicherung als Datum ohne Uhrzeit; keine neue Kontoverbindung oder zusätzliche Zustellung eingerichtet.
+
 - Im bestehenden Zuhause unter Family → Kids/Pets anlegen: Name, bei Tieren optional der Tier-Typ. Beide Haushaltskonten können die Karten lesen und bearbeiten; Entfernen fragt ausdrücklich nach.
 - Die additive Migration `20261101050000_family_profiles.sql` muss über die bestehende GitHub-Integration im gleichen Projekt angewendet werden. Keine neue Kontoverbindung, Serverfunktion oder Geheimnisse nötig. Fremde und abgemeldete Konten haben keinen Zugriff.
 - Beim Löschen eines Kontos bleiben Karten für den Partner erhalten; beim letzten Mitglied löscht der vorhandene Haushalts-Löschpfad auch dessen Karten. POC-Zugänge weiterhin nur mit Testinhalten nutzen.
