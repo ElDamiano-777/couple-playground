@@ -3,6 +3,7 @@ import config from '../app.config.json';
 import HouseholdPreview, { Symbol, type HouseholdPage } from './HouseholdPreview';
 import { readNotes, saveNotes, type Note } from './storage';
 import { useSharedShopping } from './shared/useSharedShopping';
+import { useFamilyProfiles } from './family/useFamilyProfiles';
 
 type Page = HouseholdPage | `notes` | `more` | `welcome`;
 type Profile = `masha` | `damian`;
@@ -30,6 +31,7 @@ function Icon({ name }: { name: `heart` | `home` | `note` | `more` | `arrow` | `
 
 export default function App() {
   const shopping = useSharedShopping();
+  const family = useFamilyProfiles({ userId: shopping.session?.user.id, household: shopping.household, authReady: shopping.authReady, contextLoading: shopping.loading, isPoc: shopping.isPoc });
   const [page, setPage] = useState<Page>(`home`);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
   const [profileSaved, setProfileSaved] = useState(true);
@@ -39,6 +41,8 @@ export default function App() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
   const [updateReady, setUpdateReady] = useState(false);
+
+  const hasDraft = !!draft.trim() || shopping.dirty || family.dirty;
 
   useEffect(() => {
     try { setNotes(readNotes()); }
@@ -54,11 +58,11 @@ export default function App() {
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
-      if (draft.trim() || shopping.dirty) event.preventDefault();
+      if (hasDraft) event.preventDefault();
     };
     window.addEventListener(`beforeunload`, warn);
     return () => window.removeEventListener(`beforeunload`, warn);
-  }, [draft, shopping.dirty]);
+  }, [hasDraft]);
 
   useEffect(() => {
     if (!import.meta.env.PROD) return;
@@ -86,6 +90,7 @@ export default function App() {
 
   async function chooseProfile(value: Profile) {
     if (shopping.session && shopping.session.user.email !== `${value}@poc.together.invalid`) {
+      if (family.dirty && !window.confirm(`Change name and discard unfinished family details? Your saved cards stay in your home.`)) return;
       if (!await shopping.signOut()) return;
     }
     shopping.setUsername(value);
@@ -125,8 +130,8 @@ export default function App() {
 
     {!online && <div className="notice" role="status">You’re offline. You can still save notes on this phone.</div>}
     {updateReady && <div className="notice update" role="status">
-      <span>{(draft.trim() || shopping.dirty) ? `There’s an update. Finish your text first.` : `There’s a little update for you.`}</span>
-      <button disabled={!!draft.trim() || shopping.dirty} onClick={() => window.location.replace(`${config.appUrl}?v=${Date.now()}`)}>Update</button>
+      <span>{hasDraft ? `There’s an update. Finish your text first.` : `There’s a little update for you.`}</span>
+      <button disabled={hasDraft} onClick={() => window.location.replace(`${config.appUrl}?v=${Date.now()}`)}>Update</button>
     </div>}
 
     {!profileSaved && profile && <p className="profile-notice" aria-live="polite">We couldn’t save your name on this device. You can still use the app.</p>}
@@ -141,7 +146,7 @@ export default function App() {
         </div>
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
-      {([`home`, `shopping`, `plans`, `family`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} />}
+      {([`home`, `shopping`, `plans`, `family`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} />}
       {page === `welcome` && <>
         <section className="hero welcome-hero" lang="ru">
           <div className="hero-copy">

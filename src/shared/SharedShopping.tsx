@@ -3,8 +3,10 @@ import type { SharedShoppingState } from "./useSharedShopping";
 
 export default function SharedShopping({
   state,
+  hasFamilyDraft = false,
 }: {
   state: SharedShoppingState;
+  hasFamilyDraft?: boolean;
 }) {
   const [mode, setMode] = useState<`poc` | `signin` | `signup`>(`poc`);
   const [filter, setFilter] = useState(`All`);
@@ -166,9 +168,9 @@ export default function SharedShopping({
           disabled={state.busy}
           onClick={() => {
             if (
-              !state.dirty ||
+              !(state.dirty || hasFamilyDraft) ||
               window.confirm(
-                `Sign out and discard unfinished shopping text? Your saved purchases stay in your home.`,
+                `Sign out and discard unfinished text? Your saved purchases and family cards stay in your home.`,
               )
             )
               void state.signOut();
@@ -415,8 +417,9 @@ export default function SharedShopping({
           <summary>Account options</summary>
           <p>
             Deleting your account removes your sign-in and membership. Purchases
-            remain for your partner; if you are the last person, the home and
-            its purchases are deleted. Personal notes on this phone are kept.
+            and family cards remain for your partner; if you are the last person,
+            the home, its purchases and family cards are deleted. Personal notes
+            on this phone are kept.
           </p>
           <button
             className="text-action"
@@ -424,7 +427,7 @@ export default function SharedShopping({
             onClick={() => {
               if (
                 window.confirm(
-                  `Permanently delete your account? Your partner keeps the shared purchases. If you are the last person, the home and purchases will also be deleted. This cannot be undone.`,
+                  `Permanently delete your account and discard unfinished text? Your partner keeps the shared purchases and family cards. If you are the last person, the home, purchases and family cards will also be deleted. This cannot be undone.`,
                 )
               )
                 void state.deleteAccount();

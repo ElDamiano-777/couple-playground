@@ -151,15 +151,15 @@ test(`household navigation distinguishes shared shopping from remaining examples
   const greeting = await page.locator(`.edition`).boundingBox();
   const header = await page.locator(`.header`).boundingBox();
   expect(greeting && header && greeting.y >= header.y && greeting.y + greeting.height <= header.y + header.height).toBe(true);
-  await expect(page.getByText(`Shopping has a real shared list. Plans, family cards and updates are still examples.`)).toBeVisible();
+  await expect(page.getByText(`Shopping and family cards are shared. Plans and updates are still examples.`)).toBeVisible();
   await page.getByRole(`button`, { name: `Shopping`, exact: true }).click();
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
   await expect(page.getByRole(`checkbox`)).toHaveCount(0);
   await page.getByRole(`button`, { name: `Plans`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `A little walk together` })).toBeVisible();
   await page.getByRole(`button`, { name: `Family`, exact: true }).click();
-  await page.getByRole(`button`, { name: /Furry friends/ }).click();
-  await expect(page.getByRole(`heading`, { name: `For our furry friends` })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `Our family.` })).toBeVisible();
+  await expect(page.getByRole(`button`, { name: `Sign in to Family`, exact: true })).toBeVisible();
   await page.getByRole(`button`, { name: `Example updates`, exact: true }).click();
   await expect(page.getByText(/Phone notifications aren’t connected yet/)).toBeVisible();
   await page.getByRole(`button`, { name: `Add to our home`, exact: true }).click();

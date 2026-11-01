@@ -1,0 +1,5 @@
+.family-profiles .dashboard-card { margin: 18px 0; overflow-wrap: anywhere; }
+.family-profiles .dashboard-card > p { color: #8a7a8b; font-size: 14px; line-height: 1.8; }
+.family-profiles .dashboard-card > button { min-height: 44px; padding: 10px 14px; margin-right: 8px; }
+.family-profiles .note-form { min-width: 0; }
+.family-profiles .note-form input { min-width: 0; max-width: 100%; }

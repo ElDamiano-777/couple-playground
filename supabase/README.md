@@ -8,6 +8,12 @@ Before auth/data implementation the required cases are: two separately authentic
 
 The hosted project is `lyewmhtufesdccisqmin`; only the public project URL and publishable key belong in the client. No database password or privileged key is needed by the browser. Do not commit session tokens, invitation codes or real purchases.
 
+## Shared child and pet profiles
+
+`20261101050000_family_profiles.sql` adds `family_profiles` in the existing project, with stable profile/household UUIDs, an immutable `child`/`pet` kind, a trimmed 1–100 character name, an optional trimmed 1–80 character animal type for pets only, creator identity and creation time. Both household members can add, read, rename and delete their shared cards. RLS blocks unrelated and anonymous accounts; column privileges prevent clients from forging identity/authorship or moving a card to another household. Deleting the creator's account preserves cards for the remaining partner with null authorship; deleting the final household removes its cards. No birth dates, photos, additional services, secrets or setup are introduced.
+
+`python3 scripts/test-family-database.py` applies the first two migrations and the family migration to a disposable PostgreSQL 17 container. It runs the existing access tests plus synthetic child/pet CRUD, partner edits, invalid-field rejection, foreign/anonymous access attempts, immutable-column checks, creator deletion and final-household cleanup. It never connects to hosted data and leaves existing workflows/checks unchanged.
+
 The GitHub integration must report successful migration before enabling shared shopping. `supabase/config.toml` also documents the intended Auth site/redirect URLs; verify these in Authentication → URL Configuration because a database migration does not update the hosted Auth settings. Email confirmation stays enabled. Do not disable it to simplify testing.
 
 ## Named POC accounts
