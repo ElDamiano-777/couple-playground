@@ -5,6 +5,12 @@
 - Entwicklungsdokumentation überspringt App-Build, Browser und Deploy. App-PRs bauen; main prüft iPhone-WebKit einmal vor Veröffentlichung.
 - Agenten prüfen gezielt, übernehmen zentrale Ergebnisse und vermeiden erneutes Laden unveränderter Dateien sowie unnötige Folgerunden.
 
+## Ordnerstruktur — 2026-11-01
+
+- Drei Hauptordner: Наш дом, Wishlist und Места. Наш дом enthält Покупки, Рецепты, Животные und Дети.
+- Bestehende Einkäufe und Familienkarten bleiben in ihrem gemeinsamen Zuhause erhalten; Kinder und Tiere haben nun eigene Ansichten mit Geburtstagen/Alter.
+- Breadcrumbs und Hauptnavigation verbinden die Ordner. Рецепты, Wishlist und Места speichern gemeinsame Einträge mit Titel und Text; Bearbeiten und bestätigtes Entfernen sind möglich. Unfertige Eingaben bleiben beim Wechsel erhalten.
+
 ## Sattere Farben — 2026-11-01
 
 - Die bestehende violett-, pfirsich- und salbeifarbene Palette ist gesättigter: ausdrucksstärkere Schaltflächen, aktive Tabs, farbige Karten und Akzente auf warmem Cremegrund.

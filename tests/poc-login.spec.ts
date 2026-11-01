@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { openShopping } from "./navigation";
 import { transport, pocPassword } from "./helpers/sharedTransport";
 
 test.use({ serviceWorkers: `block` });
@@ -67,7 +68,7 @@ test(`named POC accounts require a password and share a ready-made list without 
       b.getByRole(`checkbox`, { name: /Synthetic POC shopping/ }),
     ).toBeChecked();
     await a.reload();
-    await a.getByRole(`button`, { name: `Shopping`, exact: true }).click();
+    await openShopping(a);
     await expect(
       a.getByRole(`checkbox`, { name: /Synthetic POC shopping/ }),
     ).toBeChecked();

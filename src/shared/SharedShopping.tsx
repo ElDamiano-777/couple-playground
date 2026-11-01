@@ -3,10 +3,10 @@ import type { SharedShoppingState } from "./useSharedShopping";
 
 export default function SharedShopping({
   state,
-  hasFamilyDraft = false,
+  hasOtherDraft = false,
 }: {
   state: SharedShoppingState;
-  hasFamilyDraft?: boolean;
+  hasOtherDraft?: boolean;
 }) {
   const [mode, setMode] = useState<`poc` | `signin` | `signup`>(`poc`);
   const [filter, setFilter] = useState(`All`);
@@ -168,9 +168,9 @@ export default function SharedShopping({
           disabled={state.busy}
           onClick={() => {
             if (
-              !(state.dirty || hasFamilyDraft) ||
+              !(state.dirty || hasOtherDraft) ||
               window.confirm(
-                `Sign out and discard unfinished text? Your saved purchases and family cards stay in your home.`,
+                `Sign out and discard unfinished text? Your saved items stay in your home.`,
               )
             )
               void state.signOut();
@@ -416,9 +416,9 @@ export default function SharedShopping({
         <details className="account-options">
           <summary>Account options</summary>
           <p>
-            Deleting your account removes your sign-in and membership. Purchases
-            and family cards remain for your partner; if you are the last person,
-            the home, its purchases and family cards are deleted. Personal notes
+            Deleting your account removes your sign-in and membership. Purchases,
+            family cards and saved entries remain for your partner; if you are the last person,
+            the home and all its shared content are deleted. Personal notes
             on this phone are kept.
           </p>
           <button
@@ -427,7 +427,7 @@ export default function SharedShopping({
             onClick={() => {
               if (
                 window.confirm(
-                  `Permanently delete your account and discard unfinished text? Your partner keeps the shared purchases and family cards. If you are the last person, the home, purchases and family cards will also be deleted. This cannot be undone.`,
+                  `Permanently delete your account and discard unfinished text? Your partner keeps the shared purchases, family cards and saved entries. If you are the last person, the home and all its shared content will also be deleted. This cannot be undone.`,
                 )
               )
                 void state.deleteAccount();

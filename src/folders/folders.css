@@ -1,0 +1,29 @@
+.folder-page { max-width: 850px; margin-left: auto; margin-right: auto; }
+.folder-page h1 { overflow-wrap: anywhere; }
+.folder-breadcrumb { margin: 24px 0 12px; }
+.folder-breadcrumb button { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px 15px; border-radius: 14px; background: #ead3fb; color: #6d309f; font: inherit; font-size: 16px; font-weight: 700; }
+.folder-breadcrumb button:focus-visible, .folder-tile:focus-visible { outline: 3px solid #8040be; outline-offset: 5px; }
+.folder-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin: 32px 0; }
+.folder-tile { display: flex; flex-direction: column; align-items: stretch; gap: 17px; min-height: 245px; min-width: 0; padding: 26px; border: 1px solid #d4afe8; border-radius: 24px; text-align: left; color: #33283c; font: inherit; }
+.folder-violet { background: #ead3fb; border-color: #d0a6ec; }
+.folder-peach { background: #f8d2b2; border-color: #edbc96; }
+.folder-sage { background: #dcebbd; border-color: #bfd995; }
+.folder-tile-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #7432ac; }
+.folder-peach .folder-tile-top { color: #80512f; }
+.folder-sage .folder-tile-top { color: #4b663a; }
+.folder-tab { display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 52px; border-radius: 16px; background: #fffcf680; }
+.folder-tab svg { width: 34px; height: 34px; }
+.folder-tile strong { font-size: 25px; font-weight: 750; line-height: 1.3; overflow-wrap: anywhere; }
+.folder-description { font-size: 16px; line-height: 1.65; font-weight: 550; color: #59475e; overflow-wrap: anywhere; }
+.folder-open { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; font-size: 15px; font-weight: 700; color: #683492; }
+.folder-peach .folder-open { color: #80512f; }
+.folder-sage .folder-open { color: #4b663a; }
+.folder-empty { margin: 30px 0; padding: 35px 26px; text-align: center; }
+.folder-empty-icon { display: inline-flex; padding: 20px; margin-bottom: 22px; background: #ead3fb; color: #7432ac; border-radius: 24px; }
+.folder-empty-icon svg { width: 44px; height: 44px; }
+.folder-empty h2 { font-size: 27px; line-height: 1.4; }
+@media (max-width: 540px) {
+  .folder-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 26px; }
+  .folder-tile { min-height: 230px; padding: 24px; gap: 16px; }
+  .folder-tile strong { font-size: 27px; }
+}

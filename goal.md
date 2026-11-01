@@ -19,8 +19,10 @@ Hält unpersönlich fest, was die Nutzerin mit der App erreichen will und was da
 
 ## Aktueller Umfang
 
+- Navigation als Ordner: Наш дом, Wishlist und Места. Наш дом enthält Покупки, Рецепты, Животные und Дети. Рецепты, Wishlist und Места speichern gemeinsame Einträge mit Titel und Text; sie lassen sich bearbeiten und nach Bestätigung entfernen. Die bestehenden gemeinsamen Daten wurden nicht verschoben oder kopiert.
+
 - Kinder- und Tierkarten können optional ein Geburtsdatum enthalten. Es wird gemeinsam angezeigt, über die Datumswahl hinzugefügt/geändert und kann wieder geleert werden.
-- Für Kinder und Tiere wird aus dem Geburtsdatum automatisch das Alter in Jahren, Monaten und Tagen angezeigt und täglich aktualisiert. Name und Geburtsdatum können weiterhin unter Kids/Pets angelegt und bearbeitet werden.
+- Für Kinder und Tiere wird aus dem Geburtsdatum automatisch das Alter in Jahren, Monaten und Tagen angezeigt und täglich aktualisiert. Name und Geburtsdatum können unter Наш дом → Дети beziehungsweise Животные angelegt und bearbeitet werden.
 
 - Mobile PWA mit Home-Bildschirm-Symbol, Offline-Hinweis und sicheren Aktualisierungen.
 - Englische Oberfläche mit persönlicher Begrüßung, lokalen Notizen und einfacher Anleitung zur Weiterentwicklung. Die Sprache der Begrüßung ist davon unabhängig.

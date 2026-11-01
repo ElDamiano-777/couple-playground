@@ -1,16 +1,17 @@
 import { test, expect, type Page } from '@playwright/test';
+import { mainNavigation, openHome, openShopping, openChildren, openPets } from './navigation';
 
 async function enterAs(page: Page, name: `Masha` | `Damian` = `Masha`) {
   await page.goto(`./`);
   await page.getByRole(`button`, { name, exact: true }).click();
-  await page.getByRole(`button`, { name: `Our home`, exact: true }).click();
+  await openHome(page);
 }
 
 test(`personal welcome, navigation and narrow-screen layout work without script errors`, async ({ page }) => {
   const errors: string[] = [];
   page.on(`pageerror`, error => errors.push(error.message));
   await enterAs(page);
-  await expect(page.getByRole(`heading`, { name: `Our home.` })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `Наш дом.`, exact: true })).toBeVisible();
   await expect(page.locator(`html`)).toHaveAttribute(`lang`, `en`);
   await page.getByRole(`button`, { name: `Help and settings`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `Say it in your own words` })).toBeVisible();
@@ -18,8 +19,8 @@ test(`personal welcome, navigation and narrow-screen layout work without script 
   await expect(page.getByRole(`heading`, { name: `Masheri!` })).toBeVisible();
   await expect(page.locator(`.welcome-hero`)).toHaveAttribute(`lang`, `ru`);
   await expect(page.getByRole(`link`, { name: `Open ChatGPT`, exact: true })).toHaveAttribute(`href`, `https://chatgpt.com/codex/cloud`);
-  await page.getByRole(`button`, { name: `Our home`, exact: true }).click();
-  await expect(page.getByRole(`heading`, { name: `Our home.` })).toBeVisible();
+  await openHome(page);
+  await expect(page.getByRole(`heading`, { name: `Наш дом.`, exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
 });
@@ -115,6 +116,7 @@ test(`name choice is local, remembers the selection and can be changed`, async (
   await expect(page.getByText(`Hi, Damian`)).toBeVisible();
   await page.reload();
   await expect(page.getByText(`Hi, Damian`)).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `Наши папки.`, exact: true })).toBeVisible();
   await page.getByRole(`button`, { name: `Help and settings`, exact: true }).click();
   await page.getByRole(`button`, { name: `Change name` }).click();
   await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
@@ -140,32 +142,72 @@ test(`unknown name prompts for a choice and storage failure still permits entry`
   await page.goto(`./`);
   await expect(page.getByRole(`heading`, { name: `Who’s here?` })).toBeVisible();
   await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
-  await page.getByRole(`button`, { name: `Our home`, exact: true }).click();
-  await expect(page.getByRole(`heading`, { name: `Our home.` })).toBeVisible();
+  await openHome(page);
+  await expect(page.getByRole(`heading`, { name: `Наш дом.`, exact: true })).toBeVisible();
   await expect(page.getByText(`We couldn’t save your name on this device. You can still use the app.`)).toBeVisible();
 });
 
-test(`household navigation distinguishes shared shopping from remaining examples on narrow screens`, async ({ page }) => {
+test(`folders and home sections are reachable with breadcrumbs on a narrow screen`, async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await enterAs(page);
   const greeting = await page.locator(`.edition`).boundingBox();
   const header = await page.locator(`.header`).boundingBox();
   expect(greeting && header && greeting.y >= header.y && greeting.y + greeting.height <= header.y + header.height).toBe(true);
-  await expect(page.getByText(`Shopping and family cards are shared. Plans and updates are still examples.`)).toBeVisible();
-  await page.getByRole(`button`, { name: `Shopping`, exact: true }).click();
+  const noOverflow = async () => expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await mainNavigation(page).getByRole(`button`, { name: `Папки`, exact: true }).click();
+  await expect(mainNavigation(page).getByRole(`button`)).toHaveCount(4);
+  await expect(page.getByRole(`heading`, { name: `Наши папки.`, exact: true })).toBeVisible();
+  const content = page.getByRole(`main`);
+  for (const name of [`Наш дом`, `Wishlist`, `Места`]) await expect(content.getByRole(`button`, { name, exact: true })).toBeVisible();
+  await noOverflow();
+  await content.getByRole(`button`, { name: `Наш дом`, exact: true }).click();
+  await expect(page.getByRole(`heading`, { name: `Наш дом.`, exact: true })).toBeVisible();
+  for (const name of [`Покупки`, `Рецепты`, `Животные`, `Дети`]) await expect(content.getByRole(`button`, { name, exact: true })).toBeVisible();
+  await noOverflow();
+  await openShopping(page);
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
   await expect(page.getByRole(`checkbox`)).toHaveCount(0);
-  await page.getByRole(`button`, { name: `Plans`, exact: true }).click();
-  await expect(page.getByRole(`heading`, { name: `A little walk together` })).toBeVisible();
-  await page.getByRole(`button`, { name: `Family`, exact: true }).click();
-  await expect(page.getByRole(`heading`, { name: `Our family.` })).toBeVisible();
+  await noOverflow();
+  await openChildren(page);
+  await expect(page.getByRole(`heading`, { name: `Дети.`, exact: true })).toBeVisible();
   await expect(page.getByRole(`button`, { name: `Sign in to Family`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`tab`)).toHaveCount(0);
+  await noOverflow();
+  await page.getByRole(`button`, { name: `Sign in to Family`, exact: true }).click();
+  await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
+  await openPets(page);
+  await expect(page.getByRole(`heading`, { name: `Животные.`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`tab`)).toHaveCount(0);
+  await noOverflow();
+  await openHome(page);
+  await content.getByRole(`button`, { name: `Рецепты`, exact: true }).click();
+  await expect(page.getByRole(`heading`, { name: `Рецепты.`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`checkbox`)).toHaveCount(0);
+  await expect(content.getByRole(`article`)).toHaveCount(0);
+  await expect(content.getByRole(`textbox`)).toHaveCount(0);
+  await expect(page.getByRole(`button`, { name: `Войти через покупки`, exact: true })).toBeVisible();
+  await page.getByRole(`button`, { name: `Войти через покупки`, exact: true }).click();
+  await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
+  await openHome(page);
+  await content.getByRole(`button`, { name: `Рецепты`, exact: true }).click();
+  const back = page.getByRole(`navigation`, { name: `Назад к папкам`, exact: true });
+  await back.getByRole(`button`, { name: `Наш дом`, exact: true }).click();
+  await expect(page.getByRole(`heading`, { name: `Наш дом.`, exact: true })).toBeVisible();
+  await back.getByRole(`button`, { name: `Все папки`, exact: true }).click();
+  await expect(page.getByRole(`heading`, { name: `Наши папки.`, exact: true })).toBeVisible();
+  await noOverflow();
+  for (const name of [`Wishlist`, `Места`]) {
+    await mainNavigation(page).getByRole(`button`, { name, exact: true }).click();
+    await expect(page.getByRole(`heading`, { name: `${name}.`, exact: true })).toBeVisible();
+    await expect(page.getByRole(`checkbox`)).toHaveCount(0);
+    await expect(content.getByRole(`article`)).toHaveCount(0);
+    await expect(content.getByRole(`textbox`)).toHaveCount(0);
+    await expect(page.getByRole(`button`, { name: `Войти через покупки`, exact: true })).toBeVisible();
+    await back.getByRole(`button`, { name: `Все папки`, exact: true }).click();
+    await expect(page.getByRole(`heading`, { name: `Наши папки.`, exact: true })).toBeVisible();
+    await noOverflow();
+  }
   await page.getByRole(`button`, { name: `Example updates`, exact: true }).click();
   await expect(page.getByText(/Phone notifications aren’t connected yet/)).toBeVisible();
-  await page.getByRole(`button`, { name: `Add to our home`, exact: true }).click();
-  await expect(page.getByRole(`dialog`)).toBeVisible();
-  await page.getByRole(`button`, { name: `Add a purchase`, exact: true }).click();
-  await expect(page.getByRole(`dialog`)).not.toBeVisible();
-  await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await expect(page.getByRole(`button`, { name: `Add to our home`, exact: true })).toHaveCount(0);
 });
