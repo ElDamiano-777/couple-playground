@@ -15,6 +15,8 @@
 
 ## Projektregeln — 2026-11-01
 
+- Datenarchitektur auf spätere featureübergreifende Verknüpfungen, Auswertungen und automatische Ereignisse ausrichten; klare Identitäten und Zugriffsrechte erhalten, ohne Infrastruktur auf Vorrat zu bauen.
+
 - Neuer Projektchat: eine Begrüßung startet die selbstständige Orientierung und einen einfachen App-Überblick mit drei passenden nächsten Schritten; kein ungefragter Featurebau.
 
 - Größere Featurewünsche intern in kleine, abgeschlossene Teilschritte und klar begrenzte Commits aufteilen; ohne zusätzliche Freigaben nacheinander bis zum sichtbaren Ergebnis bearbeiten.
