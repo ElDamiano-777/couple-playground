@@ -1,31 +1,20 @@
-# 0001 – Fester App-Link und geprüfte automatische Veröffentlichung
+# 0001 – Geprüfte Veröffentlichung auf GitHub Pages
 
-- Status: Akzeptiert
-- Dokumentiert am: 2026-11-01
-- Geltungsbereich: Hosting, Veröffentlichung, Agentenablauf
-- Herkunft: Nachträgliche Dokumentation des eingerichteten Projektwegs
+Status: Akzeptiert · Dokumentiert: 2026-11-01, nachträglich
+Gilt für: Hosting, Pages, main, Deploy, Liveprüfung
 
 ## Anlass
 
-Die App wird vom iPhone aus weiterentwickelt. Nach einem Wunsch soll der Agent Umsetzung und Veröffentlichung übernehmen und einen dauerhaft gültigen Link liefern. Das Repository nutzt GitHub Pages und einen vorhandenen Prüfworkflow.
+Die Entwicklung erfolgt vom iPhone. Änderungen brauchen einen festen App-Link und einen selbstständig abgewickelten Veröffentlichungsweg.
 
-## Entscheidung und Gründe
+## Entscheidung und Grund
 
-Die feste App-Adresse und der Projektpfad bleiben in app.config.json verankert. Änderungen landen auf main und lösen den vorhandenen Workflow aus. Bestehender Branchschutz wird respektiert; notwendige PRs, Pflichtprüfungen und Merge erledigt der Agent ohne routinemäßige Rückfragen selbst.
+GitHub Pages und der Projektpfad aus app.config.json bleiben bestehen. Ziel ist main. Erforderliche PRs, Prüfungen und Merge übernimmt der Agent; vorhandenen Branchschutz respektieren. Der Workflow prüft das Artefakt vor dem Deploy und danach den ausgelieferten Commit sowie App-Dateien. Erfolg erst nach Liveprüfung melden.
 
-Vor dem Pages-Deploy prüfen Build und Browser-Smoke-Tests das Artefakt. Erst erfolgreiche Veröffentlichung und Liveprüfung rechtfertigen die Meldung, dass eine App-Änderung sichtbar ist.
+## Folgen und Neubewertung
 
-## Folgen und Grenzen
-
-Kein Hostingwechsel oder neuer Dienst für gewöhnliche Änderungen. GitHub Pages liefert statische Dateien; gemeinsame Daten benötigen ein eigenes Backend. Ein Commit oder grüner Build allein beweist keinen erfolgreichen Deploy. Automatisches Zurückrollen nach einem fehlgeschlagenen Livecheck ist nicht eingerichtet.
+Pages liefert statische Dateien; gemeinsame Daten benötigen ein Backend. Automatisches Zurückrollen nach einem fehlgeschlagenen Livecheck fehlt. Neu entscheiden, wenn ein beauftragter Bedarf diesen Hostingweg überfordert oder der Eigentümer ihn ändern möchte.
 
 ## Belege
 
-- [App-Konfiguration](../../app.config.json)
-- [Prüf- und Veröffentlichungsworkflow](../../.github/workflows/publish.yml)
-- [Liveprüfung](../../scripts/verify-live.mjs)
-- [Betriebsdokumentation](../owner-setup.md)
-
-## Wann neu entscheiden?
-
-Wenn ein beauftragtes Feature Anforderungen stellt, die Pages oder das getrennte Backend nicht erfüllen, oder der Eigentümer Hosting beziehungsweise Veröffentlichungsregeln ausdrücklich ändern möchte.
+[App-Konfiguration](../../app.config.json), [Workflow](../../.github/workflows/publish.yml), [Liveprüfung](../../scripts/verify-live.mjs).

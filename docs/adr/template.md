@@ -1,26 +1,21 @@
-# NNNN – Kurzer Entscheidungstitel
+# NNNN – Entscheidungstitel
 
-- Status: Vorgeschlagen / Akzeptiert / Ersetzt durch ADR-NNNN
-- Dokumentiert am: YYYY-MM-DD
-- Geltungsbereich: Betroffene Features oder Systeme
-- Herkunft: Neue Entscheidung oder nachträgliche Dokumentation
+Status: Vorgeschlagen / Akzeptiert / Ersetzt durch ADR-NNNN
+Dokumentiert: YYYY-MM-DD · Herkunft: neu / nachträglich
+Gilt für: Betroffener Bereich und wenige Suchbegriffe
 
 ## Anlass
 
-Welches konkrete Problem und welche bekannten Rahmenbedingungen liegen vor? Unsichere Annahmen als solche kennzeichnen.
+Welches konkrete Problem erfordert diese Entscheidung?
 
-## Entscheidung und Gründe
+## Entscheidung und Grund
 
-Was gilt, und warum passt es zum aktuellen Bedarf? Nur tatsächlich betrachtete Alternativen erwähnen.
+Was gilt und warum? Annahmen klar benennen; keine erfundenen Alternativen.
 
-## Folgen und Grenzen
+## Folgen und Neubewertung
 
-Welche Vorteile, Nachteile und Einschränkungen entstehen? Offene Punkte und erforderliche Berechtigungen ausdrücklich offenlassen.
+Wichtige Einschränkungen und konkreter Anlass für eine spätere Änderung.
 
 ## Belege
 
-Relevante Dateien, PRs, Commits oder andere überprüfbare Quellen verlinken. Keine privaten Gesprächsinhalte kopieren.
-
-## Wann neu entscheiden?
-
-Welche konkrete Änderung würde eine Neubewertung sinnvoll machen? Nachfolger verlinken, sobald vorhanden.
+Wenige relevante Dateien, PRs oder Commits. Ziel: insgesamt 80–150 Wörter.
