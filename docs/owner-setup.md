@@ -1,5 +1,9 @@
 # Einrichtung und Betrieb
 
+## Vorbereitete Einkaufsbenachrichtigungen
+
+Noch nicht aktiviert oder veröffentlicht: die Umsetzung für optionale Web-Push-Meldungen liegt zur Prüfung vor. Damian muss die serverseitigen Schlüssel, Edge Function und den Zeitplan im bestehenden Supabase-Projekt einrichten. Die vollständigen Schritte, Datenarten, Empfänger und Abschaltung stehen in [push-setup.md](push-setup.md). Keine private Schlüsselverwaltung an die Nutzerin delegieren. Vor Erfolgsmeldung müssen beide tatsächlichen iPhones eine vom Partner ausgelöste Meldung erhalten haben.
+
 ## Tatsächliche Konfiguration
 
 - Eigentümer: ElDamiano-777.

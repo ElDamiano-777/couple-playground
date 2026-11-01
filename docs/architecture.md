@@ -1,5 +1,7 @@
 # Kleine Architektur
 
+Vorbereitet, noch nicht live: optionale Einkaufsbenachrichtigungen per Web Push. `PushSettings` registriert Geräte erst nach ausdrücklichem Antippen; Abmeldung entfernt die Browser-Subscription. Der Service Worker zeigt ausschließlich allgemeine Meldungen und öffnet Shopping, ohne offene Eingaben zu verwerfen. Die additive Migration hält Geräte und Ereignisse privat; ein separat authentifizierter Supabase-Worker versendet nur an den anderen aktuellen Haushaltspartner. Serverbereitschaft ist standardmäßig aus. [ADR 0004](adr/0004-shopping-web-push.md) und [Administrator-Einrichtung](push-setup.md) beschreiben Grenzen, Ablauf und noch offene Live-Prüfung.
+
 Wichtige Entscheidungen und ihre Gründe: [ADR-Index](adr/README.md). Vor Änderungen und Rückfragen die relevanten akzeptierten ADRs lesen. Neue wesentliche Entscheidungen im selben Änderungsumfang kurz dokumentieren.
 
 - React, TypeScript und Vite. Keine UI-Bibliothek, kein Router und keine bezahlte API für die Grundversion nötig.

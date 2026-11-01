@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import config from "../../app.config.json";
 import { supabase, pocAccounts, type PocUsername } from "./client";
+import { disconnectPush } from './push';
 
 export type ShoppingItem = {
   id: string;
@@ -306,6 +307,7 @@ export function useSharedShopping() {
     });
   const signOut = () =>
     perform(async () => {
+      await disconnectPush();
       const { error } = await supabase.auth.signOut({ scope: `local` });
       if (error) throw error;
       setSession(null);
@@ -317,6 +319,7 @@ export function useSharedShopping() {
     });
   const deleteAccount = () =>
     perform(async () => {
+      await disconnectPush();
       const { error } = await supabase.rpc(`delete_my_account`);
       if (error) throw error;
       await supabase.auth.signOut({ scope: `local` });

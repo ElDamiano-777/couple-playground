@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import config from './app.config.json' with { type: 'json' };
 
 const commit = process.env.GITHUB_SHA || execFileSync(`git`, [`rev-parse`, `HEAD`], { encoding: `utf8` }).trim();
@@ -25,6 +26,7 @@ self.addEventListener('fetch', event => {
   if (event.request.mode !== 'navigate' || new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(fetch(event.request).catch(() => caches.match(BASE + 'offline.html')));
 });
+${readFileSync(new URL('./scripts/push-worker.js', import.meta.url), 'utf8')}
 ` });
     },
   }],

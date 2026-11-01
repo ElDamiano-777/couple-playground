@@ -1,5 +1,11 @@
 # Änderungen
 
+## Vorbereitet — noch nicht veröffentlicht
+
+- Optionale Telefonbenachrichtigungen über neue Einkäufe und geänderten Kaufstatus des Partners, mit Ein-/Ausschalten je Gerät und Abmeldungsschutz.
+- Verschlüsselte, allgemeine Meldungen ohne Einkaufsnamen; private Geräteverwaltung und begrenzte Hintergrundwarteschlange im vorhandenen Supabase-Projekt.
+- Serveraktivierung und echte Zwei-iPhone-Prüfung stehen aus. Keine Zugangsschlüssel oder geplanten Aufgaben aktiviert. Einrichtung: docs/push-setup.md.
+
 ## 0.2.1 — 2026-11-01
 
 - POC-Login mit den Benutzernamen masha und damian und eigener Passworteingabe; keine E-Mail-Bestätigung für diese beiden ausdrücklich beauftragten Testkonten.
