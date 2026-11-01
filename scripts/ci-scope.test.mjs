@@ -24,6 +24,7 @@ test('manual checks and missing comparison metadata never silently skip the app'
 
 test('real Git diffs distinguish docs edits and application files renamed into docs', () => {
   const cwd = mkdtempSync(join(tmpdir(), 'together-ci-scope-'));
+  /** @param {string[]} args */
   const git = args => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   const commit = () => {
     git(['add', '.']);

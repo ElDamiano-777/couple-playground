@@ -5,15 +5,21 @@ import { pathToFileURL } from 'node:url';
 // These are development-only paths. Remove an exemption if the app starts consuming it.
 const developmentOnly = /^(?:docs\/|\.agents\/|\.codex\/|\.caveman\.json$|(?:AGENTS|CHANGELOG|README(?:\.[^/]+)?)\.md$|LICENSE(?:[-.][^/]*)?$|NOTICE$|supabase\/README\.md$|\.github\/(?:ISSUE_TEMPLATE\/|PULL_REQUEST_TEMPLATE\.md$))/;
 
+/** @param {string[]} paths */
 export function needsAppChecks(paths) {
   return paths.some(path => !developmentOnly.test(path));
 }
 
+/**
+ * @param {string | undefined} eventName
+ * @param {{ before?: string, pull_request?: { base?: { sha?: string } } }} event
+ */
 export function scopeForEvent(eventName, event, cwd = process.cwd()) {
   if (eventName === 'workflow_dispatch') return true;
   const base = eventName === 'pull_request' ? event.pull_request?.base?.sha : event.before;
   try {
-    if (!/^[a-f0-9]{40}$/i.test(base || '') || /^0+$/.test(base)) throw new Error('No comparison commit');
+    if (typeof base !== 'string' || !/^[a-f0-9]{40}$/i.test(base) || /^0+$/.test(base)) throw new Error('No comparison commit');
+    /** @param {string[]} args */
     const git = args => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
     try { git(['cat-file', '-e', `${base}^{commit}`]); }
     catch { git(['fetch', '--no-tags', '--depth=1', 'origin', base]); }
@@ -29,7 +35,9 @@ export function scopeForEvent(eventName, event, cwd = process.cwd()) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   let app = true;
   try {
-    const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+    const eventPath = process.env.GITHUB_EVENT_PATH;
+    if (!eventPath) throw new Error('No event path');
+    const event = JSON.parse(readFileSync(eventPath, 'utf8'));
     app = scopeForEvent(process.env.GITHUB_EVENT_NAME, event);
   } catch {
     console.warn('Event metadata unavailable; running app checks.');
