@@ -1,5 +1,7 @@
 # Kleine Architektur
 
+Wichtige Entscheidungen und ihre Gründe: [ADR-Index](adr/README.md). Vor Änderungen und Rückfragen die relevanten akzeptierten ADRs lesen. Neue wesentliche Entscheidungen im selben Änderungsumfang kurz dokumentieren.
+
 - React, TypeScript und Vite. Keine UI-Bibliothek, kein Router und keine bezahlte API für die Grundversion nötig.
 - GitHub Pages unter /couple-playground/. Alle Ansichten liegen auf der Startadresse; Unterseiten verursachen keine SPA-404-Probleme auf Pages.
 - src/App.tsx enthält die vier Haushaltsbereiche sowie lokale Notizen, Hilfe und die erhaltene Begrüßung. src/HouseholdPreview.tsx enthält die verbleibenden Beispielansichten und eine echte Einkaufsübersicht. src/shared trennt Supabase-Verbindung, Sitzungs-/Einkaufslogik und Einkaufsoberfläche. src/storage.ts speichert ausschließlich lokale Notizen unter einem versionierten Browser-Schlüssel.

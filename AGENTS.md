@@ -22,7 +22,7 @@
 
 ## Einstieg in einen neuen Projektchat
 
-- Beginnt die Nutzerin einen neuen Chat in diesem Repository nur mit einer Begrüßung wie „Hi“, „Hallo“ oder „Привет“, selbstständig einen kurzen Projektüberblick verschaffen: AGENTS.md, goal.md, aktuellen Projektstand, docs/architecture.md, docs/owner-setup.md und app.config.json lesen; bei Bedarf den relevanten Code oder Veröffentlichungsstand prüfen. Bereits im aktuellen Chat verlässlich gelesenen Stand nicht bei jedem Gruß erneut vollständig laden.
+- Beginnt die Nutzerin einen neuen Chat in diesem Repository nur mit einer Begrüßung wie „Hi“, „Hallo“ oder „Привет“, selbstständig einen kurzen Projektüberblick verschaffen: AGENTS.md, goal.md, aktuellen Projektstand, docs/architecture.md, docs/owner-setup.md, den Index docs/adr/README.md und app.config.json lesen; bei Bedarf den relevanten Code oder Veröffentlichungsstand prüfen. Bereits im aktuellen Chat verlässlich gelesenen Stand nicht bei jedem Gruß erneut vollständig laden.
 - In ihrer aktuellen Sprache freundlich und einfach begrüßen. In wenigen Sätzen erklären, wofür die App da ist, was tatsächlich schon funktioniert und welcher wichtige nächste Schritt offen ist. Beispiele, lokale Funktionen und echte gemeinsame Funktionen klar auseinanderhalten. Den festen App-Link anbieten.
 - Mit genau drei konkreten, zum aktuellen Stand passenden Folgeprompts abschließen: sinnvolle nächste Schritte oder kleine Verbesserungen, die sie direkt auswählen oder als Anregung nutzen kann. Keine allgemeine Frage wie „Wie kann ich helfen?“ als alleinige Antwort und keine technischen Einrichtungsaufgaben an sie weiterreichen.
 - Bei passendem Anlass einen sanften Denkanstoß zum gemeinsamen Alltag oder Nutzen einbauen, höchstens ein bis zwei Sätze. Nicht mit einer langen Wunschliste oder technischen Möglichkeiten überfordern und bereits abgelehnte Ideen nicht erneut aufdrängen.
@@ -55,6 +55,15 @@
 - Clean Code: klare Namen, kleine fokussierte Funktionen und Komponenten, explizite Typen an Schnittstellen und verständliche Fehlerbehandlung. Tote Zweige und überholten Code im berührten Bereich entfernen. Kommentare erklären Gründe statt offensichtlichen Code nachzuerzählen.
 - Bestehende Projektbausteine und Konventionen nutzen. Neue Abhängigkeiten nur bei konkretem Nutzen; keine Bibliothek für eine leicht selbst lösbare Kleinigkeit.
 - Bestehende Daten und funktionierende Abläufe erhalten. Relevantes Verhalten gezielt prüfen; keine Tests, die nur die Implementierung nachschreiben, und keine unnötige Testserie für reine Textänderungen. Eingerichtete Pflichtprüfungen bleiben verbindlich.
+
+## Entscheidungen automatisch dokumentieren und wiederverwenden
+
+- Wichtige Architektur-, Daten-, Zugriffs-, Dienst- und Veröffentlichungsentscheidungen sowie bewusste POC-Ausnahmen selbstständig als kurze ADRs unter docs/adr/ festhalten. Dafür keine zusätzliche Freigabe verlangen; keine ADRs für triviale Text-/Layoutänderungen erzeugen.
+- Vor einer Änderung den ADR-Index und die betroffenen akzeptierten Entscheidungen lesen. Vor einer Rückfrage zuerst prüfen, ob aktueller Auftrag, ADRs, goal.md, Architektur- oder Betriebsdokumentation die Antwort bereits liefern. Masha nicht erneut nach bereits geklärter Technik oder Entscheidungen fragen, deren fachliche Grundlage dokumentiert ist.
+- Pro ADR die Vorlage verwenden: Anlass, Entscheidung und Gründe, Folgen/Grenzen, überprüfbare Belege und Anlass für eine Neubewertung. Belegte Entscheidung, Annahme und offene Frage unterscheiden. Nachträgliche Einträge kennzeichnen; keine Zustimmung, Gründe oder untersuchten Alternativen erfinden.
+- Gewöhnliche technische Lücken selbst untersuchen und entscheiden. Masha beantwortet nur wirklich offene, wesentliche Produktfragen in einfachen Worten; Konto-, Kosten- und Berechtigungsfragen gehören zu Damian. Ein ADR ersetzt keine erforderliche Freigabe und erzeugt keine neue Freigabeschleife.
+- Bei geänderter Entscheidung einen Nachfolger verlinken und den Vorgänger als ersetzt markieren, statt dessen Begründung zu löschen. Aktuelle ausdrückliche Nutzerwünsche haben Vorrang vor früheren ADRs. Index und Architekturübersicht im passenden Änderungsumfang aktuell halten.
+- ADRs bleiben kurz und unpersönlich. Keine privaten Paar-Inhalte, Passwörter, Tokens, persönlichen E-Mail-Adressen oder Gesprächsabschriften in das öffentliche Repository schreiben.
 
 ## Daten später featureübergreifend verknüpfen
 
@@ -125,7 +134,7 @@
 
 ## Arbeiten bis zum sichtbaren Ergebnis
 
-- Lies goal.md, den aktuellen Projektstand und die kurze technische Dokumentation, bevor du Änderungen beginnst.
+- Lies goal.md, den aktuellen Projektstand, die kurze technische Dokumentation sowie den ADR-Index und die für den Auftrag relevanten akzeptierten ADRs, bevor du Änderungen beginnst.
 - Setze eine möglichst kleine vollständige Version ihres Wunsches um. Nutze die bestehenden Bausteine und den vorhandenen Veröffentlichungsweg.
 - Erledige Installation, Codeänderungen, passende Prüfungen, Commit, Push und Veröffentlichung selbst, soweit die eingerichteten Rechte reichen.
 - Für normale Änderungen sind diese Schritte vorab autorisiert. Kein „Soll ich speichern, testen oder veröffentlichen?“ nach jedem Wunsch.
