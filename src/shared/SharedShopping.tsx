@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { SharedShoppingState } from "./useSharedShopping";
+import PushSettings from './PushSettings';
 
 export default function SharedShopping({
   state,
@@ -183,6 +184,7 @@ export default function SharedShopping({
           sensitive personal information.
         </p>
       )}
+      {state.household && <PushSettings key={state.session.user.id} userId={state.session.user.id} />}
       {state.loading ? (
         <p role="status">Opening your shared list…</p>
       ) : !state.household ? (

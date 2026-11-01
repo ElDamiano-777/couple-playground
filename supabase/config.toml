@@ -6,3 +6,7 @@ major_version = 17
 [auth]
 site_url = "https://eldamiano-777.github.io/couple-playground/"
 additional_redirect_urls = ["https://eldamiano-777.github.io/couple-playground/"]
+
+# This endpoint uses its own server-only scheduler secret, never a browser JWT.
+[functions.push-worker]
+verify_jwt = false

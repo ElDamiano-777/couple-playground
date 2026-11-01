@@ -36,6 +36,8 @@ Hält unpersönlich fest, was die Nutzerin mit der App erreichen will und was da
 
 ## Nächste Schritte
 
+- Beauftragt und vorbereitet: optionale Telefonbenachrichtigungen bei neuen Einkäufen und geändertem Kaufstatus des Partners. Noch nicht live; Serveraktivierung durch Damian und Prüfung auf zwei iPhones stehen aus. Allgemeine Meldungen ohne Einkaufsnamen, ausdrückliches Einschalten je Telefon. Details: docs/push-setup.md.
+
 1. Die gemeinsame Einkaufsliste im echten Alltag auf beiden iPhones benutzen.
 2. Aus ihrer Rückmeldung das Produktbild füllen und den nächsten kleinen Wunsch finden.
 3. Für Damian, nicht für die Nutzerin: PWA-Installation, Update und einen vollständigen Auftrag vom iPhone prüfen.

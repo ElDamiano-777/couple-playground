@@ -30,7 +30,7 @@ function Icon({ name }: { name: `heart` | `home` | `note` | `more` | `arrow` | `
 
 export default function App() {
   const shopping = useSharedShopping();
-  const [page, setPage] = useState<Page>(`home`);
+  const [page, setPage] = useState<Page>(new URLSearchParams(location.search).get(`shopping`) === `1` ? `shopping` : `home`);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
   const [profileSaved, setProfileSaved] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -58,6 +58,17 @@ export default function App() {
     };
     window.addEventListener(`beforeunload`, warn);
     return () => window.removeEventListener(`beforeunload`, warn);
+  }, [draft, shopping.dirty]);
+
+  useEffect(() => {
+    if (!(`serviceWorker` in navigator)) return;
+    const openShopping = (event: MessageEvent) => {
+      if (event.data?.type !== `OPEN_SHOPPING` || draft.trim() || shopping.dirty) return;
+      setPage(`shopping`);
+      window.scrollTo({ top: 0, behavior: `instant` });
+    };
+    navigator.serviceWorker.addEventListener(`message`, openShopping);
+    return () => navigator.serviceWorker.removeEventListener(`message`, openShopping);
   }, [draft, shopping.dirty]);
 
   useEffect(() => {
