@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import FamilyProfiles from './family/FamilyProfiles';
+import type { FamilyProfilesState } from './family/useFamilyProfiles';
 import SharedShopping from './shared/SharedShopping';
 import type { SharedShoppingState } from './shared/useSharedShopping';
 
@@ -25,19 +27,18 @@ const plans = [
   { day: `Later`, time: `Sun`, title: `A slow family breakfast`, detail: `Both of us · No need to rush`, color: `lilac` },
 ];
 
-export default function HouseholdPreview({ page, navigate, shopping }: { page: HouseholdPage; navigate: (page: HouseholdPage) => void; shopping: SharedShoppingState }) {
-  const [family, setFamily] = useState<`Kids` | `Pets`>(`Kids`);
+export default function HouseholdPreview({ page, navigate, shopping, family }: { page: HouseholdPage; navigate: (page: HouseholdPage) => void; shopping: SharedShoppingState; family: FamilyProfilesState }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => { dialog.current?.close(); }, [page]);
   const remaining = shopping.items.filter(item => !item.bought).length;
-  if (page === `shopping`) return <SharedShopping state={shopping} />;
+  if (page === `shopping`) return <SharedShopping state={shopping} hasFamilyDraft={family.dirty} />;
   const shoppingRows = () => <div className="grocery-list">
     {shopping.household ? shopping.items.slice(0, 3).map(item => <div className={`grocery-row ${item.bought ? `is-bought` : ``}`} key={item.id}><span className="grocery-copy"><strong>{item.name}</strong><small>{item.bought ? `Bought` : item.category}</small></span></div>) : <p className="page-intro">Sign in to add the things you need and share them with your partner.</p>}
     {shopping.household && shopping.items.length === 0 && <p className="page-intro">Your shared list is ready for its first purchase.</p>}
   </div>;
 
   return <div className="household-preview" lang="en">
-    <div className="preview-label"><span>YOUR SPACE</span><p>Shopping has a real shared list. Plans, family cards and updates are still examples.</p></div>
+    <div className="preview-label"><span>YOUR SPACE</span><p>Shopping and family cards are shared. Plans and updates are still examples.</p></div>
 
     {page === `home` && <>
       <section className="household-hero">
@@ -55,11 +56,11 @@ export default function HouseholdPreview({ page, navigate, shopping }: { page: H
 
     {page === `plans` && <section className="preview-page"><p className="eyebrow">MAKE TIME FOR WHAT MATTERS</p><h1>Our plans<span>.</span></h1><p className="page-intro">Everyday errands and moments worth keeping.</p><div className="plan-list">{plans.map(plan => <section key={plan.day}><h2 className="day-label">{plan.day}</h2><article className={`plan-item ${plan.color}`}><span className="plan-time">{plan.time}</span><div><h3>{plan.title}</h3><p>{plan.detail}</p></div><Symbol name="plans" /></article></section>)}</div><p className="preview-hint">Example plans. Real dates and reminders will come after you connect as a couple.</p></section>}
 
-    {page === `family` && <section className="preview-page"><p className="eyebrow">EVERYONE WE LOVE</p><h1>Our family<span>.</span></h1><p className="page-intro">A little space for every member of your home.</p><div className="family-grid">{([`Kids`, `Pets`] as const).map(value => <button className={`family-card ${value === `Kids` ? `peach` : `sage`}`} key={value} aria-pressed={family === value} onClick={() => setFamily(value)}><span className="family-drawing" aria-hidden="true">{value === `Kids` ? `☀` : `♧`}</span><strong>{value === `Kids` ? `Little humans` : `Furry friends`}</strong><span>{value === `Kids` ? `Their days, their little needs` : `A happy life, paws included`}</span><small>Example section <Symbol name="arrow" /></small></button>)}</div><section className="dashboard-card family-detail"><div className="card-heading"><h2>{family === `Kids` ? `For the little ones` : `For our furry friends`}</h2><span className="quiet-tag">Example</span></div><p>{family === `Kids` ? `Colouring pencils for a creative afternoon` : `Pet food — the usual favourite`}</p><p className="preview-hint">Names, individual cards and family tasks can be added in a later step.</p><button className="text-action" onClick={() => navigate(`shopping`)}>See shopping <Symbol name="arrow" /></button></section></section>}
+    {page === `family` && <FamilyProfiles state={family} onSignIn={() => navigate(`shopping`)} />}
 
     {page === `activity` && <section className="preview-page"><p className="eyebrow">KEEPING EACH OTHER IN THE LOOP</p><h1>Little updates<span>.</span></h1><p className="page-intro">This is how your shared activity could look.</p><section className="dashboard-card activity-list">{[`Partner B marked berries as bought.`, `Partner A added colouring pencils.`, `Partner B removed a duplicate item.`].map((text, index) => <div className="activity-entry" key={text}><span className={`activity-avatar ${index === 1 ? `peach` : `sage`}`}>{index === 1 ? `A` : `B`}</span><div><p>{text}</p><small>Example activity</small></div></div>)}</section><div className="notification-note"><Symbol name="bell" /><p>Phone notifications aren’t connected yet. We’ll set them up after your shared space is ready.</p></div></section>}
 
     <button className="add-fab" aria-label="Add to our home" onClick={() => dialog.current?.showModal()}><Symbol name="plus" /><span>Add</span></button>
-    <dialog className="add-dialog" ref={dialog} aria-labelledby="add-title" onClick={event => { if (event.target === event.currentTarget) dialog.current?.close(); }}><button className="dialog-close" aria-label="Close add menu" onClick={() => dialog.current?.close()}>×</button><p className="eyebrow">A LITTLE SOMETHING NEW</p><h2 id="add-title">What’s on your mind?</h2><p>Add purchases to your shared shopping list. Plans are still a design preview.</p><button className="add-option" onClick={() => { dialog.current?.close(); navigate(`shopping`); }}><Symbol name="shopping" />Add a purchase <Symbol name="arrow" /></button><button className="add-option" onClick={() => { dialog.current?.close(); navigate(`plans`); }}><Symbol name="plans" />Explore plans <Symbol name="arrow" /></button></dialog>
+    <dialog className="add-dialog" ref={dialog} aria-labelledby="add-title" onClick={event => { if (event.target === event.currentTarget) dialog.current?.close(); }}><button className="dialog-close" aria-label="Close add menu" onClick={() => dialog.current?.close()}>×</button><p className="eyebrow">A LITTLE SOMETHING NEW</p><h2 id="add-title">What’s on your mind?</h2><p>Add purchases or family members to your shared home. Plans are still a design preview.</p><button className="add-option" onClick={() => { dialog.current?.close(); navigate(`shopping`); }}><Symbol name="shopping" />Add a purchase <Symbol name="arrow" /></button><button className="add-option" onClick={() => { dialog.current?.close(); navigate(`family`); }}><Symbol name="family" />Add a child or pet <Symbol name="arrow" /></button><button className="add-option" onClick={() => { dialog.current?.close(); navigate(`plans`); }}><Symbol name="plans" />Explore plans <Symbol name="arrow" /></button></dialog>
   </div>;
 }

@@ -21,6 +21,17 @@ type Row = {
 export function transport() {
   let members: string[] = [];
   let rows: Row[] = [];
+  type FamilyRow = {
+    id: string; household_id: string; kind: string; name: string;
+    animal_type: string | null; created_by: string; created_at: string;
+  };
+  let familyRows: FamilyRow[] = [];
+  let failFamilySave = false;
+  let familyRequests = 0;
+  let delayedFamilyRead: Promise<void> | null = null;
+  let releaseFamilyRead: (() => void) | null = null;
+  let delayedFamilyWrite: Promise<void> | null = null;
+  let releaseFamilyWrite: (() => void) | null = null;
   let codeUsed = false;
   let failSave = false;
   let failMail = false;
@@ -125,6 +136,40 @@ export function transport() {
               ? members.map((user_id) => ({ user_id }))
               : [],
         );
+      if (url.pathname === `/rest/v1/family_profiles`) {
+        ++familyRequests;
+        const household = homeFor(user);
+        if (!household || url.searchParams.get(`household_id`) && url.searchParams.get(`household_id`) !== `eq.${household}`)
+          return reply({ message: `Forbidden` }, 403);
+        if (method === `GET`) {
+          const snapshot = familyRows.filter((row) => row.household_id === household);
+          if (delayedFamilyRead) await delayedFamilyRead;
+          return reply(snapshot);
+        }
+        if (failFamilySave) {
+          failFamilySave = false;
+          return reply({ message: `Synthetic family storage failure` }, 503);
+        }
+        if (method === `POST`) {
+          if (data.household_id !== household) return reply({ message: `Forbidden` }, 403);
+          const row = { ...data, id: crypto.randomUUID(), created_by: user, created_at: new Date().toISOString() } as FamilyRow;
+          familyRows.push(row);
+          if (delayedFamilyWrite) await delayedFamilyWrite;
+          return reply(row, 201);
+        }
+        const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
+        const row = familyRows.find((row) => row.id === id && row.household_id === household);
+        if (!row) return reply({ message: `Not found` }, 404);
+        if (method === `PATCH`) {
+          row.name = data.name;
+          row.animal_type = data.animal_type;
+          return reply(row);
+        }
+        if (method === `DELETE`) {
+          familyRows = familyRows.filter((row) => row.id !== id);
+          return reply({ id });
+        }
+      }
       if (url.pathname === `/rest/v1/shopping_items`) {
         if (!homeFor(user)) return reply({ message: `Forbidden` }, 403);
         if (method === `GET`)
@@ -166,6 +211,24 @@ export function transport() {
   }
   return {
     attach,
+    delayFamilyWrites: () => {
+      delayedFamilyWrite = new Promise<void>((resolve) => { releaseFamilyWrite = resolve; });
+    },
+    releaseFamilyWrites: () => {
+      releaseFamilyWrite?.();
+      delayedFamilyWrite = null;
+      releaseFamilyWrite = null;
+    },
+    failNextFamilySave: () => { failFamilySave = true; },
+    familyRequestCount: () => familyRequests,
+    delayFamilyReads: () => {
+      delayedFamilyRead = new Promise<void>((resolve) => { releaseFamilyRead = resolve; });
+    },
+    releaseFamilyReads: () => {
+      releaseFamilyRead?.();
+      delayedFamilyRead = null;
+      releaseFamilyRead = null;
+    },
     failNextSave: () => {
       failSave = true;
     },

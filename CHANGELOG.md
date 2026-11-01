@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.2.2 — 2026-11-01
+
+- Family enthält gemeinsame Kinder- und Tierkarten statt Beispielen: Name, optionaler Tier-Typ, Bearbeiten und bestätigtes Entfernen.
+- Änderungen werden im bestehenden Zuhause gespeichert und auf beiden Geräten abgeglichen. Unfertige Eingaben bleiben bei Netzfehlern, Tabwechseln und normalen Updates erhalten.
+- Serverseitige Haushaltsrechte und stabile Karten-IDs; keine Fotos, Geburtsdaten oder zusätzlichen Dienste. Einkäufe bleiben unverändert.
+
 ## 0.2.1 — 2026-11-01
 
 - POC-Login mit den Benutzernamen masha und damian und eigener Passworteingabe; keine E-Mail-Bestätigung für diese beiden ausdrücklich beauftragten Testkonten.

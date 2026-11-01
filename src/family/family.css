@@ -1,0 +1,17 @@
+.family-profiles .dashboard-card { margin: 18px 0; overflow-wrap: anywhere; }
+.family-profiles .dashboard-card > p { color: #8a7a8b; font-size: 14px; line-height: 1.8; }
+.family-profiles .dashboard-card > button { min-height: 44px; padding: 10px 14px; margin-right: 8px; }
+.family-profiles .note-form { min-width: 0; align-items: stretch; }
+.family-profiles .note-form input {
+  min-width: 0;
+  width: 100%;
+  min-height: 48px;
+  font: inherit;
+  font-size: 16px;
+  border: 1px solid #dfd3e5;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fffdf9;
+  color: #49404d;
+}
+.family-profiles .note-form input:focus-visible { outline: 3px solid #a98bd2; outline-offset: 4px; }
