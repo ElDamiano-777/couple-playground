@@ -27,7 +27,8 @@
 - Die veröffentlichte Grundversion verwendet ausschließlich lokalen Browser-Speicher. Die Oberfläche benennt das ausdrücklich.
 - Ein browserlokaler Speicher kann durch Browserdaten-Löschung verloren gehen und ist auf gemeinsam genutzten Geräten nicht vor anderen Benutzern geschützt.
 - Es gibt keine Anmeldung, keine Einladungslinks, keine Paar-Datenbank und keine Datenübertragung an einen Partner.
-- Die zwei kostenlosen Supabase-Projektplätze des Eigentümers sind bereits ausgeschöpft. Kein bestehendes Projekt pausieren, löschen oder für diese App zweckentfremden.
+- Für Together wurde ein separates Supabase-Projekt eingerichtet: lyewmhtufesdccisqmin (Free, Organisation Together). GitHub-Integration: dieses Repo, Working directory `.`, Produktionsbranch main. Die früher belegten Plätze in einem anderen Konto werden nicht verwendet; keine fremden Projekte verändern.
+- Öffentliche Verbindung ist vorhanden. Direkte Supabase-Verwaltung ist in diesem Chat weiterhin nicht verfügbar; Migrationen müssen über die eingerichtete GitHub-Integration bestätigt werden. Auth Site URL und Redirect URLs müssen auf die feste App-Adresse zeigen.
 - Für ein späteres Backend: separater Projektzugang beziehungsweise freigegebener Tarif, dokumentierter Zweck und Datenarten, Empfänger, Zugriffs-/Löschregeln, Aufbewahrung und gegebenenfalls Vereinbarungen. Rechtliche Rollen und Grundlagen sind nicht durch dieses Setup festgestellt.
 - Vor echten Paar-Daten: zwei Konten, sichere ablaufende Einladungen, serverseitige Zugriffsregeln, direkte Negativtests mit fremdem Konto und Abmelde-/Löschpfade. Keine gemeinsamen Fake-Logins als Abkürzung.
 
