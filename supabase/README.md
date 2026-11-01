@@ -1,0 +1,11 @@
+# Together database
+
+The root `supabase/` directory is for the existing Supabase GitHub integration, working directory `.`, production branch `main`. Migrations are additive; no existing project or live data is reset.
+
+Before auth/data implementation the required cases are: two separately authenticated pair members can add, read, mark and delete purchases; signed-out and unrelated accounts cannot access a known household or item; membership and authorship cannot be forged; expired, replaced, reused and concurrently redeemed invitations cannot admit a third member. Local notes remain local and are never uploaded.
+
+`python3 scripts/test-database.py` starts an isolated PostgreSQL 17 container, applies the real migration and exercises those access rules, including concurrent redemption from separate connections. It never connects to the hosted project. Docker with the local Unix socket is required. Browser/auth integration tests are separate.
+
+The hosted project is `lyewmhtufesdccisqmin`; only the public project URL and publishable key belong in the client. No database password or privileged key is needed by the browser. Do not commit session tokens, invitation codes or real purchases.
+
+The GitHub integration must report successful migration before enabling shared shopping. `supabase/config.toml` also documents the intended Auth site/redirect URLs; verify these in Authentication → URL Configuration because a database migration does not update the hosted Auth settings. Email confirmation stays enabled. Do not disable it to simplify testing.
