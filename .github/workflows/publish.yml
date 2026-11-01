@@ -15,26 +15,50 @@ concurrency:
 
 jobs:
   check:
+    # Retain the existing required status name for branch-protection compatibility.
     name: Build and smoke tests
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    outputs:
+      app: ${{ steps.scope.outputs.app }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+      - name: Decide whether application checks are needed
+        id: scope
+        run: node scripts/ci-scope.mjs
+      - name: Record documentation-only result
+        if: steps.scope.outputs.app != 'true'
+        run: echo 'Development documentation only. App build, browser tests and Pages deployment are skipped.' >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-node@v6
+        if: steps.scope.outputs.app == 'true'
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium webkit
-      - run: npm run verify
+      - name: Check CI scope policy
+        if: steps.scope.outputs.app == 'true'
+        run: node --test scripts/ci-scope.test.mjs
+      - name: Install dependencies
+        if: steps.scope.outputs.app == 'true'
+        run: npm ci
+      - name: Build app
+        if: steps.scope.outputs.app == 'true'
+        run: npm run build
+      - name: Install iPhone browser
+        if: steps.scope.outputs.app == 'true' && github.event_name != 'pull_request'
+        run: npx playwright install --with-deps webkit
+      - name: Run iPhone smoke tests once before publishing
+        if: steps.scope.outputs.app == 'true' && github.event_name != 'pull_request'
+        run: npx playwright test --project=iphone-webkit
       - uses: actions/upload-pages-artifact@v4
-        if: github.event_name != 'pull_request'
+        if: steps.scope.outputs.app == 'true' && github.event_name != 'pull_request'
         with:
           path: dist
 
   deploy:
     name: Publish tested app
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.check.outputs.app == 'true'
     needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 5

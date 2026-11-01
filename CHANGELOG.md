@@ -1,5 +1,10 @@
 # Änderungen
 
+## POC-Prüfaufwand — 2026-11-01
+
+- Entwicklungsdokumentation überspringt App-Build, Browser und Deploy. App-PRs bauen; main prüft iPhone-WebKit einmal vor Veröffentlichung.
+- Agenten prüfen gezielt, übernehmen zentrale Ergebnisse und vermeiden erneutes Laden unveränderter Dateien sowie unnötige Folgerunden.
+
 ## Sattere Farben — 2026-11-01
 
 - Die bestehende violett-, pfirsich- und salbeifarbene Palette ist gesättigter: ausdrucksstärkere Schaltflächen, aktive Tabs, farbige Karten und Akzente auf warmem Cremegrund.

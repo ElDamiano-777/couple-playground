@@ -10,6 +10,13 @@ Diese Datei unter 28 KB halten: Codex liest standardmäßig nur die ersten 32 Ki
 - Bevor du einen frischen Chat oder einen Skill vorschlägst oder anlegst: docs/agent-chats-and-skills.md.
 - Bevor du einen Begleithinweis gibst: docs/begleitung-stand.md.
 
+## POC: Aufwand klein halten
+
+- Den konkreten Wunsch fertigstellen, dann stoppen. Keine Sicherheits-, Architektur-, Review- oder Optimierungsrunden auf Vorrat.
+- Unveränderte Dateien nur einmal pro Session lesen; danach relevante Ausschnitte oder Änderungen nachladen. Keine pauschale Dokumentations- oder Codebasis-Lektüre.
+- Kleine reversible Aufgaben direkt lösen. Planung, Subagents und Dokumentation nur bei konkretem Nutzen.
+- Gezielt prüfen und zentrale Ergebnisse übernehmen. Keine identischen Volltests lokal, im PR und auf main. Details: docs/agent-publishing.md.
+
 ## Auftrag und Sprache
 
 - Die Nutzerin entwickelt ihre erste App ausschließlich mit dem iPhone. Sie braucht keine Computer- oder Programmierkenntnisse.
@@ -29,7 +36,7 @@ Diese Datei unter 28 KB halten: Codex liest standardmäßig nur die ersten 32 Ki
 - Caveman Full gilt nur für Text, den sie nicht liest: Übergaben an Subagents und deren Berichte. Dafür vor der ersten Delegation `.agents/skills/caveman/SKILL.md` lesen; `.caveman.json` legt den Modus fest. Den Original-Skill nicht umschreiben. Code, Tests, Commits und Dokumentation bleiben sauber und vollständig.
 - Beginne jede Antwort mit der Kernaussage oder dem Ergebnis in ein bis zwei kurzen Sätzen (BLUF). Das Kürzel muss der Nutzerin nicht erklärt oder als Überschrift angezeigt werden.
 - Gliedere die nötigen Details in klare, kurze Stichpunkte. Antworten bleiben in ihrer jeweiligen Sprache natürlich und leicht verständlich. Bei Einwilligung, Kosten, Löschung oder mehrdeutigen Abläufen vollständige klare Sätze verwenden.
-- Jede abgeschlossene Antwort endet mit genau drei sinnvollen Folgeprompts als nummerierte Auswahl: 1., 2., 3. Jeder Vorschlag ist ein konkreter nächster Wunsch in ihrer Ich-Form, den sie direkt auswählen kann. Keine technischen Wartungsaufgaben oder ungefragten neuen Features als Pflicht verkaufen.
+- Bei einem neuen Projektchat, einem abgeschlossenen Feature oder einer offenen Produktentscheidung drei sinnvolle Folgeprompts als nummerierte Auswahl anbieten. Jeder nennt einen konkreten nächsten Wunsch in ihrer Ich-Form. Reine Statusantworten, technische Pflege und kurze Bestätigungen brauchen kein zusätzliches Menü. Keine Wartungsaufgaben oder ungefragten Features als Pflicht verkaufen.
 - Höchstens einer der drei schlägt etwas Neues vor. Die anderen helfen beim Ausprobieren, Verfeinern oder Zurückblicken, damit die App ihrer Idee folgt und nicht den Vorschlägen des Agenten.
 - Die Folgeprompts sind zugleich Vorbilder für gute Wünsche: Sie nennen Ergebnis, Situation und woran man den Erfolg merkt. Beispiele: „Mach die Liste so, dass ich im Laden mit einer Hand abhaken kann.“ oder „Ich probiere das heute Abend aus und erzähle dir danach, was gestört hat.“ Nicht erklären, dass es Vorbilder sind.
 - Wählt sie eine Option zum Ausprobieren oder Nachdenken, wird nichts gebaut: kurz freundlich zustimmen und auf ihre Rückmeldung warten.
@@ -114,11 +121,12 @@ Ziel: Sie entwickelt nebenbei Freude am Arbeiten mit einem Agenten und am Produk
 
 ## Prüfungen
 
-- Nutze die dokumentierten Standardprüfungen. Prüfe den geänderten Ablauf und wichtige Nachbarfunktionen; keine endlosen unnötigen Wiederholungen.
-- Bei Änderungen an gemeinsamen Inhalten das Speichern und Lesen mit zwei getrennten Sitzungen prüfen.
-- Bei Änderungen an Zugriffen zusätzlich fremde und nicht angemeldete Anfragen prüfen.
-- Veröffentlichung nur über den eingerichteten Prüfweg. Prüfungen oder Rechte nicht abschwächen, um schneller „fertig“ sagen zu können.
-- Halte den tatsächlichen Projektstand für den nächsten Agenten kurz aktuell. Behaupte keine erledigten Schritte ohne Nachweis.
+- Nur den geänderten Ablauf und unmittelbar betroffene Nachbarfunktionen prüfen. Nach einem passenden grünen Ergebnis stoppen; Wiederholung nur bei neuen Änderungen, Fehlern oder konkreten offenen Zweifeln.
+- Reine Entwicklungsdokumentation: Text-/Linkprüfung nach Bedarf, keine App-/Browser-/Datenbanktests und kein App-Deploy.
+- Code: einmal gezielt lokal prüfen, soweit nötig; zentrale CI prüft App-Build und iPhone-Verhalten nach main. Der PR baut nur und installiert keine Browser. Chromium oder die komplette Zweibrowser-Suite nur bei konkretem zusätzlichem Bedarf.
+- Gemeinsame Daten bei geänderter Speicherlogik mit zwei Sitzungen prüfen. Bei tatsächlich geänderten Zugriffen passende unberechtigte Anfragen prüfen. Kein allgemeiner Security-Audit oder vollständiger Auth-Testlauf für gewöhnliche UI-Änderungen.
+- Für App-Änderungen den erfolgreichen zentralen Veröffentlichungs-/Livecheck als Nachweis nutzen; keine identische manuelle Liveprüfung hinterher. Für Dokumentation genügt der nachgewiesene Stand auf main.
+- Den eingerichteten Prüfweg befolgen und das tatsächliche Ergebnis korrekt benennen. Details: docs/agent-publishing.md.
 
 ## POC: selbstständig und iPhone-tauglich arbeiten
 
@@ -132,15 +140,11 @@ Ziel: Sie entwickelt nebenbei Freude am Arbeiten mit einem Agenten und am Produk
 
 ## Arbeiten bis zum sichtbaren Ergebnis
 
-- Lies goal.md, den aktuellen Projektstand, die kurze technische Dokumentation sowie den ADR-Index und die für den Auftrag relevanten akzeptierten ADRs, bevor du Änderungen beginnst.
-- Setze eine möglichst kleine vollständige Version ihres Wunsches um. Nutze die bestehenden Bausteine und den vorhandenen Veröffentlichungsweg.
-- Erledige Installation, Codeänderungen, passende Prüfungen, Commit, Push und Veröffentlichung selbst, soweit die eingerichteten Rechte reichen.
-- Für normale Änderungen sind diese Schritte vorab autorisiert. Kein „Soll ich speichern, testen oder veröffentlichen?“ nach jedem Wunsch.
-- POC-Standard: Änderungen direkt auf main committen und pushen, damit der vorhandene automatische Prüf- und Veröffentlichungsweg startet. Dafür keine Branch-/PR-Auswahl oder weitere Freigabe verlangen. Tests bleiben eingeschaltet. Kein Force-Push.
-- Bearbeite Anfangs nur einen Veröffentlichungsauftrag gleichzeitig. Prüfe bei einem Folgeauftrag, ob der vorherige schon veröffentlicht wurde.
-- Warte nach dem Push auf das tatsächliche Ergebnis. Ein Commit, grüner Build oder gestartetes Deployment bedeutet noch nicht, dass die Änderung in ihrer App sichtbar ist.
-- Lies die feste App-Adresse aus der Projektkonfiguration. Erfinde keine URL und liefere keine kurzlebige Vorschau als dauerhafte App-Adresse.
-- Verifiziere die ausgelieferte Änderung beziehungsweise Commit-Kennung auf der festen Adresse, bevor du Erfolg meldest.
+- Bekannten Stand nutzen; goal.md, Dokumentation und relevante ADRs beim Einstieg beziehungsweise bei Änderungen auftragsbezogen lesen.
+- Kleinste vollständige Version mit bestehenden Bausteinen umsetzen. Installation, Prüfungen, Commit, Push und Veröffentlichung sind für normale Wünsche vorab autorisiert; keine routinemäßige Rückfrage.
+- Ziel ist main ohne Force-Push. Nötige PRs selbst abwickeln; keine Branchauswahl von Masha verlangen. Einen Veröffentlichungsauftrag gleichzeitig bearbeiten.
+- Veröffentlichungsregeln: docs/agent-publishing.md. App-Erfolg erst nach zentralem Deploy und Livecheck melden. Bei Dokumentation genügt main; keine zusätzliche identische Liveprüfung.
+- Feste App-Adresse aus app.config.json verwenden, keine erfundene oder kurzlebige Vorschauadresse.
 
 ## Größere Features in abgeschlossenen Schritten
 
@@ -162,21 +166,19 @@ Ziel: Sie entwickelt nebenbei Freude am Arbeiten mit einem Agenten und am Produk
 
 ## Entscheidungen automatisch dokumentieren und wiederverwenden
 
-- Nur wichtige, länger wirksame Entscheidungen mit künftig nützlicher Begründung als ADR unter docs/adr/ festhalten. Vorher auf vorhandene Einträge prüfen. Kein ADR pro Commit, Handgriff, Statusmeldung, Layoutänderung oder gewöhnlichem Implementierungsdetail. Dafür keine zusätzliche Freigabe verlangen.
-- Für ADRs zuerst nur den Index lesen. Thema, Suchbegriffe und Geltungsbereich mit dem Auftrag abgleichen; anschließend ausschließlich die betroffenen akzeptierten ADRs öffnen. Nicht pauschal alle ADRs oder ihre Historie laden. Vorgänger und Belege nur bei konkretem Klärungsbedarf nachlesen; bei fehlendem Treffer gezielt suchen oder gewöhnliche Technik selbst klären.
-- Vor einer Rückfrage prüfen, ob aktueller Auftrag, relevante ADRs, goal.md, Architektur- oder Betriebsdokumentation die Antwort bereits liefern. Masha nicht erneut nach geklärter Technik fragen und keine zusätzliche Frage allein wegen eines fehlenden ADRs stellen.
-- ADRs kurz, knapp und präzise halten: meist 80–150 Wörter mit Anlass, Entscheidung/Grund, wesentlichen Folgen, Neubewertungsanlass und wenigen Belegen. Unnötige Informationen, Wiederholungen und allgemeine Erklärungen weglassen; vorhandene Details verlinken. Annahmen und offene Fragen kennzeichnen, nachträgliche Einträge benennen; keine Zustimmung, Gründe oder Alternativen erfinden.
-- Gewöhnliche technische Lücken selbst untersuchen und entscheiden. Masha beantwortet nur wirklich offene, wesentliche Produktfragen in einfachen Worten; Konto-, Kosten- und Berechtigungsfragen gehören zu Damian. Ein ADR ersetzt keine erforderliche Freigabe und erzeugt keine neue Freigabeschleife.
-- Bei geänderter Entscheidung einen Nachfolger verlinken und den Vorgänger als ersetzt markieren, statt dessen Begründung zu löschen. Aktuelle ausdrückliche Nutzerwünsche haben Vorrang vor früheren ADRs. Index und Architekturübersicht im passenden Änderungsumfang aktuell halten.
-- ADRs bleiben kurz und unpersönlich. Keine privaten Paar-Inhalte, Passwörter, Tokens, persönlichen E-Mail-Adressen oder Gesprächsabschriften in das öffentliche Repository schreiben.
+- Nur wichtige dauerhafte Entscheidungen mit künftig nützlicher Begründung als ADR unter docs/adr/ festhalten; kein ADR pro Commit, Status oder Implementierungsdetail. Keine zusätzliche Freigabe.
+- Zuerst Index, danach nur relevante akzeptierte ADRs lesen; Belege und Vorgänger nur bei konkreter Unklarheit. Keine komplette Sammlung laden. Fehlende ADRs sind kein Grund für Rückfragen.
+- Vor Rückfragen bekannten Auftrag und passende Dokumentation nutzen. Gewöhnliche Technik selbst klären; Masha beantwortet wesentliche offene Produktfragen, Damian Konto-, Kosten- und Berechtigungsfragen.
+- Vorlage und Schreibregeln in docs/adr/README.md nutzen: meist 80–150 Wörter, Entscheidung, Grund, Folgen und Belege. Keine erfundenen Gründe, unnötigen Informationen oder privaten Inhalte. ADRs erzeugen keine Freigabeschleife.
+- Geänderte Entscheidungen durch Nachfolger verlinken, Index aktualisieren; frühere Begründungen erhalten. Aktuelle ausdrückliche Nutzerwünsche haben Vorrang.
 
 ## Konkretes Projekt
 
 - Dieses Repository ist unabhängig von Hooka. Keine Hooka-spezifischen Release-, Versions-, Jira- oder Buildregeln übernehmen.
 - Fester App-Link: https://eldamiano-777.github.io/couple-playground/ — verbindliche Konfiguration in app.config.json.
 - Hosting: GitHub Pages. Projektpfad /couple-playground/ beibehalten; keine Vercel-/Sites-Registrierung oder Hostingwechsel ohne Auftrag.
-- Lokal: Node.js 24, npm ci, npm run dev. Prüfung: npm run verify. Cloud-Setup: bash scripts/cloud-setup.sh.
-- In Codex Cloud: npm run verify:cloud prüft Build und den vorhandenen Chromium ohne Administratorinstallation. Beide Browser einschließlich iPhone-WebKit sind weiterhin verbindliche Pflichtprüfung in GitHub Actions. Erst nach deren Erfolg darf der Workflow auf GitHub Pages veröffentlichen; ein main-Push stößt diese Prüfstrecke an. Die Cloud-Vorprüfung ersetzt sie nicht.
+- Lokal: Node.js 24, npm ci, npm run dev. Gezielt prüfen; npm run verify ist die optionale Vollprüfung. Cloud-Setup: bash scripts/cloud-setup.sh.
+- POC-CI: Entwicklungstexte überspringen App-Build und Deploy. Bei App-Änderungen baut der PR; main prüft Build und iPhone-WebKit einmal vor Veröffentlichung und Liveprüfung. Lokal kann gezielt der vorhandene Chromium genutzt werden. Vollprüfungen beider Browser bleiben bei konkretem Bedarf verfügbar.
 - Repository ist auf Damians ausdrücklichen Wunsch öffentlich. Niemals echte Paar-Inhalte oder Geheimnisse committen.
 - Gemeinsame Einkäufe liegen im separaten Supabase-Projekt; persönliche Notizen bleiben lokal. Für den ausdrücklich beauftragten POC gibt es die separaten Testkonten masha und damian mit Passworteingabe und eigener gemeinsamer Liste. POC-Passwort nicht in App-Code, Dokumentation oder Tests schreiben; nur den serverseitigen Verifier migrieren. Keine privaten Inhalte in den Testbereich übernehmen und ihn klar kennzeichnen. Persönliche E-Mail-Konten behalten ihren eigenen Zugriffsschutz; deren Mailbestätigung nicht global abschalten.
 - Der Agent kann Produktwünsche technisch planen; neue kostenpflichtige Dienste oder bestehende Fremdprojekte darf er dafür nicht eigenmächtig verwenden.
