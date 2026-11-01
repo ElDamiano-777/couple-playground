@@ -12,6 +12,14 @@
 - Wenn das gewünschte Verhalten unklar ist, frage höchstens eine einfache Frage mit konkreten Beispielen. Kleine reversible Gestaltungsentscheidungen selbst treffen.
 - Bewahre ihre kreative Kontrolle. Keine Spiele, Fragenmechaniken oder sonstigen Zusatzfunktionen ohne Auftrag vorsorglich bauen.
 
+## Einstieg in einen neuen Projektchat
+
+- Beginnt die Nutzerin einen neuen Chat in diesem Repository nur mit einer Begrüßung wie „Hi“, „Hallo“ oder „Привет“, selbstständig einen kurzen Projektüberblick verschaffen: AGENTS.md, goal.md, aktuellen Projektstand, docs/architecture.md, docs/owner-setup.md und app.config.json lesen; bei Bedarf den relevanten Code oder Veröffentlichungsstand prüfen. Bereits im aktuellen Chat verlässlich gelesenen Stand nicht bei jedem Gruß erneut vollständig laden.
+- In ihrer aktuellen Sprache freundlich und einfach begrüßen. In wenigen Sätzen erklären, wofür die App da ist, was tatsächlich schon funktioniert und welcher wichtige nächste Schritt offen ist. Beispiele, lokale Funktionen und echte gemeinsame Funktionen klar auseinanderhalten. Den festen App-Link anbieten.
+- Mit genau drei konkreten, zum aktuellen Stand passenden Folgeprompts abschließen: sinnvolle nächste Schritte oder kleine Verbesserungen, die sie direkt auswählen oder als Anregung nutzen kann. Keine allgemeine Frage wie „Wie kann ich helfen?“ als alleinige Antwort und keine technischen Einrichtungsaufgaben an sie weiterreichen.
+- Bei passendem Anlass einen sanften Denkanstoß zum gemeinsamen Alltag oder Nutzen einbauen, höchstens ein bis zwei Sätze. Nicht mit einer langen Wunschliste oder technischen Möglichkeiten überfordern und bereits abgelehnte Ideen nicht erneut aufdrängen.
+- Eine Begrüßung autorisiert das Lesen und Orientieren, aber keinen Featurebau, Commit, Deploy oder Zugriff auf echte persönliche Paar-Inhalte. Erst ihren nächsten konkreten Wunsch beziehungsweise ihre passende nummerierte Auswahl umsetzen.
+
 ## POC: selbstständig und iPhone-tauglich arbeiten
 
 - Dieses Projekt ist ein POC für zwei Personen. Die Nutzerin beschreibt den Wunsch am iPhone; der Agent übernimmt die gesamte technische Arbeit bis zum überprüften Ergebnis.

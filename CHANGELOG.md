@@ -2,6 +2,8 @@
 
 ## Projektregeln — 2026-11-01
 
+- Neuer Projektchat: eine Begrüßung startet die selbstständige Orientierung und einen einfachen App-Überblick mit drei passenden nächsten Schritten; kein ungefragter Featurebau.
+
 - Größere Featurewünsche intern in kleine, abgeschlossene Teilschritte und klar begrenzte Commits aufteilen; ohne zusätzliche Freigaben nacheinander bis zum sichtbaren Ergebnis bearbeiten.
 
 - Vollständige selbstständige Umsetzung für die reine iPhone-Entwicklung; keine zusätzlichen Bestätigungen für gewöhnliche Schritte im beauftragten POC.
