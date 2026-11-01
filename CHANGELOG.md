@@ -1,5 +1,9 @@
 # Änderungen
 
+## Tierauswahl — 2026-11-01
+
+- Beim Anlegen und Bearbeiten eines Tiers wird dessen Art aus einer Liste mit Symbolen gewählt. Bereits frei eingegebene Tierarten bleiben beim Bearbeiten erhalten.
+
 ## 0.2.2 — 2026-11-01
 
 - Family enthält gemeinsame Kinder- und Tierkarten statt Beispielen: Name, optionaler Tier-Typ, Bearbeiten und bestätigtes Entfernen.

@@ -2,7 +2,8 @@
 .family-profiles .dashboard-card > p { color: #8a7a8b; font-size: 14px; line-height: 1.8; }
 .family-profiles .dashboard-card > button { min-height: 44px; padding: 10px 14px; margin-right: 8px; }
 .family-profiles .note-form { min-width: 0; align-items: stretch; }
-.family-profiles .note-form input {
+.family-profiles .note-form input,
+.family-profiles .note-form select {
   min-width: 0;
   width: 100%;
   min-height: 48px;
@@ -14,4 +15,5 @@
   background: #fffdf9;
   color: #49404d;
 }
-.family-profiles .note-form input:focus-visible { outline: 3px solid #a98bd2; outline-offset: 4px; }
+.family-profiles .note-form input:focus-visible,
+.family-profiles .note-form select:focus-visible { outline: 3px solid #a98bd2; outline-offset: 4px; }

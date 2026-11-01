@@ -1,5 +1,7 @@
 # Kleine Architektur
 
+- Tierart-Auswahl: `PetTypeSelect` nutzt denselben nativen iPhone-Auswahldialog in Anlegen und Bearbeiten. Werte bleiben in `animal_type`; vorhandene freie Angaben werden als aktuelle Option erhalten. Keine Datenmigration oder neue Rechte nötig.
+
 Wichtige Entscheidungen und ihre Gründe: [ADR-Index](adr/README.md). Vor Änderungen und Rückfragen die relevanten akzeptierten ADRs lesen. Neue wesentliche Entscheidungen im selben Änderungsumfang kurz dokumentieren.
 
 - React, TypeScript und Vite. Keine UI-Bibliothek, kein Router und keine bezahlte API für die Grundversion nötig.
