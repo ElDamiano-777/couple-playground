@@ -20,3 +20,4 @@
 
 - POC-Arbeitsweise: normale Änderungen ohne zusätzliche Freigabeschleifen direkt nach main pushen; bestehender Branchschutz bleibt erhalten und wird nötigenfalls per selbstständig abgewickeltem PR erfüllt. Veröffentlichung bleibt an erfolgreiche Browserprüfungen und Liveprüfung gebunden.
 - Code-Regeln in AGENTS.md: KISS, DRY mit Augenmaß, YAGNI, klare Modulverantwortung und Clean Code; kein Overengineering und keine Erweiterung des Auftrags.
+- Größere Features werden intern in kleine abgeschlossene Schritte zerlegt, nacheinander umgesetzt und pro Schritt gezielt geprüft und committet. Nach main kommen nur benutzbare Zwischenstände; eine technische Teilplanung erzeugt keine zusätzlichen Freigaben.

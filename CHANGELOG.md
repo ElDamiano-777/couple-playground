@@ -2,6 +2,8 @@
 
 ## Projektregeln — 2026-11-01
 
+- Größere Featurewünsche intern in kleine, abgeschlossene Teilschritte und klar begrenzte Commits aufteilen; ohne zusätzliche Freigaben nacheinander bis zum sichtbaren Ergebnis bearbeiten.
+
 - Vollständige selbstständige Umsetzung für die reine iPhone-Entwicklung; keine zusätzlichen Bestätigungen für gewöhnliche Schritte im beauftragten POC.
 - Direkter main-Push als Standard mit unveränderten Prüfungen vor dem Pages-Deploy; erfolgreicher Abschluss erst nach Liveprüfung und mit festem App-Link.
 - KISS, DRY, YAGNI, Clean Code und angemessene Modularisierung ausdrücklich festgehalten; kein Overengineering und kein Scope Creep.
