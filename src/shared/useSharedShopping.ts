@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import config from "../../app.config.json";
-import { supabase } from "./client";
+import { supabase, pocAccounts, type PocUsername } from "./client";
 
 export type ShoppingItem = {
   id: string;
@@ -19,10 +19,15 @@ function friendlyError(error: unknown): string {
       ? error.message
       : String((error as { message?: string })?.message || ``);
   const code = (error as { code?: string })?.code;
-  if (code === `email_address_not_authorized` || /Error sending confirmation email/i.test(text))
+  if (
+    code === `email_address_not_authorized` ||
+    /Error sending confirmation email/i.test(text)
+  )
     return `Your confirmation email couldn’t be sent. Please ask Damian to finish email delivery, then try again.`;
+  if (text === `Unknown POC username`)
+    return `Use masha or damian as your username.`;
   if (/Invalid login credentials/i.test(text))
-    return `That email and password don’t match. Please try again.`;
+    return `That login and password don’t match. Please try again.`;
   if (/Email not confirmed/i.test(text))
     return `Please confirm your email first, then sign in.`;
   if (/Invalid or expired invitation/i.test(text))
@@ -46,11 +51,19 @@ export function useSharedShopping() {
   const [error, setError] = useState(``);
   const [notice, setNotice] = useState(``);
   const [invite, setInvite] = useState(``);
+  const [username, setUsername] = useState(``);
   const [email, setEmail] = useState(``);
   const [password, setPassword] = useState(``);
   const [code, setCode] = useState(``);
   const [draft, setDraft] = useState(``);
   const [category, setCategory] = useState<ShoppingItem[`category`]>(`Home`);
+  const pocUsername =
+    session?.user.app_metadata?.together_poc === true
+      ? ((Object.keys(pocAccounts) as PocUsername[]).find(
+          (name) => pocAccounts[name] === session.user.email,
+        ) ?? null)
+      : null;
+  const isPoc = pocUsername !== null;
   const userId = session?.user.id;
   const currentUser = useRef(userId);
   currentUser.current = userId;
@@ -175,12 +188,29 @@ export function useSharedShopping() {
     setNotice(``);
     try {
       await action();
+      return true;
     } catch (error) {
       setError(friendlyError(error));
+      return false;
     } finally {
       setBusy(false);
     }
   }
+
+  const authenticatePoc = () =>
+    perform(async () => {
+      const name = username.trim().toLowerCase();
+      if (name !== `masha` && name !== `damian`)
+        throw new Error(`Unknown POC username`);
+      const result = await supabase.auth.signInWithPassword({
+        email: pocAccounts[name],
+        password,
+      });
+      if (result.error) throw result.error;
+      setPassword(``);
+      setEmail(``);
+      setUsername(name);
+    });
 
   const authenticate = (create: boolean) =>
     perform(async () => {
@@ -301,6 +331,11 @@ export function useSharedShopping() {
 
   return {
     session,
+    isPoc,
+    pocUsername,
+    username,
+    setUsername,
+    authenticatePoc,
     authReady,
     household,
     items,

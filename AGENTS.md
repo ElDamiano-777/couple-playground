@@ -100,7 +100,7 @@
 - Lokal: Node.js 24, npm ci, npm run dev. Prüfung: npm run verify. Cloud-Setup: bash scripts/cloud-setup.sh.
 - In Codex Cloud: npm run verify:cloud prüft Build und den vorhandenen Chromium ohne Administratorinstallation. Beide Browser einschließlich iPhone-WebKit sind weiterhin verbindliche Pflichtprüfung in GitHub Actions. Erst nach deren Erfolg darf der Workflow auf GitHub Pages veröffentlichen; ein main-Push stößt diese Prüfstrecke an. Die Cloud-Vorprüfung ersetzt sie nicht.
 - Repository ist auf Damians ausdrücklichen Wunsch öffentlich. Niemals echte Paar-Inhalte oder Geheimnisse committen.
-- Aktuell nur lokale Notizen. Keine Anmeldung oder gemeinsame Datenhaltung eingerichtet. Keine Synchronisation, Verschlüsselung oder Paarverbindung behaupten, bevor sie implementiert und geprüft ist.
+- Gemeinsame Einkäufe liegen im separaten Supabase-Projekt; persönliche Notizen bleiben lokal. Für den ausdrücklich beauftragten POC gibt es die separaten Testkonten masha und damian mit Passworteingabe und eigener gemeinsamer Liste. POC-Passwort nicht in App-Code, Dokumentation oder Tests schreiben; nur den serverseitigen Verifier migrieren. Keine privaten Inhalte in den Testbereich übernehmen und ihn klar kennzeichnen. Persönliche E-Mail-Konten behalten ihren eigenen Zugriffsschutz; deren Mailbestätigung nicht global abschalten.
 - Der Agent kann Produktwünsche technisch planen; neue kostenpflichtige Dienste oder bestehende Fremdprojekte darf er dafür nicht eigenmächtig verwenden.
 
 ## Arbeiten bis zum sichtbaren Ergebnis

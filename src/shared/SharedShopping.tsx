@@ -6,7 +6,7 @@ export default function SharedShopping({
 }: {
   state: SharedShoppingState;
 }) {
-  const [mode, setMode] = useState<`signin` | `signup`>(`signin`);
+  const [mode, setMode] = useState<`poc` | `signin` | `signup`>(`poc`);
   const [filter, setFilter] = useState(`All`);
   const [copied, setCopied] = useState(false);
   const feedback = (
@@ -40,31 +40,52 @@ export default function SharedShopping({
           Shopping<span>.</span>
         </h1>
         <p className="page-intro">
-          Sign in with your own account. Your partner uses a separate account,
-          and an invitation brings your lists together.
+          {mode === `poc`
+            ? `Sign in as masha or damian with your POC password. Both accounts share the same test shopping list.`
+            : `Sign in with your own account. Your partner uses a separate account, and an invitation brings your lists together.`}
         </p>
         <form
           className="note-form"
           onSubmit={(event) => {
             event.preventDefault();
-            void state.authenticate(mode === `signup`);
+            if (mode === `poc`) void state.authenticatePoc();
+            else void state.authenticate(mode === `signup`);
           }}
         >
           <h2>{mode === `signup` ? `Create your account` : `Welcome back`}</h2>
-          <label htmlFor="account-email">Your email</label>
-          <input
-            id="account-email"
-            type="email"
-            autoComplete="email"
-            required
-            value={state.email}
-            onChange={(event) => state.setEmail(event.target.value)}
-          />
+          {mode === `poc` ? (
+            <>
+              <label htmlFor="account-username">Username</label>
+              <input
+                id="account-username"
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="masha or damian"
+                required
+                value={state.username}
+                onChange={(event) => state.setUsername(event.target.value)}
+              />
+            </>
+          ) : (
+            <>
+              <label htmlFor="account-email">Your email</label>
+              <input
+                id="account-email"
+                type="email"
+                autoComplete="email"
+                required
+                value={state.email}
+                onChange={(event) => state.setEmail(event.target.value)}
+              />
+            </>
+          )}
           <label htmlFor="account-password">Password</label>
           <input
             id="account-password"
             type="password"
-            minLength={8}
+            minLength={mode === `signup` ? 8 : undefined}
             autoComplete={
               mode === `signup` ? `new-password` : `current-password`
             }
@@ -83,15 +104,41 @@ export default function SharedShopping({
             className="text-action"
             type="button"
             disabled={state.busy}
-            onClick={() => setMode(mode === `signup` ? `signin` : `signup`)}
+            onClick={() => {
+              state.setPassword(``);
+              setMode(
+                mode === `poc`
+                  ? `signin`
+                  : mode === `signup`
+                    ? `signin`
+                    : `signup`,
+              );
+            }}
           >
-            {mode === `signup`
-              ? `I already have an account`
-              : `I’m new here — create an account`}
+            {mode === `poc`
+              ? `Use a personal email account`
+              : mode === `signup`
+                ? `I already have an account`
+                : `I’m new here — create an account`}
           </button>
+          {mode !== `poc` && (
+            <button
+              className="text-action"
+              type="button"
+              disabled={state.busy}
+              onClick={() => {
+                state.setPassword(``);
+                setMode(`poc`);
+              }}
+            >
+              Use masha / damian login
+            </button>
+          )}
           <p className="small-print">
-            Your shared purchases are visible only to the two accounts in your
-            home. Personal notes stay on this phone and are never uploaded.
+            {mode === `poc`
+              ? `POC test accounts — don’t enter sensitive information. No email confirmation is needed.`
+              : `Your personal purchases are visible only to the accounts in your home.`}{" "}
+            Personal notes stay on this phone and are never uploaded.
           </p>
         </form>
         {feedback}
@@ -109,7 +156,12 @@ export default function SharedShopping({
           : `One of you creates a home. The other joins with an invitation code.`}
       </p>
       <div className="account-line">
-        <span>Signed in as {state.session.user.email}</span>
+        <span>
+          Signed in as{" "}
+          {state.isPoc
+            ? `${state.pocUsername === `masha` ? `Masha` : `Damian`} · POC`
+            : state.session.user.email}
+        </span>
         <button
           disabled={state.busy}
           onClick={() => {
@@ -125,6 +177,12 @@ export default function SharedShopping({
           Sign out
         </button>
       </div>
+      {state.isPoc && (
+        <p className="notice">
+          POC test space shared by the Masha and Damian accounts. Don’t enter
+          sensitive personal information.
+        </p>
+      )}
       {state.loading ? (
         <p role="status">Opening your shared list…</p>
       ) : !state.household ? (
@@ -343,35 +401,39 @@ export default function SharedShopping({
                 ))}
             </div>
             <p className="preview-hint">
-              Only the two people in your home can open this list. Purchases are
-              saved online; no offline saving is claimed.
+              {state.isPoc
+                ? `Both POC accounts share this test list. Don’t enter sensitive information.`
+                : `Only the accounts in your home can open this list.`}{" "}
+              Saved online. You’ll need a connection to change this list.
             </p>
           </section>
         </>
       )}
       {feedback}
-      <details className="account-options">
-        <summary>Account options</summary>
-        <p>
-          Deleting your account removes your sign-in and membership. Purchases
-          remain for your partner; if you are the last person, the home and its
-          purchases are deleted. Personal notes on this phone are kept.
-        </p>
-        <button
-          className="text-action"
-          disabled={state.busy}
-          onClick={() => {
-            if (
-              window.confirm(
-                `Permanently delete your account? Your partner keeps the shared purchases. If you are the last person, the home and purchases will also be deleted. This cannot be undone.`,
+      {!state.isPoc && (
+        <details className="account-options">
+          <summary>Account options</summary>
+          <p>
+            Deleting your account removes your sign-in and membership. Purchases
+            remain for your partner; if you are the last person, the home and
+            its purchases are deleted. Personal notes on this phone are kept.
+          </p>
+          <button
+            className="text-action"
+            disabled={state.busy}
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Permanently delete your account? Your partner keeps the shared purchases. If you are the last person, the home and purchases will also be deleted. This cannot be undone.`,
+                )
               )
-            )
-              void state.deleteAccount();
-          }}
-        >
-          Delete my account
-        </button>
-      </details>
+                void state.deleteAccount();
+            }}
+          >
+            Delete my account
+          </button>
+        </details>
+      )}
     </section>
   );
 }

@@ -3,6 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 async function enterAs(page: Page, name: `Masha` | `Damian` = `Masha`) {
   await page.goto(`./`);
   await page.getByRole(`button`, { name, exact: true }).click();
+  await page.getByRole(`button`, { name: `Our home`, exact: true }).click();
 }
 
 test(`personal welcome, navigation and narrow-screen layout work without script errors`, async ({ page }) => {
@@ -109,7 +110,7 @@ test(`update detection does not reload an unfinished draft`, async ({ page }) =>
 
 test(`name choice is local, remembers the selection and can be changed`, async ({ page }) => {
   await page.goto(`./`);
-  await expect(page.getByText(`This is just a name choice. It doesn’t protect or share your notes.`)).toBeVisible();
+  await expect(page.getByText(`Your name fills in the login. Shopping still needs your password.`)).toBeVisible();
   await page.getByRole(`button`, { name: `Damian`, exact: true }).click();
   await expect(page.getByText(`Hi, Damian`)).toBeVisible();
   await page.reload();
@@ -139,6 +140,7 @@ test(`unknown name prompts for a choice and storage failure still permits entry`
   await page.goto(`./`);
   await expect(page.getByRole(`heading`, { name: `Who’s here?` })).toBeVisible();
   await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Our home`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `Our home.` })).toBeVisible();
   await expect(page.getByText(`We couldn’t save your name on this device. You can still use the app.`)).toBeVisible();
 });
@@ -151,7 +153,7 @@ test(`household navigation distinguishes shared shopping from remaining examples
   expect(greeting && header && greeting.y >= header.y && greeting.y + greeting.height <= header.y + header.height).toBe(true);
   await expect(page.getByText(`Shopping has a real shared list. Plans, family cards and updates are still examples.`)).toBeVisible();
   await page.getByRole(`button`, { name: `Shopping`, exact: true }).click();
-  await expect(page.getByLabel(`Your email`, { exact: true })).toBeVisible();
+  await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
   await expect(page.getByRole(`checkbox`)).toHaveCount(0);
   await page.getByRole(`button`, { name: `Plans`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `A little walk together` })).toBeVisible();
@@ -164,6 +166,6 @@ test(`household navigation distinguishes shared shopping from remaining examples
   await expect(page.getByRole(`dialog`)).toBeVisible();
   await page.getByRole(`button`, { name: `Add a purchase`, exact: true }).click();
   await expect(page.getByRole(`dialog`)).not.toBeVisible();
-  await expect(page.getByLabel(`Your email`, { exact: true })).toBeVisible();
+  await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
