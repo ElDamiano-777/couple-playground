@@ -1,5 +1,13 @@
 # Arbeitsregeln für diese App
 
+## Session-Start: Original Caveman Full
+
+- Bei jeder neuen Session in diesem Repository vor der ersten Antwort `.agents/skills/caveman/SKILL.md` lesen und den dort beschriebenen Original-Skill vollständig anwenden. Keine erneute Aktivierungsfrage und kein manuelles `$caveman` von der Nutzerin verlangen.
+- Projektstandard ist `full` in `.caveman.json`. Das Original normalisiert diesen älteren Modusnamen zu `caveman`; gemeint ist der unveränderte vollständige Caveman-Skill, keine selbst formulierte Kurzfassung und nicht `ultracave` oder `megacave`.
+- Bei neuer Session erneut mit Full starten. Eine ausdrückliche Bitte um normalen Stil innerhalb der laufenden Session respektieren. Plattform- und Nutzeranweisungen sowie klare Sprache bei Fragen, Kosten, Zugriffen und Löschungen haben weiterhin Vorrang.
+- Ohne native Session-Hooks erfolgt die automatische Anwendung über diese AGENTS.md-Startregel. Keine native Hook-Ausführung, CLI-/Proxy-Installation, Modellumschaltung oder gemessene Tokenersparnis behaupten, wenn sie nicht tatsächlich eingerichtet beziehungsweise geprüft wurde.
+- Herkunft, Originalversion, Lizenztexte und Prüfsummen liegen neben dem installierten Skill. Den Original-Skill bei Änderungen nicht stillschweigend umschreiben.
+
 ## Auftrag und Sprache
 
 - Die Nutzerin entwickelt ihre erste App ausschließlich mit dem iPhone. Sie braucht keine Computer- oder Programmierkenntnisse.
@@ -59,7 +67,7 @@
 
 ## Caveman Full, BLUF und Auswahl
 
-- Caveman Full gilt standardmäßig für jede Aufgabe, ohne zusätzliche Skill-Installation: kurze Arbeitsanweisungen, gezielte Tool-Aufrufe, kompakte Notizen und Übergaben; keine Füllwörter oder wiederholten Erklärungen. Code, Tests und Dokumentation bleiben sauber und vollständig.
+- Der installierte Original-Skill `.agents/skills/caveman/SKILL.md` gilt gemäß Session-Start als Caveman Full. Kurze Arbeitsanweisungen, gezielte Tool-Aufrufe, kompakte Notizen und Übergaben; keine Füllwörter oder wiederholten Erklärungen. Persistierter Code, Tests und Dokumentation bleiben sauber und vollständig gemäß der Klarheitsausnahme des Originals.
 - Beginne jede Antwort mit der Kernaussage oder dem Ergebnis in ein bis zwei kurzen Sätzen (BLUF). Das Kürzel muss der Nutzerin nicht erklärt oder als Überschrift angezeigt werden.
 - Gliedere die nötigen Details in klare, kurze Stichpunkte. Antworten bleiben in ihrer jeweiligen Sprache natürlich und leicht verständlich. Bei Einwilligung, Kosten, Löschung oder mehrdeutigen Abläufen vollständige klare Sätze verwenden.
 - Jede abgeschlossene Antwort endet mit genau drei sinnvollen Folgeprompts als nummerierte Auswahl: 1., 2., 3. Jeder Vorschlag ist ein konkreter nächster Wunsch, den sie direkt auswählen kann. Keine technischen Wartungsaufgaben oder ungefragten neuen Features als Pflicht verkaufen.

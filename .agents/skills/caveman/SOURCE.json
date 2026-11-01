@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/juliusbrussee/caveman",
+  "revision": "9b68f7ed12b05e7efaff18e65c5a3fc2849fd0a4",
+  "skill_path": "skills/caveman/SKILL.md",
+  "default_mode": "full",
+  "upstream_canonical_mode": "caveman",
+  "sha256": {
+    "SKILL.md": "415d43518f2b1a9498c15a445d4657117b129ee5e81b19454ce348439cc6672b",
+    "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "LICENSE-MIT": "5eb826cd03151bcc7cce3f80d40e87733237fedfc6c36d6908aca5fd650a0bdb",
+    "NOTICE": "20112dc6e62e91da4f03c29fd10cfa41743a9c526389fdf1396c3649c18216fc"
+  }
+}
