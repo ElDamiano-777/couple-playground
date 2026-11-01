@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import config from '../app.config.json';
 import HouseholdPreview, { Symbol, type HouseholdPage } from './HouseholdPreview';
 import { readNotes, saveNotes, type Note } from './storage';
+import { useSharedShopping } from './shared/useSharedShopping';
 
 type Page = HouseholdPage | `notes` | `more` | `welcome`;
 type Profile = `masha` | `damian`;
@@ -28,6 +29,7 @@ function Icon({ name }: { name: `heart` | `home` | `note` | `more` | `arrow` | `
 }
 
 export default function App() {
+  const shopping = useSharedShopping();
   const [page, setPage] = useState<Page>(`home`);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
   const [profileSaved, setProfileSaved] = useState(true);
@@ -52,11 +54,11 @@ export default function App() {
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
-      if (draft.trim()) event.preventDefault();
+      if (draft.trim() || shopping.dirty) event.preventDefault();
     };
     window.addEventListener(`beforeunload`, warn);
     return () => window.removeEventListener(`beforeunload`, warn);
-  }, [draft]);
+  }, [draft, shopping.dirty]);
 
   useEffect(() => {
     if (!import.meta.env.PROD) return;
@@ -108,8 +110,8 @@ export default function App() {
 
     {!online && <div className="notice" role="status">You’re offline. You can still save notes on this phone.</div>}
     {updateReady && <div className="notice update" role="status">
-      <span>{draft.trim() ? `There’s an update. Save your note first.` : `There’s a little update for you.`}</span>
-      <button disabled={!!draft.trim()} onClick={() => window.location.replace(`${config.appUrl}?v=${Date.now()}`)}>Update</button>
+      <span>{(draft.trim() || shopping.dirty) ? `There’s an update. Finish your text first.` : `There’s a little update for you.`}</span>
+      <button disabled={!!draft.trim() || shopping.dirty} onClick={() => window.location.replace(`${config.appUrl}?v=${Date.now()}`)}>Update</button>
     </div>}
 
     {!profileSaved && profile && <p className="profile-notice" aria-live="polite">We couldn’t save your name on this device. You can still use the app.</p>}
@@ -124,7 +126,7 @@ export default function App() {
         </div>
         <p className="small-print">This is just a name choice. It doesn’t protect or share your notes.</p>
       </section> : <>
-      {([`home`, `shopping`, `plans`, `family`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} />}
+      {([`home`, `shopping`, `plans`, `family`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} />}
       {page === `welcome` && <>
         <section className="hero welcome-hero" lang="ru">
           <div className="hero-copy">

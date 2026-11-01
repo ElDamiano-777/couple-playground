@@ -143,16 +143,16 @@ test(`unknown name prompts for a choice and storage failure still permits entry`
   await expect(page.getByText(`We couldn’t save your name on this device. You can still use the app.`)).toBeVisible();
 });
 
-test(`household preview explores every section on a narrow screen without saving sample data`, async ({ page }) => {
+test(`household navigation distinguishes shared shopping from remaining examples on narrow screens`, async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await enterAs(page);
-  await expect(page.getByText(`Sample content to explore. Nothing here is shared or saved.`)).toBeVisible();
+  const greeting = await page.locator(`.edition`).boundingBox();
+  const header = await page.locator(`.header`).boundingBox();
+  expect(greeting && header && greeting.y >= header.y && greeting.y + greeting.height <= header.y + header.height).toBe(true);
+  await expect(page.getByText(`Shopping has a real shared list. Plans, family cards and updates are still examples.`)).toBeVisible();
   await page.getByRole(`button`, { name: `Shopping`, exact: true }).click();
-  await page.getByRole(`checkbox`, { name: /Fresh bread/ }).check();
-  await expect(page.getByText(`2 to buy`, { exact: true })).toBeVisible();
-  await page.getByRole(`button`, { name: `Pets`, exact: true }).click();
-  await expect(page.getByRole(`checkbox`, { name: /Pet food/ })).toBeVisible();
-  await expect(page.getByRole(`checkbox`, { name: /Fresh bread/ })).toHaveCount(0);
+  await expect(page.getByLabel(`Your email`, { exact: true })).toBeVisible();
+  await expect(page.getByRole(`checkbox`)).toHaveCount(0);
   await page.getByRole(`button`, { name: `Plans`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `A little walk together` })).toBeVisible();
   await page.getByRole(`button`, { name: `Family`, exact: true }).click();
@@ -162,12 +162,8 @@ test(`household preview explores every section on a narrow screen without saving
   await expect(page.getByText(/Phone notifications aren’t connected yet/)).toBeVisible();
   await page.getByRole(`button`, { name: `Add to our home`, exact: true }).click();
   await expect(page.getByRole(`dialog`)).toBeVisible();
-  await expect(page.getByRole(`dialog`)).toContainText(`This is a design preview.`);
-  await page.getByRole(`button`, { name: `Explore shopping`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Add a purchase`, exact: true }).click();
   await expect(page.getByRole(`dialog`)).not.toBeVisible();
+  await expect(page.getByLabel(`Your email`, { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.reload();
-  await page.getByRole(`button`, { name: `Shopping`, exact: true }).click();
-  await expect(page.getByRole(`checkbox`, { name: /Fresh bread/ })).not.toBeChecked();
-  expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([`together.profile.v1`]);
 });

@@ -22,14 +22,14 @@
 
 ## Datenstand
 
-- Version 0.1.8 zeigt zusätzlich einen klar markierten Haushaltsentwurf. Einkaufs-, Plan-, Familien- und Aktivitätsinhalte sind erfundene Beispiele und werden weder gespeichert noch geteilt. Push-Mitteilungen bleiben unverbunden.
+- Version 0.2.0 ersetzt den Einkaufsentwurf durch eine geschützte gemeinsame Liste. Pläne, Familienkarten und Aktivitätsmeldungen bleiben Beispiele; Telefon-Push bleibt unverbunden.
 
-- Die veröffentlichte Grundversion verwendet ausschließlich lokalen Browser-Speicher. Die Oberfläche benennt das ausdrücklich.
+- Persönliche Notizen verwenden weiterhin ausschließlich lokalen Browser-Speicher. Einkäufe werden dagegen nach Anmeldung im separaten Supabase-Projekt gespeichert und sind für beide Mitglieder desselben Zuhauses sichtbar.
 - Ein browserlokaler Speicher kann durch Browserdaten-Löschung verloren gehen und ist auf gemeinsam genutzten Geräten nicht vor anderen Benutzern geschützt.
-- Es gibt keine Anmeldung, keine Einladungslinks, keine Paar-Datenbank und keine Datenübertragung an einen Partner.
+- Anmeldung: getrennte E-Mail-/Passwort-Konten mit E-Mail-Bestätigung. Ein Mitglied erstellt das Zuhause und einen 48 Stunden gültigen Einmalcode, das andere tritt bei. Ein Codewechsel ersetzt den alten; ein drittes Konto kann nicht beitreten.
 - Für Together wurde ein separates Supabase-Projekt eingerichtet: lyewmhtufesdccisqmin (Free, Organisation Together). GitHub-Integration: dieses Repo, Working directory `.`, Produktionsbranch main. Die früher belegten Plätze in einem anderen Konto werden nicht verwendet; keine fremden Projekte verändern.
-- Öffentliche Verbindung ist vorhanden. Direkte Supabase-Verwaltung ist in diesem Chat weiterhin nicht verfügbar; Migrationen müssen über die eingerichtete GitHub-Integration bestätigt werden. Auth Site URL und Redirect URLs müssen auf die feste App-Adresse zeigen.
-- Für ein späteres Backend: separater Projektzugang beziehungsweise freigegebener Tarif, dokumentierter Zweck und Datenarten, Empfänger, Zugriffs-/Löschregeln, Aufbewahrung und gegebenenfalls Vereinbarungen. Rechtliche Rollen und Grundlagen sind nicht durch dieses Setup festgestellt.
+- Öffentliche Verbindung ist vorhanden. Direkte Supabase-Verwaltung ist in diesem Chat weiterhin nicht verfügbar; Migrationen müssen über die eingerichtete GitHub-Integration bestätigt werden. Damian hat am 01.11.2026 bestätigt, dass Auth Site URL und Redirect URLs auf die feste App-Adresse zeigen.
+- Für zusätzliche Daten oder Dienste: separater Projektzugang beziehungsweise freigegebener Tarif, dokumentierter Zweck und Datenarten, Empfänger, Zugriffs-/Löschregeln, Aufbewahrung und gegebenenfalls Vereinbarungen. Rechtliche Rollen und Grundlagen sind nicht durch dieses Setup festgestellt.
 - Vor echten Paar-Daten: zwei Konten, sichere ablaufende Einladungen, serverseitige Zugriffsregeln, direkte Negativtests mit fremdem Konto und Abmelde-/Löschpfade. Keine gemeinsamen Fake-Logins als Abkürzung.
 
 ## Prüf- und Veröffentlichungsweg
@@ -58,3 +58,13 @@
 - https://learn.chatgpt.com/docs/cloud
 - https://learn.chatgpt.com/docs/features/voice
 - https://supabase.com/docs/guides/platform/billing-on-supabase
+
+## Gemeinsame Einkäufe verwenden
+
+1. Beide öffnen den festen App-Link und wählen Shopping. Jede Person erstellt ein eigenes Konto, bestätigt die E-Mail und meldet sich an.
+2. Eine Person wählt Create our home und Create invitation code. Die andere trägt diesen Code nach ihrer eigenen Anmeldung bei Join our home ein. Der Code gehört nicht ins öffentliche Repository.
+3. Beide können Einkäufe hinzufügen, abhaken und entfernen. Änderungen erscheinen bei offener App innerhalb ungefähr 15 Sekunden; Refresh lädt sofort neu. Nach Netzfehlern bleibt die Eingabe stehen.
+4. Sign out meldet nur dieses Gerät ab. Account options enthält die bestätigungspflichtige Löschung des eigenen Kontos. Einkäufe des Zuhauses bleiben für den verbleibenden Partner erhalten; erst beim letzten Mitglied werden sie gelöscht.
+5. Die automatische GitHub-/Supabase-Migration muss grün sein. Zum Prüfen reichen öffentliche URL und Publishable Key; niemals Secret Key, service_role oder Datenbankpasswort in App oder Repository verwenden.
+
+Noch zu beobachten: echte E-Mail-Zustellung, beiderseitiger erster Beitritt und Nutzung auf den tatsächlichen iPhones. Supabase Free/Standard-Mailversand hat Limits; bei Zustellproblemen den tatsächlichen Fehler untersuchen statt E-Mail-Bestätigung abzuschalten oder ungefragt einen Maildienst zu buchen.
