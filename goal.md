@@ -7,7 +7,15 @@
 
 ## Produktziel
 
-- Gemeinsamer Paar-Haushalt: Einkäufe, Pläne, Kinder-/Haustierbedarf und Änderungsbenachrichtigungen. Zuerst ein warmer, mobil bedienbarer Designentwurf; echte gemeinsame Daten folgen nach separater Einrichtung.
+- Gemeinsamer Paar-Haushalt: Einkäufe, Pläne, Kinder-/Haustierbedarf und Änderungsbenachrichtigungen. Die gemeinsamen Einkäufe sind echt; Pläne, Familienkarten und Änderungsmitteilungen sind noch Beispiele.
+
+## Produktbild
+
+Hält unpersönlich fest, was die Nutzerin mit der App erreichen will und was das Paar beim Benutzen gelernt hat. Der Agent ergänzt es aus ihren Wünschen, nichts erfinden und nichts Privates eintragen.
+
+- Für wen und in welcher Situation: noch offen.
+- Was sich schon bewährt hat: noch offen.
+- Bewusst weggelassen: noch offen.
 
 ## Aktueller Umfang
 
@@ -19,15 +27,15 @@
 
 ## Erfolgsnachweise
 
-- [ ] GitHub prüft Build und Smoke-Tests vor einer Veröffentlichung.
-- [ ] Der feste Link liefert den erwarteten Commit und funktionsfähige App-Dateien.
-- [ ] Speichern, Neuladen und Speicherausfall wurden in Chromium und mobilem WebKit geprüft.
+- [x] GitHub prüft Build und Smoke-Tests vor einer Veröffentlichung.
+- [x] Der feste Link liefert den erwarteten Commit und funktionsfähige App-Dateien.
+- [x] Speichern, Neuladen und Speicherausfall wurden in Chromium und mobilem WebKit geprüft.
 - [ ] PWA-Installation und Updates sind einmal auf einem echten iPhone geprüft. Browseremulation ersetzt das nicht.
-- [ ] Eigene GitHub-/ChatGPT-Verbindung der Nutzerin und ein vollständiger Cloud-Auftrag von ihrem iPhone sind geprüft.
-- [ ] Zwei persönliche Konten und gemeinsames Speichern sind in einem separaten Backend eingerichtet und geprüft, falls freigegeben.
+- [ ] Eigene GitHub-/ChatGPT-Verbindung der Nutzerin und ein vollständiger Cloud-Auftrag von ihrem iPhone sind geprüft. Das Konto masheri777 ist bereits Collaborator; der vollständige Auftrag vom iPhone ist nicht belegt.
+- [ ] Zwei persönliche Konten und gemeinsames Speichern sind im Supabase-Projekt geprüft. Die beiden POC-Konten sind per API geprüft; persönliche Konten und echte iPhones stehen noch aus.
 
 ## Nächste Schritte
 
-1. Geprüfte Spielwiese veröffentlichen.
-2. Cloud-Zugang und iPhone-Installation mit ihrer eigenen Identität verbinden.
-3. Nach geklärtem Datenspeicher die kleinste echte Paarverbindung ergänzen.
+1. Die gemeinsame Einkaufsliste im echten Alltag auf beiden iPhones benutzen.
+2. Aus ihrer Rückmeldung das Produktbild füllen und den nächsten kleinen Wunsch finden.
+3. Für Damian, nicht für die Nutzerin: PWA-Installation, Update und einen vollständigen Auftrag vom iPhone prüfen.

@@ -15,6 +15,10 @@
 
 ## Projektregeln — 2026-11-01
 
+- Sanfte Begleitung neu gefasst: warme Sprache für alles, was die Nutzerin liest, Caveman nur noch für Subagent-Übergaben, interner Themenplan für Arbeitsweise und Produktdenken, Folgeprompts als Vorbilder und Merkliste in docs/begleitung-stand.md.
+- Erfolgsmeldung nennt spürbare Produktannahmen und lädt zum Ausprobieren ein; Blocker enden mit einem Weiterleitungstext für Damian.
+- AGENTS.md von 35 auf unter 28 KB gekürzt, weil Codex standardmäßig nur 32 KiB liest. Seltene Regeln nach docs/agent-*.md verschoben, Sicherheitsregeln nach oben. Regel zum nicht vorhandenen Testprojekt korrigiert; goal.md und owner-setup auf den tatsächlichen Stand gebracht.
+
 - Kurze ADRs automatisch führen und vor Rückfragen lesen. Vorlage, Index und drei nachträglich belegte Entscheidungen zu Veröffentlichung, gemeinsamen Daten und dem POC-Login angelegt.
 
 - Günstigere Subagents bei erwarteter Token-/Kostenersparnis ausdrücklich selbstständig spawnen; kurze gezielte Übergaben, passende verfügbare Modelle und Prüfung durch den Hauptagenten festgelegt.

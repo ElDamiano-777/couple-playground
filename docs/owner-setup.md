@@ -12,7 +12,7 @@
 
 ## Cloud-Zugang einmalig verbinden
 
-1. Die Nutzerin braucht ihren eigenen GitHub- und ChatGPT-Zugang. Ihr GitHub-Benutzername ist noch unbekannt; keine Einladung auf Verdacht versenden.
+1. Die Nutzerin braucht ihren eigenen GitHub- und ChatGPT-Zugang. Das Konto masheri777 ist laut GitHub am 01.11.2026 Collaborator; keine weiteren Einladungen auf Verdacht versenden.
 2. Damian fügt ausschließlich ihre bestätigte GitHub-Identität als Mitarbeiterin dieses Repositorys hinzu. Lesender Zugriff auf öffentliches GitHub reicht zum Veröffentlichen nicht aus.
 3. In ihrem ChatGPT-Konto GitHub verbinden und eine Codex-Cloud-Umgebung mit diesem Repository einrichten. Umgebungen nicht automatisch zwischen persönlichen Konten als geteilt voraussetzen.
 4. Node.js 24 bereitstellen; Setup-Skript: bash scripts/cloud-setup.sh. Netzwerkzugriff für npm und nötigenfalls cdn.playwright.dev zulassen. Codex Cloud stellt /usr/bin/chromium bereit; keine Administratorinstallation versuchen. Cloud-Vorprüfung: npm run verify:cloud. GitHub Actions prüft unverändert beide Browser vor der Pages-Veröffentlichung. Der Browser-Test-Webserver läuft nur innerhalb des Testsystems.
@@ -49,7 +49,9 @@
 
 - Öffentliches GitHub-Repository und Standard-Actions für die Prüfstrecke. GitHub-Pages- und Kontingentbedingungen gelten; keine Zusage unbegrenzter Ressourcen.
 - Die App verwendet keine kostenpflichtige KI-API. Das ChatGPT-Kontingent der Entwicklerin ist getrennt vom App-Hosting.
-- Cloud-Account-Einrichtung, ihr GitHub-Name, tatsächlicher iPhone-Test und spätere Backendwahl bleiben bis zur Prüfung offen.
+- Vollständiger Cloud-Auftrag und tatsächlicher iPhone-Test bleiben bis zur Prüfung offen.
+- Kein separates Supabase-Testprojekt: Migrationen auf main gehen über die GitHub-Integration ins Live-Projekt und laufen nicht durch „Check and publish“. Der Agent führt vorher die Wegwerf-Tests aus supabase/README.md aus, soweit sie in seiner Umgebung laufen, und pusht sonst trotzdem direkt nach main. Bewusstes POC-Risiko: Eine fehlerhafte Migration trifft sofort die Live-Daten.
+- Codex liest AGENTS.md standardmäßig nur bis 32 KiB (`project_doc_max_bytes`). Ob Codex Cloud denselben Wert nutzt, ist nicht geprüft; darum bleibt die Datei unter 28 KB.
 
 ## Quellen, 31.10.2026
 
