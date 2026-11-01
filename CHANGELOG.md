@@ -1,5 +1,11 @@
 # Änderungen
 
+## Projektregeln — 2026-11-01
+
+- Vollständige selbstständige Umsetzung für die reine iPhone-Entwicklung; keine zusätzlichen Bestätigungen für gewöhnliche Schritte im beauftragten POC.
+- Direkter main-Push als Standard mit unveränderten Prüfungen vor dem Pages-Deploy; erfolgreicher Abschluss erst nach Liveprüfung und mit festem App-Link.
+- KISS, DRY, YAGNI, Clean Code und angemessene Modularisierung ausdrücklich festgehalten; kein Overengineering und kein Scope Creep.
+
 ## 0.1.8 — 2026-11-01
 
 - Warmer Haushalts-Entwurf mit vier Bereichen: Zuhause, Einkaufen, Pläne und Familie.

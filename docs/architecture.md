@@ -17,3 +17,6 @@
 - Situative Einstiegshilfen zu langen Chats und Skills stehen in AGENTS.md: zwei bis drei natürliche Sätze, nur bei Anlass, keine erfundenen Statuswerte oder „intelligenteres Modell“-Versprechen. Übergaben enthalten belegten Arbeitsstand; persönliche Gesprächsinhalte bleiben außerhalb des öffentlichen Repositorys. Neue Chats und Skills werden erst auf ihre passende Auswahl hin angelegt, soweit die Laufzeit das unterstützt. Quellenstand 31.10.2026: [Gesprächsführung und Zusammenfassung](https://learn.chatgpt.com/docs/learn/best-practices), [wiederverwendbare Skills](https://learn.chatgpt.com/docs/skills-and-plugins).
 
 - Haushaltsentwurf: keine neuen persistenten Datenarten, keine Notification-Berechtigung und kein Backend. Reale gemeinsame Listen, Pläne und Familienprofile bleiben ein eigener Schritt.
+
+- POC-Arbeitsweise: normale Änderungen ohne zusätzliche Freigabeschleifen direkt nach main pushen; bestehender Branchschutz bleibt erhalten und wird nötigenfalls per selbstständig abgewickeltem PR erfüllt. Veröffentlichung bleibt an erfolgreiche Browserprüfungen und Liveprüfung gebunden.
+- Code-Regeln in AGENTS.md: KISS, DRY mit Augenmaß, YAGNI, klare Modulverantwortung und Clean Code; kein Overengineering und keine Erweiterung des Auftrags.
