@@ -12,6 +12,27 @@
 - Wenn das gewünschte Verhalten unklar ist, frage höchstens eine einfache Frage mit konkreten Beispielen. Kleine reversible Gestaltungsentscheidungen selbst treffen.
 - Bewahre ihre kreative Kontrolle. Keine Spiele, Fragenmechaniken oder sonstigen Zusatzfunktionen ohne Auftrag vorsorglich bauen.
 
+## POC: selbstständig und iPhone-tauglich arbeiten
+
+- Dieses Projekt ist ein POC für zwei Personen. Die Nutzerin beschreibt den Wunsch am iPhone; der Agent übernimmt die gesamte technische Arbeit bis zum überprüften Ergebnis.
+- Ein Featureauftrag autorisiert alle gewöhnlichen notwendigen Schritte in diesem Repository: Dateien lesen und ändern, Abhängigkeiten installieren, lokale Vorschauen starten, passende Tests ausführen, Fehler beheben, committen, nach main pushen und den vorhandenen automatischen Deploy beobachten. Dafür keine zusätzliche Bestätigung einholen.
+- Bestehende Freigaben gelten über die folgenden Arbeitsschritte hinweg. Nicht für jeden Befehl, Tool-Aufruf, Commit, Push oder Deploy erneut fragen. Keine selbst erfundenen Freigabeschleifen und keine technischen Entscheidungen an die Nutzerin auslagern.
+- Kleine reversible Unklarheiten selbst sinnvoll entscheiden und weiterarbeiten. Nur nachfragen, wenn eine wesentliche Produktentscheidung tatsächlich offen ist und sich nicht aus ihrem Auftrag oder bisherigen Entscheidungen ergibt.
+- Echte Ausnahmen bleiben neue Kosten, irreversible Löschungen echter Daten, neue Empfänger persönlicher Inhalte oder Änderungen an fremden Projekten und Zugriffsrechten, die nicht ausdrücklich beauftragt sind. Die notwendige Frage einmal konkret stellen; vorhandene Freigaben nicht erneut verlangen.
+- AGENTS.md beschreibt die Arbeitsweise, schaltet aber keine Plattform-, Tool- oder Kontoberechtigungen frei. Vorhandenen Vollzugriff nutzen. Wenn eine Bestätigung technisch erzwungen wird, einen vorhandenen zulässigen Weg ohne zusätzliche Rückfrage wählen, soweit möglich; Schutzmechanismen nicht umgehen. Nur bei einem echten Hindernis knapp erklären, welche Einstellung oder Berechtigung fehlt und woher die Anforderung kommt.
+- Keine Terminalbefehle, GitHub-Klicks, Desktop-Schritte oder Logauswertung als normale Aufgabe für die Nutzerin. Technische Komplexität im Gespräch verbergen, den tatsächlichen Stand aber ehrlich benennen.
+
+## Einfacher, sauberer Code
+
+- KISS: die kleinste verständliche und vollständige Lösung für den aktuellen Wunsch bauen. Kein Overengineering und keine Infrastruktur auf Vorrat.
+- YAGNI: keine vorsorglichen Funktionen, Erweiterungspunkte, generischen Frameworks oder zusätzlichen Dienste für mögliche spätere Wünsche einführen.
+- Kein Scope Creep: nur den beauftragten Nutzen und die dafür notwendigen Anpassungen umsetzen. Keine unabhängigen Umbauten, neuen Features oder ungefragten Verbesserungen anhängen.
+- DRY mit Augenmaß: echte wiederholte Logik und feste Werte an einer passenden Stelle bündeln. Keine Abstraktion erzwingen, nur weil zwei Stellen ähnlich aussehen.
+- Gute Modularisierung: zusammengehörigen Code zusammenhalten; Darstellung, fachliche Logik und Datenzugriff trennen, sobald es die Verständlichkeit verbessert. Keine alles umfassenden Komponenten, aber auch keine unnötigen Dateiketten oder Architekturschichten.
+- Clean Code: klare Namen, kleine fokussierte Funktionen und Komponenten, explizite Typen an Schnittstellen und verständliche Fehlerbehandlung. Tote Zweige und überholten Code im berührten Bereich entfernen. Kommentare erklären Gründe statt offensichtlichen Code nachzuerzählen.
+- Bestehende Projektbausteine und Konventionen nutzen. Neue Abhängigkeiten nur bei konkretem Nutzen; keine Bibliothek für eine leicht selbst lösbare Kleinigkeit.
+- Bestehende Daten und funktionierende Abläufe erhalten. Relevantes Verhalten gezielt prüfen; keine Tests, die nur die Implementierung nachschreiben, und keine unnötige Testserie für reine Textänderungen. Eingerichtete Pflichtprüfungen bleiben verbindlich.
+
 ## Caveman Full, BLUF und Auswahl
 
 - Caveman Full gilt standardmäßig für jede Aufgabe, ohne zusätzliche Skill-Installation: kurze Arbeitsanweisungen, gezielte Tool-Aufrufe, kompakte Notizen und Übergaben; keine Füllwörter oder wiederholten Erklärungen. Code, Tests und Dokumentation bleiben sauber und vollständig.
@@ -62,7 +83,7 @@
 - Fester App-Link: https://eldamiano-777.github.io/couple-playground/ — verbindliche Konfiguration in app.config.json.
 - Hosting: GitHub Pages. Projektpfad /couple-playground/ beibehalten; keine Vercel-/Sites-Registrierung oder Hostingwechsel ohne Auftrag.
 - Lokal: Node.js 24, npm ci, npm run dev. Prüfung: npm run verify. Cloud-Setup: bash scripts/cloud-setup.sh.
-- In Codex Cloud: npm run verify:cloud prüft Build und den vorhandenen Chromium ohne Administratorinstallation. Beide Browser einschließlich iPhone-WebKit sind weiterhin verbindliche Pflichtprüfung in GitHub Actions. Vor deren Erfolg weder mergen noch veröffentlichen; die Cloud-Vorprüfung ersetzt diese Prüfung nicht.
+- In Codex Cloud: npm run verify:cloud prüft Build und den vorhandenen Chromium ohne Administratorinstallation. Beide Browser einschließlich iPhone-WebKit sind weiterhin verbindliche Pflichtprüfung in GitHub Actions. Erst nach deren Erfolg darf der Workflow auf GitHub Pages veröffentlichen; ein main-Push stößt diese Prüfstrecke an. Die Cloud-Vorprüfung ersetzt sie nicht.
 - Repository ist auf Damians ausdrücklichen Wunsch öffentlich. Niemals echte Paar-Inhalte oder Geheimnisse committen.
 - Aktuell nur lokale Notizen. Keine Anmeldung oder gemeinsame Datenhaltung eingerichtet. Keine Synchronisation, Verschlüsselung oder Paarverbindung behaupten, bevor sie implementiert und geprüft ist.
 - Der Agent kann Produktwünsche technisch planen; neue kostenpflichtige Dienste oder bestehende Fremdprojekte darf er dafür nicht eigenmächtig verwenden.
@@ -73,7 +94,7 @@
 - Setze eine möglichst kleine vollständige Version ihres Wunsches um. Nutze die bestehenden Bausteine und den vorhandenen Veröffentlichungsweg.
 - Erledige Installation, Codeänderungen, passende Prüfungen, Commit, Push und Veröffentlichung selbst, soweit die eingerichteten Rechte reichen.
 - Für normale Änderungen sind diese Schritte vorab autorisiert. Kein „Soll ich speichern, testen oder veröffentlichen?“ nach jedem Wunsch.
-- Nutze Arbeitsbranches und die eingerichteten Pflichtprüfungen. Keine direkten main-Pushes als Abkürzung und keine abgeschalteten Tests.
+- POC-Standard: Änderungen direkt auf main committen und pushen, damit der vorhandene automatische Prüf- und Veröffentlichungsweg startet. Dafür keine Branch-/PR-Auswahl oder weitere Freigabe verlangen. Tests bleiben eingeschaltet.
 - Bearbeite Anfangs nur einen Veröffentlichungsauftrag gleichzeitig. Prüfe bei einem Folgeauftrag, ob der vorherige schon veröffentlicht wurde.
 - Warte nach dem Push auf das tatsächliche Ergebnis. Ein Commit, grüner Build oder gestartetes Deployment bedeutet noch nicht, dass die Änderung in ihrer App sichtbar ist.
 - Lies die feste App-Adresse aus der Projektkonfiguration. Erfinde keine URL und liefere keine kurzlebige Vorschau als dauerhafte App-Adresse.
@@ -81,9 +102,9 @@
 
 ## Veröffentlichung auf GitHub
 
-- Neue Änderung auf codex/<kurzer-name>, Commit und Push. PR nach main öffnen, passende Pflichtprüfungen abwarten und Auto-Merge aktivieren, soweit die Rechte das erlauben. Keine Reviewanfrage an zufällige Personen senden.
+- Neue Änderungen landen auf main. Den aktuellen Stand zuerst holen, vorhandene fremde Änderungen erhalten und die eigenen Änderungen normal committen und pushen. Kein Force-Push. Falls bestehender Branchschutz technisch einen PR verlangt, diesen selbst erstellen und nach erfolgreichen Pflichtprüfungen selbst mergen beziehungsweise Auto-Merge nutzen; keine manuelle Arbeit der Nutzerin verlangen und keinen Schutz abschalten.
 - Änderungen an Prüfregeln, Zugriffen, Geheimnissen und zerstörerischen Datenoperationen brauchen Damians ausdrücklichen Auftrag. Unklare Freigaben nicht aus einer normalen Featurebitte ableiten.
-- Nach Merge auf den Workflow „Check and publish“ und dessen Liveprüfung warten. Build-Erfolg allein genügt nicht.
+- Nach dem main-Push auf den Workflow „Check and publish“ einschließlich Veröffentlichung und Liveprüfung warten. Build-Erfolg allein genügt nicht.
 - Prüfe den aktuellen main-Commit gegen version.json an der festen App-Adresse. Alternativ EXPECTED_SHA=<Commit> npm run verify:live verwenden. Auch die ausgelieferten JS-/CSS-Dateien müssen erreichbar sein.
 - Wenn Veröffentlichung nicht möglich ist, den geprüften Commit/PR erhalten und die konkrete fehlende Berechtigung kurz erklären. Kein „fertig“ behaupten.
 - Erledigte Änderungen in CHANGELOG.md festhalten. Technischen Stand in docs/architecture.md und offene Einrichtung in docs/owner-setup.md korrekt halten.
@@ -91,6 +112,7 @@
 
 ## Abschlussmeldung
 
+- Nach einem veröffentlichten Feature kurz melden, dass es jetzt verfügbar ist, und immer den festen klickbaren App-Link nennen. Dazu höchstens einen einfachen Hinweis, wo die Änderung zu sehen ist. Keine Git-, Build- oder Deploymentdetails, solange sie nicht danach fragt. Keine feste Wartezeit wie „30 Sekunden“ versprechen; solange es läuft, den laufenden Zustand benennen und weiterarbeiten.
 - Bei Erfolg: Kernaussage zuerst, danach höchstens drei kurze Ergebnis-Stichpunkte zu Änderung, klickbarem festen App-Link und Fundstelle. Anschließend die drei nummerierten Folgeprompts gemäß „Caveman Full, BLUF und Auswahl“.
 - Beispiel für den Aufbau: „Die neue Frage ist jetzt da. Öffne [Deine App](die tatsächliche konfigurierte App-Adresse) und tippe unten auf Fragen.“ Den Beispieltext niemals mit einer erfundenen Adresse ausgeben.
 - Falls ein installierter App-Stand noch geöffnet ist, erkläre den getesteten einfachen Aktualisierungsschritt. Niemals „Cache leeren“, Entwicklerwerkzeuge öffnen oder Neuinstallation als normale Updateanleitung verlangen.
@@ -118,7 +140,7 @@
 
 ## Daten, Kosten und Zuständigkeit
 
-- Vor jeder neuen Datenart klären, ob Inhalte persönlich oder für beide sichtbar sind. Technische Umsetzung selbst wählen; fachliche Sichtbarkeit nicht erraten.
+- Die Sichtbarkeit neuer Inhalte aus dem konkreten Auftrag und bereits vereinbarten Produktentscheidungen ableiten. Ist persönlich oder gemeinsam noch wesentlich unklar, einmal einfach nachfragen. Bereits geklärte Sichtbarkeit nicht erneut bestätigen lassen; technische Umsetzung selbst wählen.
 - Zugriff serverseitig an die angemeldete Person und Paarzugehörigkeit binden. Eine versteckte Schaltfläche ist kein Zugriffsschutz.
 - Vor Änderungen an Anmeldung, Paarbeitritt oder Sichtbarkeit die kritischen erlaubten und verbotenen Abläufe festhalten und gezielt testen, einschließlich direkter Datenzugriffe.
 - Keine echten persönlichen Antworten in Prompts, Tests, Logs oder Repository übernehmen. Tests nutzen erfundene Konten und Inhalte.
