@@ -1,6 +1,7 @@
 import "./family.css";
 import type { FamilyProfilesState } from "./useFamilyProfiles";
 import PetTypeSelect from './PetTypeSelect';
+import { todayDate, formatBirthday } from './birthdays';
 
 function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn: () => void }) {
   if (!state.authReady || state.contextLoading)
@@ -33,11 +34,15 @@ function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn:
           <label htmlFor="family-edit-name">Name</label>
           <input id="family-edit-name" required maxLength={100} value={state.edit.name} disabled={state.busy} onChange={(event) => state.setEditField(`name`, event.target.value)} />
           {pet && <PetTypeSelect id="family-edit-type" value={state.edit.animalType} disabled={state.busy} onChange={value => state.setEditField(`animalType`, value)} />}
+          <label htmlFor="family-edit-birthday">Birthday (optional)</label>
+          <input id="family-edit-birthday" type="date" min="0001-01-01" max={todayDate()} value={state.edit.birthDate} disabled={state.busy} onChange={event => state.setEditField(`birthDate`, event.target.value)} />
+          {state.edit.birthDate && <button type="button" className="text-action" disabled={state.busy} onClick={() => state.setEditField(`birthDate`, ``)}>Clear birthday</button>}
           <button className="primary" disabled={disabled} type="submit">Save changes</button>
           <button type="button" disabled={state.busy} onClick={state.cancelEdit}>Cancel editing</button>
         </form> : <>
           <h2>{profile.name}</h2>
           <p>{profile.kind === `pet` ? profile.animal_type || `Pet` : `Child`}</p>
+          {profile.birth_date && <p>Birthday · <time dateTime={profile.birth_date}>{formatBirthday(profile.birth_date)}</time></p>}
           <button className="text-action" disabled={state.busy} aria-label={`Edit ${profile.name}`} onClick={() => state.startEdit(profile)}>Edit</button>
           <button className="text-action" disabled={disabled} aria-label={`Remove ${profile.name}`} onClick={() => {
             if (window.confirm(`Remove “${profile.name}” from your shared family? This removes the card for both of you.`)) void state.remove(profile);
@@ -50,6 +55,9 @@ function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn:
       <label htmlFor="family-add-name">{pet ? `Pet’s name` : `Child’s name`}</label>
       <input id="family-add-name" required maxLength={100} value={draft.name} disabled={state.busy} onChange={(event) => state.setDraft(`name`, event.target.value)} />
       {pet && <PetTypeSelect id="family-add-type" value={draft.animalType} disabled={state.busy} onChange={value => state.setDraft(`animalType`, value)} />}
+      <label htmlFor="family-add-birthday">Birthday (optional)</label>
+      <input id="family-add-birthday" type="date" min="0001-01-01" max={todayDate()} value={draft.birthDate} disabled={state.busy} onChange={event => state.setDraft(`birthDate`, event.target.value)} />
+      {draft.birthDate && <button type="button" className="text-action" disabled={state.busy} onClick={() => state.setDraft(`birthDate`, ``)}>Clear birthday</button>}
       <button className="primary" disabled={disabled || !draft.name.trim()} type="submit">{state.busy ? `Saving…` : pet ? `Add pet to our home` : `Add child to our home`}</button>
       <p className="small-print">Saved online and shared with the accounts in your home. You need a connection to save changes.</p>
     </form>

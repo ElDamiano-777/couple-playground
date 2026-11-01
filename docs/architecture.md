@@ -1,5 +1,7 @@
 # Kleine Architektur
 
+- Geburtstage: `family_profiles.birth_date` ist ein optionaler PostgreSQL-Kalendertag (`date`); der Client sendet `YYYY-MM-DD` oder null. Anlegen/Bearbeiten verwenden die native Datumswahl und bieten Leeren an. Karten formatieren den Kalendertag ausdrücklich in UTC, damit kein anderer Tag angezeigt wird. Client und Datenbank prüfen das Intervall Jahr 0001 bis zum aktuellen UTC-Tag, einschließlich Schaltjahren. Die additive Migration befüllt keine alten Karten; Haushalts-RLS bleibt erhalten. Geburtstagsentwürfe nehmen am bestehenden Schutz offener Eingaben teil.
+
 - Tierart-Auswahl: `PetTypeSelect` nutzt denselben nativen iPhone-Auswahldialog in Anlegen und Bearbeiten. Werte bleiben in `animal_type`; vorhandene freie Angaben werden als aktuelle Option erhalten. Keine Datenmigration oder neue Rechte nötig.
 
 Wichtige Entscheidungen und ihre Gründe: [ADR-Index](adr/README.md). Vor Änderungen und Rückfragen die relevanten akzeptierten ADRs lesen. Neue wesentliche Entscheidungen im selben Änderungsumfang kurz dokumentieren.

@@ -23,7 +23,7 @@ export function transport() {
   let rows: Row[] = [];
   type FamilyRow = {
     id: string; household_id: string; kind: string; name: string;
-    animal_type: string | null; created_by: string; created_at: string;
+    animal_type: string | null; birth_date: string | null; created_by: string; created_at: string;
   };
   let familyRows: FamilyRow[] = [];
   let failFamilySave = false;
@@ -163,6 +163,7 @@ export function transport() {
         if (method === `PATCH`) {
           row.name = data.name;
           row.animal_type = data.animal_type;
+          row.birth_date = data.birth_date;
           return reply(row);
         }
         if (method === `DELETE`) {

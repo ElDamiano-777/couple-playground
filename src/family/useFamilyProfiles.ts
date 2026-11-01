@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../shared/client";
+import { validBirthday } from './birthdays';
 
 export type FamilyKind = `child` | `pet`;
 export type FamilyProfile = {
@@ -8,11 +9,12 @@ export type FamilyProfile = {
   kind: FamilyKind;
   name: string;
   animal_type: string | null;
+  birth_date: string | null;
   created_by: string | null;
   created_at: string;
 };
-type Draft = { name: string; animalType: string };
-const emptyDraft = (): Draft => ({ name: ``, animalType: `` });
+type Draft = { name: string; animalType: string; birthDate: string };
+const emptyDraft = (): Draft => ({ name: ``, animalType: ``, birthDate: `` });
 const emptyDrafts = () => ({ child: emptyDraft(), pet: emptyDraft() });
 const failure = `We couldn’t save that change. Check your connection and try again. Your unfinished text is still here.`;
 
@@ -123,14 +125,18 @@ export function useFamilyProfiles({
   }
   const valid = (draft: Draft, entryKind: FamilyKind) =>
     draft.name.trim().length > 0 && draft.name.trim().length <= 100 &&
-    (entryKind !== `pet` || draft.animalType.trim().length <= 80);
+    (entryKind !== `pet` || draft.animalType.trim().length <= 80) && validBirthday(draft.birthDate);
+  const validationMessage = (draft: Draft) => !validBirthday(draft.birthDate)
+    ? `Choose a valid birthday that isn’t in the future.`
+    : `Please enter a name of up to 100 characters and a pet type of up to 80 characters.`;
   function add() {
     const draft = drafts[kind];
-    if (!valid(draft, kind)) { setError(`Please enter a name of up to 100 characters and a pet type of up to 80 characters.`); return; }
+    if (!valid(draft, kind)) { setError(validationMessage(draft)); return; }
     return perform(async () => {
       const result = await supabase.from(`family_profiles`).insert({
         household_id: household, kind, name: draft.name.trim(),
         animal_type: kind === `pet` ? draft.animalType.trim() || null : null,
+        birth_date: draft.birthDate || null,
       }).select().single();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved profile`);
       if (!isCurrent()) return;
@@ -140,10 +146,12 @@ export function useFamilyProfiles({
     });
   }
   function saveEdit() {
-    if (!edit || !valid(edit, edit.kind)) { setError(`Please enter a name of up to 100 characters and a pet type of up to 80 characters.`); return; }
+    if (!edit) return;
+    if (!valid(edit, edit.kind)) { setError(validationMessage(edit)); return; }
     return perform(async () => {
       const result = await supabase.from(`family_profiles`).update({
         name: edit.name.trim(), animal_type: edit.kind === `pet` ? edit.animalType.trim() || null : null,
+        birth_date: edit.birthDate || null,
       }).eq(`id`, edit.id).eq(`household_id`, household).select().single();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved profile`);
       if (!isCurrent()) return;
@@ -167,13 +175,13 @@ export function useFamilyProfiles({
     userId, household, authReady, contextLoading, isPoc, kind, setKind,
     profiles: sameScope ? profiles : [],
     drafts: sameScope ? drafts : emptyDrafts(), edit: sameScope ? edit : null,
-    dirty: sameScope && (!!edit || Object.values(drafts).some((draft) => !!(draft.name || draft.animalType))),
+    dirty: sameScope && (!!edit || Object.values(drafts).some((draft) => !!(draft.name || draft.animalType || draft.birthDate))),
     busy: sameScope && busy, loading: !sameScope || loading, online,
     error: sameScope ? error : ``, notice: sameScope ? notice : ``,
     setDraft: (field: keyof Draft, value: string) => setDrafts((previous) => ({ ...previous, [kind]: { ...previous[kind], [field]: value } })),
     startEdit: (profile: FamilyProfile) => {
       if (edit && !window.confirm(`Discard your unfinished changes to this family card?`)) return;
-      setEdit({ id: profile.id, kind: profile.kind, name: profile.name, animalType: profile.animal_type ?? `` });
+      setEdit({ id: profile.id, kind: profile.kind, name: profile.name, animalType: profile.animal_type ?? ``, birthDate: profile.birth_date ?? `` });
       setNotice(``);
     },
     setEditField: (field: keyof Draft, value: string) => setEdit((previous) => previous && ({ ...previous, [field]: value })),

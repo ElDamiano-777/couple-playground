@@ -15,6 +15,13 @@ select public.create_household() as pair \gset
 select public.create_household_invitation() as invitation \gset
 insert into public.family_profiles(household_id, kind, name) values(public.current_household(), 'child', 'Synthetic child') returning id as child \gset
 insert into public.family_profiles(household_id, kind, name, animal_type) values(public.current_household(), 'pet', 'Synthetic pet', 'Cat') returning id as pet \gset
+-- Apply the extension after cards exist: no historical birth dates are invented.
+reset role;
+\ir ../migrations/20261101060000_family_birthdays.sql
+set role authenticated;
+select pg_temp.check_true((select count(*) = 2 and bool_and(birth_date is null) from public.family_profiles));
+update public.family_profiles set birth_date = date '2000-02-29' where id = :'child';
+update public.family_profiles set birth_date = date '2015-08-12' where id = :'pet';
 select pg_temp.check_true((select count(*) = 2 and bool_and(created_by = auth.uid()) from public.family_profiles));
 select set_config('test.pair', :'pair', false);
 select set_config('test.child', :'child', false);
@@ -40,25 +47,42 @@ do $$ begin
  begin update public.family_profiles set animal_type = '' where kind = 'pet'; raise exception 'TEST FAILED'; exception when check_violation then null; end;
  begin update public.family_profiles set animal_type = ' Cat ' where kind = 'pet'; raise exception 'TEST FAILED'; exception when check_violation then null; end;
  begin update public.family_profiles set animal_type = repeat('a',81) where kind = 'pet'; raise exception 'TEST FAILED'; exception when check_violation then null; end;
+ -- Date syntax, range and finite-value constraints apply to direct writes as well.
+ begin update public.family_profiles set birth_date = '2023-02-29'; raise exception 'TEST FAILED'; exception when datetime_field_overflow then null; end;
+ begin update public.family_profiles set birth_date = '2024-02-30'; raise exception 'TEST FAILED'; exception when datetime_field_overflow then null; end;
+ begin update public.family_profiles set birth_date = (current_timestamp at time zone 'UTC')::date + 1; raise exception 'TEST FAILED'; exception when check_violation then null; end;
+ begin insert into public.family_profiles(household_id, kind, name, birth_date) values(public.current_household(), 'pet', 'Future date', (current_timestamp at time zone 'UTC')::date + 1); raise exception 'TEST FAILED'; exception when check_violation then null; end;
+ begin update public.family_profiles set birth_date = 'infinity'; raise exception 'TEST FAILED'; exception when check_violation then null; end;
+ begin update public.family_profiles set birth_date = '-infinity'; raise exception 'TEST FAILED'; exception when check_violation then null; end;
+ begin update public.family_profiles set birth_date = date '0001-12-31 BC'; raise exception 'TEST FAILED'; exception when check_violation then null; end;
 end $$;
 select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000002', false);
 select public.join_household(:'invitation');
 select pg_temp.check_true((select count(*) = 2 from public.family_profiles));
-update public.family_profiles set name = 'Partner renamed child' where id = :'child';
-update public.family_profiles set name = 'Partner renamed pet', animal_type = 'Dog' where id = :'pet';
-insert into public.family_profiles(household_id, kind, name) values(public.current_household(), 'pet', 'Optional type') returning id as removable \gset
+select pg_temp.check_true((select birth_date = date '2000-02-29' from public.family_profiles where id = :'child'));
+select pg_temp.check_true((select birth_date = date '2015-08-12' from public.family_profiles where id = :'pet'));
+update public.family_profiles set birth_date = null where id = :'pet';
+select pg_temp.check_true((select birth_date is null from public.family_profiles where id = :'pet'));
+update public.family_profiles set name = 'Partner renamed child', birth_date = date '2004-02-29' where id = :'child';
+update public.family_profiles set name = 'Partner renamed pet', animal_type = 'Dog', birth_date = date '2010-10-10' where id = :'pet';
+insert into public.family_profiles(household_id, kind, name, birth_date) values(public.current_household(), 'pet', 'Optional type', date '0001-01-01') returning id as removable \gset
+select pg_temp.check_true((select birth_date = date '0001-01-01' from public.family_profiles where id = :'removable'));
 select pg_temp.check_true((select animal_type is null from public.family_profiles where id = :'removable'));
 delete from public.family_profiles where id = :'removable';
 select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001', false);
 select pg_temp.check_true((select name = 'Partner renamed child' from public.family_profiles where id = :'child'));
 select pg_temp.check_true((select name = 'Partner renamed pet' and animal_type = 'Dog' from public.family_profiles where id = :'pet'));
+select pg_temp.check_true((select birth_date = date '2004-02-29' from public.family_profiles where id = :'child'));
 select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000003', false);
 select public.create_household() as foreign_pair \gset
 select pg_temp.check_true((select count(*) = 0 from public.family_profiles));
+select pg_temp.check_true((select count(birth_date) = 0 from public.family_profiles where id = :'child'));
 update public.family_profiles set name = 'Foreign overwrite' where id = :'child';
+update public.family_profiles set birth_date = date '2001-01-01' where id = :'child';
 delete from public.family_profiles where id = :'pet';
 do $$ begin
  begin insert into public.family_profiles(household_id, kind, name) values(current_setting('test.pair')::uuid, 'child', 'Foreign insert'); raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
+ begin insert into public.family_profiles(household_id, kind, name, birth_date) values(current_setting('test.pair')::uuid, 'pet', 'Foreign birthday', date '2020-01-01'); raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
 end $$;
 insert into public.family_profiles(household_id, kind, name) values(public.current_household(), 'pet', 'Foreign own pet');
 select pg_temp.check_true((select count(*) = 1 from public.family_profiles));
@@ -66,6 +90,8 @@ set role anon;
 select set_config('request.jwt.claim.sub', '', false);
 do $$ begin
  begin perform * from public.family_profiles; raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
+ begin perform birth_date from public.family_profiles where id = current_setting('test.child')::uuid; raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
+ begin update public.family_profiles set birth_date = date '2001-01-01' where id = current_setting('test.child')::uuid; raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
  begin insert into public.family_profiles(household_id, kind, name) values(current_setting('test.pair')::uuid, 'child', 'Anonymous'); raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
  begin update public.family_profiles set name = 'Anonymous'; raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
  begin delete from public.family_profiles; raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
@@ -74,9 +100,11 @@ set role authenticated;
 select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001', false);
 select pg_temp.check_true((select count(*) = 2 from public.family_profiles));
 select pg_temp.check_true((select name = 'Partner renamed child' from public.family_profiles where id = :'child'));
+select pg_temp.check_true((select birth_date = date '2004-02-29' from public.family_profiles where id = :'child'));
 select public.delete_my_account();
 select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000002', false);
 select pg_temp.check_true((select count(*) = 2 and bool_and(created_by is null) from public.family_profiles));
+select pg_temp.check_true((select birth_date = date '2004-02-29' from public.family_profiles where id = :'child'));
 update public.family_profiles set name = 'Preserved after creator deletion' where id = :'child';
 delete from public.family_profiles where id = :'pet';
 select pg_temp.check_true((select count(*) = 1 from public.family_profiles));
@@ -85,4 +113,4 @@ reset role;
 select pg_temp.check_true(not exists(select 1 from public.family_profiles where household_id = :'pair'));
 select pg_temp.check_true(not exists(select 1 from public.households where id = :'pair'));
 select pg_temp.check_true((select count(*) = 1 from public.family_profiles where household_id = :'foreign_pair'));
-select 'Family member CRUD, field constraints, isolation, forgery rejection and account deletion passed';
+select 'Family CRUD, optional birthdays, leap dates, invalid/future dates, isolation, immutable identity and account deletion passed';

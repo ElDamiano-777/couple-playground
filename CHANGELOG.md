@@ -1,5 +1,11 @@
 # Änderungen
 
+## Geburtstage — 2026-11-01
+
+- Kinder- und Tierkarten können ein optionales Geburtsdatum erhalten, beim Anlegen und Bearbeiten mit Datumswahl am Telefon.
+- Geburtstage erscheinen in den gemeinsamen Karten und lassen sich ändern oder leeren. Bestehende Karten bleiben erhalten; ein Datum wird nicht automatisch ergänzt.
+- Speicherung als Kalendertag ohne Zeitzonenverschiebung, mit Prüfung gültiger vergangener Daten.
+
 ## Tierauswahl — 2026-11-01
 
 - Beim Anlegen und Bearbeiten eines Tiers wird dessen Art aus einer Liste mit Symbolen gewählt. Bereits frei eingegebene Tierarten bleiben beim Bearbeiten erhalten.
