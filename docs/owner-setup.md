@@ -22,6 +22,8 @@
 
 ## Datenstand
 
+- Version 0.1.8 zeigt zusätzlich einen klar markierten Haushaltsentwurf. Einkaufs-, Plan-, Familien- und Aktivitätsinhalte sind erfundene Beispiele und werden weder gespeichert noch geteilt. Push-Mitteilungen bleiben unverbunden.
+
 - Die veröffentlichte Grundversion verwendet ausschließlich lokalen Browser-Speicher. Die Oberfläche benennt das ausdrücklich.
 - Ein browserlokaler Speicher kann durch Browserdaten-Löschung verloren gehen und ist auf gemeinsam genutzten Geräten nicht vor anderen Benutzern geschützt.
 - Es gibt keine Anmeldung, keine Einladungslinks, keine Paar-Datenbank und keine Datenübertragung an einen Partner.
