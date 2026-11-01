@@ -1,5 +1,10 @@
 # Änderungen
 
+## Sattere Farben — 2026-11-01
+
+- Die bestehende violett-, pfirsich- und salbeifarbene Palette ist gesättigter: ausdrucksstärkere Schaltflächen, aktive Tabs, farbige Karten und Akzente auf warmem Cremegrund.
+- Lesbarkeit auf den neuen Flächen geprüft; die kräftigere Schrift bleibt erhalten. Browser- und PWA-Hintergrundfarben passen zur Oberfläche.
+
 ## Lesbarkeit — 2026-11-01
 
 - Schrift im gesamten Haushalt größer, kräftiger und kontrastreicher: Einkaufsliste, Familienkarten, Formulare, Hinweise und Navigation.
