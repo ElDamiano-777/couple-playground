@@ -25,6 +25,11 @@ export function transport() {
     id: string; household_id: string; kind: string; name: string;
     animal_type: string | null; birth_date: string | null; created_by: string; created_at: string;
   };
+  type EntryRow = { id: string; household_id: string; kind: string; title: string; notes: string; created_by: string; created_at: string };
+  let entryRows: EntryRow[] = [];
+  let failEntrySave = false;
+  let delayedEntryWrite: Promise<void> | null = null;
+  let releaseEntryWrite: (() => void) | null = null;
   let familyRows: FamilyRow[] = [];
   let failFamilySave = false;
   let familyRequests = 0;
@@ -136,6 +141,35 @@ export function transport() {
               ? members.map((user_id) => ({ user_id }))
               : [],
         );
+      if (url.pathname === `/rest/v1/folder_entries`) {
+        const household = homeFor(user);
+        if (!household || url.searchParams.get(`household_id`) && url.searchParams.get(`household_id`) !== `eq.${household}`)
+          return reply({ message: `Forbidden` }, 403);
+        if (method === `GET`) return reply(entryRows.filter((row) => row.household_id === household));
+        if (failEntrySave) {
+          failEntrySave = false;
+          return reply({ message: `Synthetic entry storage failure` }, 503);
+        }
+        if (method === `POST`) {
+          if (data.household_id !== household) return reply({ message: `Forbidden` }, 403);
+          const row = { ...data, id: crypto.randomUUID(), created_by: user, created_at: new Date().toISOString() } as EntryRow;
+          entryRows.push(row);
+          if (delayedEntryWrite) await delayedEntryWrite;
+          return reply(row, 201);
+        }
+        const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
+        const row = entryRows.find((row) => row.id === id && row.household_id === household);
+        if (!row) return reply({ message: `Not found` }, 404);
+        if (method === `PATCH`) {
+          row.title = data.title;
+          row.notes = data.notes;
+          return reply(row);
+        }
+        if (method === `DELETE`) {
+          entryRows = entryRows.filter((row) => row.id !== id);
+          return reply({ id });
+        }
+      }
       if (url.pathname === `/rest/v1/family_profiles`) {
         ++familyRequests;
         const household = homeFor(user);
@@ -212,6 +246,9 @@ export function transport() {
   }
   return {
     attach,
+    failNextEntrySave: () => { failEntrySave = true; },
+    delayEntryWrites: () => { delayedEntryWrite = new Promise<void>((resolve) => { releaseEntryWrite = resolve; }); },
+    releaseEntryWrites: () => { releaseEntryWrite?.(); delayedEntryWrite = null; releaseEntryWrite = null; },
     delayFamilyWrites: () => {
       delayedFamilyWrite = new Promise<void>((resolve) => { releaseFamilyWrite = resolve; });
     },

@@ -1,0 +1,10 @@
+.collection-page h1, .collection-page .dashboard-card { overflow-wrap: anywhere; }
+.collection-page .dashboard-card { margin: 22px 0; }
+.collection-page .dashboard-card > p { font-size: 16px; line-height: 1.8; color: #62516e; }
+.collection-page .collection-notes { white-space: pre-wrap; overflow-wrap: anywhere; }
+.collection-page .note-form { min-width: 0; align-items: stretch; }
+.collection-page .note-form input { min-width: 0; width: 100%; min-height: 48px; font: inherit; font-size: 17px; border: 1px solid #cfabe4; border-radius: 12px; padding: 12px 14px; background: #fffcf6; color: #33283c; }
+.collection-page .note-form textarea { min-width: 0; }
+.collection-page .note-form input:focus-visible { outline: 3px solid #a566df; outline-offset: 4px; }
+.collection-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+.collection-actions button { min-height: 44px; padding: 10px 14px; }

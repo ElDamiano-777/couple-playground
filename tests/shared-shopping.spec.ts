@@ -1,20 +1,21 @@
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
+import { mainNavigation, openHome, openShopping } from "./navigation";
 
 import { transport } from "./helpers/sharedTransport";
 // Mock transport stays separate from service workers; real PWA coverage lives in app.spec.ts.
 test.use({ serviceWorkers: `block` });
 const invitation = `a`.repeat(64);
 
-async function openShopping(page: Page) {
+async function enterPersonalShopping(page: Page) {
   await page.goto(`./`);
   await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
-  await page.getByRole(`button`, { name: `Shopping`, exact: true }).click();
+  await openShopping(page);
   await page
     .getByRole(`button`, { name: `Use a personal email account`, exact: true })
     .click();
 }
 async function signIn(page: Page, email: string) {
-  await openShopping(page);
+  await enterPersonalShopping(page);
   await page.getByLabel(`Your email`, { exact: true }).fill(email);
   await page
     .getByLabel(`Password`, { exact: true })
@@ -84,7 +85,7 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
       b.getByText(`Synthetic pet food`, { exact: true }),
     ).toBeVisible();
     await a.reload();
-    await a.getByRole(`button`, { name: `Shopping`, exact: true }).click();
+    await openShopping(a);
     await expect(
       a.getByText(`Synthetic pet food`, { exact: true }),
     ).toBeVisible();
@@ -104,7 +105,7 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
     await expect(
       a.getByText(`Synthetic pet food`, { exact: true }),
     ).toHaveCount(0);
-    await a.getByRole(`button`, { name: `Our home`, exact: true }).click();
+    await openHome(a);
     await expect(
       a.getByText(`Synthetic pet food`, { exact: true }),
     ).toHaveCount(0);
@@ -139,11 +140,11 @@ test(`failed and offline saves preserve the draft; updates and navigation preser
   await expect(
     page.getByRole(`button`, { name: `Update`, exact: true }),
   ).toBeDisabled();
-  await page.getByRole(`button`, { name: `Plans`, exact: true }).click();
+  await mainNavigation(page).getByRole(`button`, { name: `Wishlist`, exact: true }).click();
   await expect(
     page.getByRole(`button`, { name: `Update`, exact: true }),
   ).toBeDisabled();
-  await page.getByRole(`button`, { name: `Shopping`, exact: true }).click();
+  await openShopping(page);
   await expect(page.getByLabel(`What do we need?`)).toHaveValue(
     `Synthetic unfinished purchase`,
   );
@@ -162,7 +163,7 @@ test(`registration asks for email confirmation and never claims that the account
   context,
 }) => {
   await transport().attach(context);
-  await openShopping(page);
+  await enterPersonalShopping(page);
   await page
     .getByRole(`button`, {
       name: `I’m new here — create an account`,
@@ -193,7 +194,7 @@ test(`confirmation-mail setup failures explain the missing setup and preserve re
   const server = transport();
   server.failConfirmationMail();
   await server.attach(context);
-  await openShopping(page);
+  await enterPersonalShopping(page);
   await page
     .getByRole(`button`, {
       name: `I’m new here — create an account`,

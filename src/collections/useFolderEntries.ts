@@ -1,0 +1,188 @@
+import { useEffect, useRef, useState } from "react";
+import { supabase } from "../shared/client";
+
+export type FolderKind = `recipe` | `wish` | `place`;
+export type FolderEntry = {
+  id: string;
+  household_id: string;
+  kind: FolderKind;
+  title: string;
+  notes: string;
+  created_by: string | null;
+  created_at: string;
+};
+type Draft = { title: string; notes: string };
+type Edit = Draft & { id: string; kind: FolderKind };
+const emptyDraft = (): Draft => ({ title: ``, notes: `` });
+const emptyDrafts = () => ({ recipe: emptyDraft(), wish: emptyDraft(), place: emptyDraft() });
+const emptyEdits = (): Record<FolderKind, Edit | null> => ({ recipe: null, wish: null, place: null });
+const failure = `Не удалось сохранить изменение. Проверьте соединение и попробуйте ещё раз. Ваш текст остался здесь.`;
+
+export function useFolderEntries({
+  userId,
+  household,
+  authReady = true,
+  contextLoading = false,
+  isPoc = false,
+}: {
+  userId?: string;
+  household: string | null;
+  authReady?: boolean;
+  contextLoading?: boolean;
+  isPoc?: boolean;
+}) {
+  const scope = `${userId ?? ``}:${household ?? ``}`;
+  const currentScope = useRef(scope);
+  const scopeEpoch = useRef(0);
+  // Invalidate old responses during render, including a quick switch away and back.
+  if (currentScope.current !== scope) ++scopeEpoch.current;
+  currentScope.current = scope;
+  const epoch = scopeEpoch.current;
+  const isCurrent = () => currentScope.current === scope && scopeEpoch.current === epoch;
+  const storedScope = useRef(scope);
+  const generation = useRef(0);
+  const mutation = useRef(false);
+  const [entries, setEntries] = useState<FolderEntry[]>([]);
+  const [kind, setKind] = useState<FolderKind>(`recipe`);
+  const [drafts, setDrafts] = useState(emptyDrafts);
+  const [edits, setEdits] = useState(emptyEdits);
+  const edit = edits[kind];
+  const [loading, setLoading] = useState(!!(userId && household));
+  const [busy, setBusy] = useState(false);
+  const [online, setOnline] = useState(navigator.onLine);
+  const [error, setError] = useState(``);
+  const [notice, setNotice] = useState(``);
+  const sameScope = storedScope.current === scope;
+
+  useEffect(() => {
+    storedScope.current = scope;
+    ++generation.current;
+    mutation.current = false;
+    setEntries([]);
+    setDrafts(emptyDrafts());
+    setEdits(emptyEdits());
+    setError(``);
+    setNotice(``);
+    setBusy(false);
+    setLoading(!!(userId && household));
+    let active = true;
+    const sync = async () => {
+      if (!userId || !household || mutation.current || !navigator.onLine) {
+        if (active) setLoading(false);
+        return;
+      }
+      const request = ++generation.current;
+      try {
+        const result = await supabase.from(`folder_entries`).select(`*`)
+          .eq(`household_id`, household).order(`created_at`, { ascending: true });
+        if (!active || !isCurrent() || request !== generation.current) return;
+        if (result.error) throw result.error;
+        setEntries(result.data as FolderEntry[]);
+        setError(``);
+      } catch {
+        if (active && isCurrent() && request === generation.current)
+          setError(`Не удалось обновить папки. Проверьте соединение и попробуйте ещё раз.`);
+      } finally {
+        if (active && isCurrent() && request === generation.current) setLoading(false);
+      }
+    };
+    void sync();
+    const focus = () => { if (!document.hidden) void sync(); };
+    const network = () => { setOnline(navigator.onLine); focus(); };
+    const timer = window.setInterval(focus, 15000);
+    window.addEventListener(`focus`, focus);
+    document.addEventListener(`visibilitychange`, focus);
+    window.addEventListener(`online`, network);
+    window.addEventListener(`offline`, network);
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener(`focus`, focus);
+      document.removeEventListener(`visibilitychange`, focus);
+      window.removeEventListener(`online`, network);
+      window.removeEventListener(`offline`, network);
+    };
+  }, [scope, userId, household]);
+
+  async function perform(action: () => Promise<void>) {
+    if (!userId || !household || !isCurrent() || mutation.current) return;
+    mutation.current = true;
+    ++generation.current;
+    setBusy(true);
+    setError(``);
+    setNotice(``);
+    try {
+      if (!navigator.onLine) throw new Error(`Offline`);
+      await action();
+    } catch {
+      if (isCurrent()) setError(failure);
+    } finally {
+      if (isCurrent()) {
+        mutation.current = false;
+        setBusy(false);
+        setLoading(false);
+      }
+    }
+  }
+  const valid = (draft: Draft) => draft.title.trim().length > 0 && draft.title.trim().length <= 150 && draft.notes.length <= 20000;
+  const validationMessage = `Введите название до 150 символов и заметку до 20 000 символов.`;
+  function add() {
+    const draft = drafts[kind];
+    if (!valid(draft)) { setError(validationMessage); return; }
+    return perform(async () => {
+      const result = await supabase.from(`folder_entries`).insert({
+        household_id: household, kind, title: draft.title.trim(), notes: draft.notes,
+      }).select().single();
+      if (result.error || !result.data) throw result.error ?? new Error(`No saved entry`);
+      if (!isCurrent()) return;
+      setEntries((previous) => [...previous, result.data as FolderEntry]);
+      setDrafts((previous) => ({ ...previous, [kind]: emptyDraft() }));
+      setNotice(`Добавлено в вашу общую папку.`);
+    });
+  }
+  function saveEdit() {
+    if (!edit) return;
+    if (!valid(edit)) { setError(validationMessage); return; }
+    return perform(async () => {
+      const result = await supabase.from(`folder_entries`).update({
+        title: edit.title.trim(), notes: edit.notes,
+      }).eq(`id`, edit.id).eq(`household_id`, household).select().single();
+      if (result.error || !result.data) throw result.error ?? new Error(`No saved entry`);
+      if (!isCurrent()) return;
+      setEntries((previous) => previous.map((row) => row.id === edit.id ? result.data as FolderEntry : row));
+      setEdits((previous) => ({ ...previous, [edit.kind]: null }));
+      setNotice(`Изменения сохранены в общей папке.`);
+    });
+  }
+  function remove(entry: FolderEntry) {
+    return perform(async () => {
+      const result = await supabase.from(`folder_entries`).delete()
+        .eq(`id`, entry.id).eq(`household_id`, household).select(`id`).single();
+      if (result.error || !result.data) throw result.error ?? new Error(`No deleted entry`);
+      if (!isCurrent()) return;
+      setEntries((previous) => previous.filter((row) => row.id !== entry.id));
+      setEdits((previous) => ({ ...previous, [entry.kind]: previous[entry.kind]?.id === entry.id ? null : previous[entry.kind] }));
+      setNotice(`Удалено из вашей общей папки.`);
+    });
+  }
+  return {
+    userId, household, authReady, contextLoading, isPoc, kind, setKind,
+    entries: sameScope ? entries : [],
+    drafts: sameScope ? drafts : emptyDrafts(), edit: sameScope ? edit : null,
+    dirty: sameScope && (Object.values(edits).some(Boolean) || Object.values(drafts).some((draft) => !!(draft.title || draft.notes))),
+    busy: sameScope && busy, loading: !sameScope || loading, online,
+    error: sameScope ? error : ``, notice: sameScope ? notice : ``,
+    setDraft: (field: keyof Draft, value: string) => setDrafts((previous) => ({ ...previous, [kind]: { ...previous[kind], [field]: value } })),
+    startEdit: (entry: FolderEntry) => {
+      if (edits[entry.kind] && !window.confirm(`Заменить несохранённые изменения в этой папке?`)) return;
+      setEdits((previous) => ({ ...previous, [entry.kind]: { id: entry.id, kind: entry.kind, title: entry.title, notes: entry.notes } }));
+      setNotice(``);
+    },
+    setEditField: (field: keyof Draft, value: string) => setEdits((previous) => ({ ...previous, [kind]: previous[kind] && { ...previous[kind], [field]: value } })),
+    cancelEdit: () => {
+      if (window.confirm(`Отменить несохранённые изменения этой записи?`)) setEdits((previous) => ({ ...previous, [kind]: null }));
+    },
+    add, saveEdit, remove,
+  };
+}
+export type FolderEntriesState = ReturnType<typeof useFolderEntries>;

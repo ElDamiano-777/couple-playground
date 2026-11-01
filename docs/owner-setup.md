@@ -1,5 +1,7 @@
 # Einrichtung und Betrieb
 
+- Aktuelle Navigation: Папки zeigt Наш дом / Wishlist / Места. Наш дом öffnet Покупки / Рецепты / Животные / Дети. Bestehende Einkaufsliste und Kinder-/Tierkarten verwenden weiterhin dieselben Daten und Konten. Рецепты, Wishlist und Места erlauben gemeinsame Einträge mit Titel und Text. Die additive Migration `20261101070000_folder_entries.sql` wird über die vorhandene Supabase-Integration angewendet; keine neue Kontoverbindung nötig.
+
 ## Tatsächliche Konfiguration
 
 - Eigentümer: ElDamiano-777.
@@ -22,7 +24,7 @@
 
 ## Datenstand
 
-- Version 0.2.2 enthält die geschützte gemeinsame Einkaufsliste und gemeinsame Kinder-/Tierkarten. Pläne und Aktivitätsmeldungen bleiben Beispiele; Telefon-Push bleibt unverbunden. Die vorbereitete Benachrichtigungsänderung wird separat verwaltet und ist nicht Teil dieser Veröffentlichung.
+- Version 0.2.2 enthält die geschützte gemeinsame Einkaufsliste und gemeinsame Kinder-/Tierkarten. Die Aktivitätsansicht bleibt ein Beispiel; Telefon-Push bleibt unverbunden. Die vorbereitete Benachrichtigungsänderung wird separat verwaltet und ist nicht Teil dieser Veröffentlichung.
 
 - Persönliche Notizen verwenden weiterhin ausschließlich lokalen Browser-Speicher. Einkäufe werden dagegen nach Anmeldung im separaten Supabase-Projekt gespeichert und sind für beide Mitglieder desselben Zuhauses sichtbar.
 - Ein browserlokaler Speicher kann durch Browserdaten-Löschung verloren gehen und ist auf gemeinsam genutzten Geräten nicht vor anderen Benutzern geschützt.
@@ -82,6 +84,6 @@ Noch zu beobachten: echte E-Mail-Zustellung, beiderseitiger erster Beitritt und 
 
 - Optionales Geburtsdatum ab Migration `20261101060000_family_birthdays.sql`: vorhandene Karten bleiben ohne Datum, bis es ausdrücklich eingegeben wird. Dieselben beiden Haushaltskonten sehen und bearbeiten es. Speicherung als Datum ohne Uhrzeit; keine neue Kontoverbindung oder zusätzliche Zustellung eingerichtet.
 
-- Im bestehenden Zuhause unter Family → Kids/Pets anlegen: Name, bei Tieren optional der Tier-Typ. Beide Haushaltskonten können die Karten lesen und bearbeiten; Entfernen fragt ausdrücklich nach.
+- Im bestehenden Zuhause unter Наш дом → Дети/Животные anlegen: Name, bei Tieren optional der Tier-Typ. Beide Haushaltskonten können die Karten lesen und bearbeiten; Entfernen fragt ausdrücklich nach.
 - Die additive Migration `20261101050000_family_profiles.sql` muss über die bestehende GitHub-Integration im gleichen Projekt angewendet werden. Keine neue Kontoverbindung, Serverfunktion oder Geheimnisse nötig. Fremde und abgemeldete Konten haben keinen Zugriff.
 - Beim Löschen eines Kontos bleiben Karten für den Partner erhalten; beim letzten Mitglied löscht der vorhandene Haushalts-Löschpfad auch dessen Karten. POC-Zugänge weiterhin nur mit Testinhalten nutzen.

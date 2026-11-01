@@ -4,6 +4,7 @@ import HouseholdPreview, { Symbol, type HouseholdPage } from './HouseholdPreview
 import { readNotes, saveNotes, type Note } from './storage';
 import { useSharedShopping } from './shared/useSharedShopping';
 import { useFamilyProfiles } from './family/useFamilyProfiles';
+import { useFolderEntries } from './collections/useFolderEntries';
 
 type Page = HouseholdPage | `notes` | `more` | `welcome`;
 type Profile = `masha` | `damian`;
@@ -32,7 +33,8 @@ function Icon({ name }: { name: `heart` | `home` | `note` | `more` | `arrow` | `
 export default function App() {
   const shopping = useSharedShopping();
   const family = useFamilyProfiles({ userId: shopping.session?.user.id, household: shopping.household, authReady: shopping.authReady, contextLoading: shopping.loading, isPoc: shopping.isPoc });
-  const [page, setPage] = useState<Page>(`home`);
+  const collections = useFolderEntries({ userId: shopping.session?.user.id, household: shopping.household, authReady: shopping.authReady, contextLoading: shopping.loading, isPoc: shopping.isPoc });
+  const [page, setPage] = useState<Page>(`folders`);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
   const [profileSaved, setProfileSaved] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -42,7 +44,7 @@ export default function App() {
   const [online, setOnline] = useState(navigator.onLine);
   const [updateReady, setUpdateReady] = useState(false);
 
-  const hasDraft = !!draft.trim() || shopping.dirty || family.dirty;
+  const hasDraft = !!draft.trim() || shopping.dirty || family.dirty || collections.dirty;
 
   useEffect(() => {
     try { setNotes(readNotes()); }
@@ -90,7 +92,7 @@ export default function App() {
 
   async function chooseProfile(value: Profile) {
     if (shopping.session && shopping.session.user.email !== `${value}@poc.together.invalid`) {
-      if (family.dirty && !window.confirm(`Change name and discard unfinished family details? Your saved cards stay in your home.`)) return;
+      if ((family.dirty || collections.dirty) && !window.confirm(`Change name and discard unfinished entries? Your saved items stay in your home.`)) return;
       if (!await shopping.signOut()) return;
     }
     shopping.setUsername(value);
@@ -116,15 +118,23 @@ export default function App() {
   }
 
   function navigate(next: Page) {
+    if (next === `children`) family.setKind(`child`);
+    if (next === `pets`) family.setKind(`pet`);
+    if (next === `recipes`) collections.setKind(`recipe`);
+    if (next === `wishlist`) collections.setKind(`wish`);
+    if (next === `places`) collections.setKind(`place`);
     setPage(next);
     if (!loadFailed) setMessage(``);
     window.scrollTo({ top: 0, behavior: `instant` });
   }
 
+  const homePages: Page[] = [`home`, `shopping`, `recipes`, `children`, `pets`];
+  const activeFolder = homePages.includes(page) ? `home` : page;
+
   return <div className="app">
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="header">
-      <a className="wordmark" href={config.basePath} aria-label="Together — home"><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
+      <a className="wordmark" href={config.basePath} aria-label="Together — все папки" onClick={event => { event.preventDefault(); navigate(`folders`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
       <div className="header-tools">{profile && <><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Help and settings" onClick={() => navigate(`more`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}<span className="edition"><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</span></div>
     </header>
 
@@ -146,7 +156,7 @@ export default function App() {
         </div>
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
-      {([`home`, `shopping`, `plans`, `family`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} />}
+      {([`folders`, `home`, `shopping`, `recipes`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} />}
       {page === `welcome` && <>
         <section className="hero welcome-hero" lang="ru">
           <div className="hero-copy">
@@ -210,7 +220,7 @@ export default function App() {
         <div className="help-card"><span className="card-icon"><Icon name="spark" /></span><h2>Say it in your own words</h2><p>Open your chat with your agent, tap the microphone on your keyboard, and describe your idea. After making the change, your agent will send you the app link and tell you where to find it.</p><blockquote>“I’d love a shared list of date ideas here.”</blockquote><p className="muted">You can speak Russian, English or German.</p></div>
         <div className="help-card"><span className="card-icon peach"><Icon name="home" /></span><h2>Add it to your iPhone</h2><p>Open this app in Safari. Tap Share, then Add to Home Screen. Now you’ll have your own little app icon.</p></div>
         <div className="help-card"><h2>A note for you</h2><button className="primary" onClick={() => navigate(`welcome`)}>Read your welcome</button></div>
-        <div className="help-card"><h2>Your name</h2><p>Currently: {profile === `masha` ? `Masha` : `Damian`}</p><button className="primary" onClick={() => { setProfile(null); setPage(`home`); window.scrollTo({ top: 0, behavior: `instant` }); }}>Change name</button></div>
+        <div className="help-card"><h2>Your name</h2><p>Currently: {profile === `masha` ? `Masha` : `Damian`}</p><button className="primary" onClick={() => { setProfile(null); setPage(`folders`); window.scrollTo({ top: 0, behavior: `instant` }); }}>Change name</button></div>
         <div className="local-label"><span />This is a little demo. Notes stay in this browser and aren’t shared with your partner yet.</div>
         <p className="small-print">Clearing your browser data also removes these local notes. Other people using the same browser can read them.</p>
       </section>}
@@ -218,8 +228,8 @@ export default function App() {
     </main>
 
     <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>
-    {profile && <nav className="bottom-nav" aria-label="Main navigation">
-      {([{ id: `home`, icon: `home`, label: `Our home` }, { id: `shopping`, icon: `shopping`, label: `Shopping` }, { id: `plans`, icon: `plans`, label: `Plans` }, { id: `family`, icon: `family`, label: `Family` }] as const).map(item => <button key={item.id} className={page === item.id ? `active` : ``} aria-current={page === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
+    {profile && <nav className="bottom-nav" aria-label="Main navigation" lang="ru">
+      {([{ id: `folders`, icon: `folder`, label: `Папки` }, { id: `home`, icon: `home`, label: `Наш дом` }, { id: `wishlist`, icon: `wishlist`, label: `Wishlist` }, { id: `places`, icon: `pin`, label: `Места` }] as const).map(item => <button key={item.id} className={activeFolder === item.id ? `active` : ``} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
     </nav>}
   </div>;
 }

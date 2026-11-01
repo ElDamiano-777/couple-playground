@@ -1,5 +1,5 @@
 import "./family.css";
-import type { FamilyProfilesState } from "./useFamilyProfiles";
+import type { FamilyKind, FamilyProfilesState } from "./useFamilyProfiles";
 import PetTypeSelect from './PetTypeSelect';
 import { todayDate, formatBirthday } from './birthdays';
 import { calculateAge, formatAge } from './age';
@@ -10,7 +10,14 @@ function AgeLabel({ birthDate, today }: { birthDate: string; today: string }) {
   return age ? <p className="family-age">{formatAge(age)}</p> : null;
 }
 
-function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn: () => void }) {
+type FamilyProfilesProps = {
+  state: FamilyProfilesState;
+  onSignIn: () => void;
+  fixedKind?: FamilyKind;
+  heading?: string;
+};
+
+function FamilyBody({ state, onSignIn, fixedKind }: FamilyProfilesProps) {
   const today = useAgeDate();
   if (!state.authReady || state.contextLoading)
     return <p role="status">Opening your family…</p>;
@@ -20,17 +27,18 @@ function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn:
       <p>{state.userId ? `Connect your home in Shopping to add your children and pets here.` : `Sign in to add your children and pets to your shared home.`}</p>
       <button className="primary" onClick={onSignIn}>{state.userId ? `Connect our home` : `Sign in to Family`}</button>
     </section>;
-  const pet = state.kind === `pet`;
-  const draft = state.drafts[state.kind];
-  const rows = state.profiles.filter((row) => row.kind === state.kind);
+  const kind = fixedKind ?? state.kind;
+  const pet = kind === `pet`;
+  const draft = state.drafts[kind];
+  const rows = state.profiles.filter((row) => row.kind === kind);
   const disabled = state.busy || !state.online;
   return <div className="family-profiles">
     <p className="page-intro">Your children and pets, together in your shared home. Add a birthday to see their age. Saved changes appear on both phones.</p>
     {state.isPoc && <p className="notice">POC test space shared by both test accounts. Don’t enter sensitive personal information.</p>}
-    <div className="filter-tabs" role="tablist" aria-label="Family members">
+    {!fixedKind && <div className="filter-tabs" role="tablist" aria-label="Family members">
       <button role="tab" aria-selected={!pet} aria-pressed={!pet} onClick={() => state.setKind(`child`)}>Kids</button>
       <button role="tab" aria-selected={pet} aria-pressed={pet} onClick={() => state.setKind(`pet`)}>Pets</button>
-    </div>
+    </div>}
     {!state.online && <p className="notice" role="status">You’re offline. Your unfinished text stays here. Reconnect to save changes.</p>}
     {state.error && <p className="feedback error-message" role="alert">{state.error}</p>}
     {state.notice && <p className="feedback" role="status">{state.notice}</p>}
@@ -72,7 +80,8 @@ function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn:
     </form>
   </div>;
 }
-export function FamilyProfiles(props: { state: FamilyProfilesState; onSignIn: () => void }) {
-  return <section className="preview-page"><p className="eyebrow">EVERYONE WE LOVE</p><h1>Our family<span>.</span></h1><FamilyBody {...props} /></section>;
+export function FamilyProfiles(props: FamilyProfilesProps) {
+  const heading = props.heading ?? (props.fixedKind === `child` ? `Дети` : props.fixedKind === `pet` ? `Животные` : `Our family`);
+  return <section className="preview-page"><p className="eyebrow" lang={props.fixedKind ? `ru` : undefined}>{props.fixedKind ? `НАШ ДОМ` : `EVERYONE WE LOVE`}</p><h1 lang={props.fixedKind ? `ru` : undefined}>{heading}<span>.</span></h1><FamilyBody {...props} /></section>;
 }
 export default FamilyProfiles;
