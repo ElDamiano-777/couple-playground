@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { transport, pocPassword } from "./helpers/sharedTransport";
+import { transport, pocPassword, pocHome, pocMasha } from "./helpers/sharedTransport";
 
 test.use({ serviceWorkers: `block` });
 async function login(page: Page, name: `Masha` | `Damian` = `Masha`) {
@@ -14,6 +14,28 @@ async function login(page: Page, name: `Masha` | `Damian` = `Masha`) {
 async function refresh(page: Page) {
   await page.evaluate(() => window.dispatchEvent(new Event(`focus`)));
 }
+
+test(`renaming an existing pet preserves its previously typed animal type`, async ({ page, context }) => {
+  await transport().attach(context);
+  let saved = { id: `10000000-0000-4000-8000-000000000099`, household_id: pocHome, kind: `pet`, name: `Legacy test pet`, animal_type: `Small parrot`, created_by: pocMasha, created_at: new Date().toISOString() };
+  await context.route(`**/rest/v1/family_profiles*`, route => {
+    if (route.request().method() === `PATCH`) {
+      const change = route.request().postDataJSON();
+      expect(change.animal_type).toBe(`Small parrot`);
+      saved = { ...saved, ...change };
+      return route.fulfill({ json: saved });
+    }
+    return route.fulfill({ json: [saved] });
+  });
+  await login(page);
+  await page.getByRole(`tab`, { name: `Pets`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Edit Legacy test pet`, exact: true }).click();
+  await expect(page.getByLabel(`Pet type (optional)`).first()).toHaveValue(`Small parrot`);
+  await page.getByLabel(`Name`, { exact: true }).fill(`Renamed test pet`);
+  await page.getByRole(`button`, { name: `Save changes`, exact: true }).click();
+  await expect(page.getByRole(`heading`, { name: `Renamed test pet`, exact: true })).toBeVisible();
+  await expect(page.getByText(`Small parrot`, { exact: true })).toBeVisible();
+});
 
 test(`two separate phones share children and pets, edits and confirmed removals`, async ({ browser }) => {
   const server = transport();
@@ -41,17 +63,18 @@ test(`two separate phones share children and pets, edits and confirmed removals`
     await expect(a.getByRole(`heading`, { name: `Synthetic renamed child`, exact: true })).toBeVisible();
     await a.getByRole(`tab`, { name: `Pets`, exact: true }).click();
     await a.getByLabel(`Pet’s name`).fill(`Synthetic pet`);
-    await a.getByLabel(`Pet type (optional)`).fill(`Synthetic animal`);
+    await a.getByLabel(`Pet type (optional)`).selectOption(`Cat`);
     await a.getByRole(`button`, { name: `Add pet to our home` }).click();
     await expect(a.getByRole(`heading`, { name: `Synthetic pet`, exact: true })).toBeVisible();
     await b.getByRole(`tab`, { name: `Pets`, exact: true }).click();
     await refresh(b);
     await expect(b.getByRole(`heading`, { name: `Synthetic pet`, exact: true })).toBeVisible();
     await b.getByRole(`button`, { name: `Edit Synthetic pet`, exact: true }).click();
-    await b.getByLabel(`Pet type (optional)`).first().fill(`Synthetic updated animal`);
+    await expect(b.getByLabel(`Pet type (optional)`).first()).toHaveValue(`Cat`);
+    await b.getByLabel(`Pet type (optional)`).first().selectOption(`Dog`);
     await b.getByRole(`button`, { name: `Save changes`, exact: true }).click();
     await refresh(a);
-    await expect(a.getByText(`Synthetic updated animal`, { exact: true })).toBeVisible();
+    await expect(a.getByText(`Dog`, { exact: true })).toBeVisible();
     let confirmations = 0;
     a.once(`dialog`, async (dialog) => { ++confirmations; await dialog.dismiss(); });
     await a.getByRole(`button`, { name: `Remove Synthetic pet`, exact: true }).click();

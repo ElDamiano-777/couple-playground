@@ -1,5 +1,6 @@
 import "./family.css";
 import type { FamilyProfilesState } from "./useFamilyProfiles";
+import PetTypeSelect from './PetTypeSelect';
 
 function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn: () => void }) {
   if (!state.authReady || state.contextLoading)
@@ -31,7 +32,7 @@ function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn:
           <h2>Edit {profile.name}</h2>
           <label htmlFor="family-edit-name">Name</label>
           <input id="family-edit-name" required maxLength={100} value={state.edit.name} disabled={state.busy} onChange={(event) => state.setEditField(`name`, event.target.value)} />
-          {pet && <><label htmlFor="family-edit-type">Pet type (optional)</label><input id="family-edit-type" maxLength={80} value={state.edit.animalType} disabled={state.busy} onChange={(event) => state.setEditField(`animalType`, event.target.value)} /></>}
+          {pet && <PetTypeSelect id="family-edit-type" value={state.edit.animalType} disabled={state.busy} onChange={value => state.setEditField(`animalType`, value)} />}
           <button className="primary" disabled={disabled} type="submit">Save changes</button>
           <button type="button" disabled={state.busy} onClick={state.cancelEdit}>Cancel editing</button>
         </form> : <>
@@ -48,7 +49,7 @@ function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn:
       <h2>{pet ? `Add a pet` : `Add a child`}</h2>
       <label htmlFor="family-add-name">{pet ? `Pet’s name` : `Child’s name`}</label>
       <input id="family-add-name" required maxLength={100} value={draft.name} disabled={state.busy} onChange={(event) => state.setDraft(`name`, event.target.value)} />
-      {pet && <><label htmlFor="family-add-type">Pet type (optional)</label><input id="family-add-type" maxLength={80} placeholder="For example, cat" value={draft.animalType} disabled={state.busy} onChange={(event) => state.setDraft(`animalType`, event.target.value)} /></>}
+      {pet && <PetTypeSelect id="family-add-type" value={draft.animalType} disabled={state.busy} onChange={value => state.setDraft(`animalType`, value)} />}
       <button className="primary" disabled={disabled || !draft.name.trim()} type="submit">{state.busy ? `Saving…` : pet ? `Add pet to our home` : `Add child to our home`}</button>
       <p className="small-print">Saved online and shared with the accounts in your home. You need a connection to save changes.</p>
     </form>
