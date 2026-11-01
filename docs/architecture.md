@@ -38,3 +38,5 @@
 
 - Original Caveman liegt projektlokal unter .agents/skills/caveman, mit gepinnter Quelle und Prüfsummen. .caveman.json setzt full (offizieller Legacy-Alias von caveman); AGENTS.md lädt den vollständigen Original-Skill bei jedem Projekt-Session-Start. Kein nativer Hook, keine zusätzliche CLI/Proxy-/Routing-Infrastruktur und keine Telemetrie wurden installiert.
 - Live-Prüfung des POC-Logins: beide reservierten Konten authentifiziert, falsches Passwort abgewiesen und gemeinsames Hinzufügen/Lesen/Abhaken über getrennte API-Sitzungen geprüft. Ausschließlich der dafür neu angelegte synthetische Prüfdatensatz wurde anschließend entfernt; bestehende Einkäufe und persönliche Konten blieben unberührt.
+
+- Delegation: günstigere verfügbare Subagents bei abgrenzbaren Teilaufgaben selbstständig einsetzen, wenn die gesamte Bearbeitung einschließlich kurzer Kontextübergabe, Wiederholungen und Ergebnisprüfung voraussichtlich Tokens oder Kosten spart. Der Hauptagent behält Integration und Abschluss; triviale Aufgaben und Doppelbearbeitung bleiben ausgeschlossen.

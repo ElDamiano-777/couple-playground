@@ -15,6 +15,8 @@
 
 ## Projektregeln — 2026-11-01
 
+- Günstigere Subagents bei erwarteter Token-/Kostenersparnis ausdrücklich selbstständig spawnen; kurze gezielte Übergaben, passende verfügbare Modelle und Prüfung durch den Hauptagenten festgelegt.
+
 - Original-Caveman-Skill unverändert und mit Herkunft/Lizenzen im Repo installiert. Full ist in .caveman.json voreingestellt und wird per AGENTS.md bei jeder neuen Projekt-Session angewendet.
 
 - Datenarchitektur auf spätere featureübergreifende Verknüpfungen, Auswertungen und automatische Ereignisse ausrichten; klare Identitäten und Zugriffsrechte erhalten, ohne Infrastruktur auf Vorrat zu bauen.
