@@ -1,5 +1,10 @@
 # Änderungen
 
+## Lesbarkeit — 2026-11-01
+
+- Schrift im gesamten Haushalt größer, kräftiger und kontrastreicher: Einkaufsliste, Familienkarten, Formulare, Hinweise und Navigation.
+- Die helle Gestaltung bleibt erhalten; stärkere Überschriften, dunklere Beschriftungen und deutlichere Schaltflächen erleichtern das Lesen am iPhone.
+
 ## Alter — 2026-11-01
 
 - Kinder- und Tierkarten zeigen anhand des gespeicherten Geburtsdatums das Alter in Jahren, Monaten und Tagen. Nicht benötigte Nullen entfallen; bei Geburt am aktuellen Tag erscheint „Born today“.
