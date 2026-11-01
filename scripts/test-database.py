@@ -37,7 +37,7 @@ try:
     assert sum(r.returncode == 0 for r in results) == 1, 'Concurrent invitation use must admit exactly one partner'
     count = query(owner + 'select count(*) from public.household_members;').stdout.strip().splitlines()[-1]
     assert count == '2', 'A household must never admit a third member'
-    print('Database tests passed: two-member access, forbidden reads/writes, expiry, replacement, reuse and concurrent redemption.')
+    print('Database tests passed: two-member access, forbidden reads/writes, expiry, replacement, reuse concurrent redemption, and own-account deletion with partner-data preservation.')
 except subprocess.CalledProcessError as error:
     raise RuntimeError('Disposable database test failed: ' + error.stderr) from error
 finally:

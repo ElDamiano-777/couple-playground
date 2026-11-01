@@ -1,5 +1,12 @@
 # Änderungen
 
+## 0.2.0 — 2026-11-01
+
+- Echte gemeinsame Einkaufsliste mit getrennten E-Mail-Konten, einmaliger Partner-Einladung und höchstens zwei Mitgliedern je Zuhause.
+- Einkäufe hinzufügen, nach Haushalt/Kindern/Haustieren filtern, als gekauft markieren und entfernen. Abgleich alle 15 Sekunden sowie beim Zurückkehren in die App.
+- Serverseitiger Zugriffsschutz, fehlertolerantes Speichern, Abmeldung und eigene Kontolöschung. Bestehende lokale Notizen bleiben auf dem Gerät.
+- Pläne, Familienkarten und Änderungsmitteilungen bleiben ausdrücklich Beispiele; Telefon-Push ist noch nicht eingerichtet.
+
 ## Projektregeln — 2026-11-01
 
 - Neuer Projektchat: eine Begrüßung startet die selbstständige Orientierung und einen einfachen App-Überblick mit drei passenden nächsten Schritten; kein ungefragter Featurebau.

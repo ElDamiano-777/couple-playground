@@ -10,6 +10,7 @@ $$;
 grant usage on schema public, auth to anon, authenticated;
 grant execute on function auth.uid() to anon, authenticated;
 \ir ../migrations/20261101020000_shared_shopping.sql
+\ir ../migrations/20261101021000_account_deletion.sql
 insert into auth.users values
  ('00000000-0000-4000-8000-000000000001'),
  ('00000000-0000-4000-8000-000000000002'),
@@ -46,7 +47,7 @@ end $$;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000003', false);
 select set_config('test.used_invitation', :'replacement', false);
 do $$ begin
- if (select count(*) from public.shopping_items) <> 0 then raise exception 'Third account can read'; end if;
+ if (select count(*) from public.shopping_items) <> 0 or (select count(*) from public.household_members) <> 0 or (select count(*) from public.households) <> 0 then raise exception 'Third account can read'; end if;
  begin perform public.join_household(current_setting('test.used_invitation')); raise exception 'TEST FAILED';
  exception when raise_exception then if sqlerrm = 'TEST FAILED' then raise; end if; end;
 end $$;
@@ -83,5 +84,19 @@ do $$ begin
  if (select count(*) from public.shopping_items where bought) <> 1 then raise exception 'Foreign writes changed data'; end if;
 end $$;
 delete from public.shopping_items;
+insert into public.shopping_items(household_id, name) values (public.current_household(), 'Preserve for partner');
+select public.delete_my_account();
+do $$ begin
+ if public.current_household() is not null then raise exception 'Deleted account retains membership'; end if;
+end $$;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
+do $$ begin
+ if (select count(*) from public.shopping_items where created_by is null) <> 1 then raise exception 'Partner purchases not preserved'; end if;
+end $$;
+select public.delete_my_account();
 reset role;
+select set_config('test.deleted_household', :'household', false);
+do $$ begin
+ if exists (select 1 from public.households where id = current_setting('test.deleted_household')::uuid) then raise exception 'Empty home was not deleted'; end if;
+end $$;
 select 'Shared access and forbidden direct requests passed' as result;

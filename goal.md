@@ -14,7 +14,7 @@
 - Mobile PWA mit Home-Bildschirm-Symbol, Offline-Hinweis und sicheren Aktualisierungen.
 - Englische Oberfläche mit persönlicher Begrüßung, lokalen Notizen und einfacher Anleitung zur Weiterentwicklung. Die Sprache der Begrüßung ist davon unabhängig.
 - Lokale Notizen bleiben im aktuellen Browser. Sie sind kein gemeinsamer Datenspeicher und kein Beweis für eine Paarverbindung.
-- Gemeinsame Anmeldung, Einladungen und Synchronisation sind noch nicht eingerichtet. Die vorhandenen kostenlosen Supabase-Projektplätze sind belegt. Entscheidung des Eigentümers steht aus.
+- Gemeinsame Einkäufe mit separaten E-Mail-Konten, Einladungscode und serverseitigem Zugriffsschutz im eigenen Supabase-Projekt. Erste echte Nutzung auf beiden iPhones steht noch aus. Gemeinsame Pläne, Familienprofile und Telefon-Push sind noch nicht implementiert.
 - Ein öffentliches Repository und eine öffentlich erreichbare App enthalten keine eingebauten persönlichen Inhalte oder geheimen Schlüssel.
 
 ## Erfolgsnachweise
