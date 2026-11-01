@@ -2,8 +2,16 @@ import "./family.css";
 import type { FamilyProfilesState } from "./useFamilyProfiles";
 import PetTypeSelect from './PetTypeSelect';
 import { todayDate, formatBirthday } from './birthdays';
+import { calculateAge, formatAge } from './age';
+import { useAgeDate } from './useAgeDate';
+
+function AgeLabel({ birthDate, today }: { birthDate: string; today: string }) {
+  const age = calculateAge(birthDate, today);
+  return age ? <p className="family-age">{formatAge(age)}</p> : null;
+}
 
 function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn: () => void }) {
+  const today = useAgeDate();
   if (!state.authReady || state.contextLoading)
     return <p role="status">Opening your family…</p>;
   if (!state.userId || !state.household)
@@ -17,7 +25,7 @@ function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn:
   const rows = state.profiles.filter((row) => row.kind === state.kind);
   const disabled = state.busy || !state.online;
   return <div className="family-profiles">
-    <p className="page-intro">Your children and pets, together in your shared home. Saved changes appear on both phones.</p>
+    <p className="page-intro">Your children and pets, together in your shared home. Add a birthday to see their age. Saved changes appear on both phones.</p>
     {state.isPoc && <p className="notice">POC test space shared by both test accounts. Don’t enter sensitive personal information.</p>}
     <div className="filter-tabs" role="tablist" aria-label="Family members">
       <button role="tab" aria-selected={!pet} aria-pressed={!pet} onClick={() => state.setKind(`child`)}>Kids</button>
@@ -43,6 +51,7 @@ function FamilyBody({ state, onSignIn }: { state: FamilyProfilesState; onSignIn:
           <h2>{profile.name}</h2>
           <p>{profile.kind === `pet` ? profile.animal_type || `Pet` : `Child`}</p>
           {profile.birth_date && <p>Birthday · <time dateTime={profile.birth_date}>{formatBirthday(profile.birth_date)}</time></p>}
+          {profile.birth_date && <AgeLabel birthDate={profile.birth_date} today={today} />}
           <button className="text-action" disabled={state.busy} aria-label={`Edit ${profile.name}`} onClick={() => state.startEdit(profile)}>Edit</button>
           <button className="text-action" disabled={disabled} aria-label={`Remove ${profile.name}`} onClick={() => {
             if (window.confirm(`Remove “${profile.name}” from your shared family? This removes the card for both of you.`)) void state.remove(profile);
