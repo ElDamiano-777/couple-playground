@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.1.8 — 2026-11-01
+
+- Warmer Haushalts-Entwurf mit vier Bereichen: Zuhause, Einkaufen, Pläne und Familie.
+- Ausdrücklich markierte Beispieldaten, anklickbare Einkaufsfilter und Beispielaktivitäten; keine geteilte Speicherung oder Push-Mitteilungen.
+- Bestehende lokale Notizen, Namenswahl und persönliche Begrüßung bleiben über die Kopfzeile erreichbar.
+
 ## 0.1.7 — 2026-10-31
 
 ### Neu

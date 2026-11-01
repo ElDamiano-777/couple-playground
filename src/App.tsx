@@ -1,8 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import config from '../app.config.json';
+import HouseholdPreview, { Symbol, type HouseholdPage } from './HouseholdPreview';
 import { readNotes, saveNotes, type Note } from './storage';
 
-type Page = `home` | `notes` | `more`;
+type Page = HouseholdPage | `notes` | `more` | `welcome`;
 type Profile = `masha` | `damian`;
 const profileKey = `together.profile.v1`;
 
@@ -102,7 +103,7 @@ export default function App() {
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="header">
       <a className="wordmark" href={config.basePath} aria-label="Together — home"><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
-      <span className="edition"><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</span>
+      <div className="header-tools">{profile && <><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Help and settings" onClick={() => navigate(`more`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}<span className="edition"><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</span></div>
     </header>
 
     {!online && <div className="notice" role="status">You’re offline. You can still save notes on this phone.</div>}
@@ -123,7 +124,8 @@ export default function App() {
         </div>
         <p className="small-print">This is just a name choice. It doesn’t protect or share your notes.</p>
       </section> : <>
-      {page === `home` && <>
+      {([`home`, `shopping`, `plans`, `family`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} />}
+      {page === `welcome` && <>
         <section className="hero welcome-hero" lang="ru">
           <div className="hero-copy">
             <p className="eyebrow">МАЛЕНЬКОЕ ПРОСТРАНСТВО ДЛЯ НАС ДВОИХ</p>
@@ -185,6 +187,7 @@ export default function App() {
         <p className="intro">You don’t need to know about computers. Just tell your agent what you’d like to change.</p>
         <div className="help-card"><span className="card-icon"><Icon name="spark" /></span><h2>Say it in your own words</h2><p>Open your chat with your agent, tap the microphone on your keyboard, and describe your idea. After making the change, your agent will send you the app link and tell you where to find it.</p><blockquote>“I’d love a shared list of date ideas here.”</blockquote><p className="muted">You can speak Russian, English or German.</p></div>
         <div className="help-card"><span className="card-icon peach"><Icon name="home" /></span><h2>Add it to your iPhone</h2><p>Open this app in Safari. Tap Share, then Add to Home Screen. Now you’ll have your own little app icon.</p></div>
+        <div className="help-card"><h2>A note for you</h2><button className="primary" onClick={() => navigate(`welcome`)}>Read your welcome</button></div>
         <div className="help-card"><h2>Your name</h2><p>Currently: {profile === `masha` ? `Masha` : `Damian`}</p><button className="primary" onClick={() => { setProfile(null); setPage(`home`); window.scrollTo({ top: 0, behavior: `instant` }); }}>Change name</button></div>
         <div className="local-label"><span />This is a little demo. Notes stay in this browser and aren’t shared with your partner yet.</div>
         <p className="small-print">Clearing your browser data also removes these local notes. Other people using the same browser can read them.</p>
@@ -194,7 +197,7 @@ export default function App() {
 
     <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>
     {profile && <nav className="bottom-nav" aria-label="Main navigation">
-      {([{ id: `home`, icon: `home`, label: `Our space` }, { id: `notes`, icon: `note`, label: `Notes` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={page === item.id ? `active` : ``} aria-current={page === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Icon name={item.icon} /><span>{item.label}</span></button>)}
+      {([{ id: `home`, icon: `home`, label: `Our home` }, { id: `shopping`, icon: `shopping`, label: `Shopping` }, { id: `plans`, icon: `plans`, label: `Plans` }, { id: `family`, icon: `family`, label: `Family` }] as const).map(item => <button key={item.id} className={page === item.id ? `active` : ``} aria-current={page === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
     </nav>}
   </div>;
 }

@@ -2,7 +2,7 @@
 
 - React, TypeScript und Vite. Keine UI-Bibliothek, kein Router und keine bezahlte API für die Grundversion nötig.
 - GitHub Pages unter /couple-playground/. Alle Ansichten liegen auf der Startadresse; Unterseiten verursachen keine SPA-404-Probleme auf Pages.
-- src/App.tsx enthält drei einfache Ansichten. src/storage.ts speichert ausschließlich lokale Notizen unter einem versionierten Browser-Schlüssel.
+- src/App.tsx enthält die vier Haushaltsbereiche sowie lokale Notizen, Hilfe und die erhaltene Begrüßung. src/HouseholdPreview.tsx bietet einen klar beschrifteten Designentwurf mit ausschließlich flüchtigen Beispieldaten, Filtern, Checkboxen und einem zugänglichen Dialog. src/storage.ts speichert ausschließlich lokale Notizen unter einem versionierten Browser-Schlüssel.
 - app.config.json ist die Quelle für App-Adresse, Basis-Pfad und Repository. Bei Umbenennung auch Manifest und Tests synchron ändern.
 - public enthält App-Symbole, Webmanifest und Offline-Hinweis. PNG-Symbole werden reproduzierbar aus scripts/generate-icons.py erzeugt.
 - Service Worker wird beim Build mit einer Commit-Kennung erzeugt. Er hält ausschließlich den statischen Offline-Hinweis vor. Dokumentnavigation bleibt online-first; andere Anfragen werden nicht abgefangen.
@@ -15,3 +15,5 @@
 - .codex/agents enthält drei Aufgaben-Agenten mit Modell-/Effort-Vorgaben (Luna/low, Sol/medium, Sol/high). Auswahl ist eine laufzeitabhängige Arbeitsregel; die Dateien garantieren weder Unterstützung in jeder Cloud-Umgebung noch einen Wechsel des Hauptmodells. Die tatsächliche Nutzung unter ihrer Identität wurde noch nicht geprüft.
 - Quellenstand 31.10.2026: [Modellauswahl](https://learn.chatgpt.com/docs/models), [Aufgaben-Agenten und TOML-Schema](https://learn.chatgpt.com/docs/agent-configuration/subagents), [Cloud-Modellgrenzen](https://learn.chatgpt.com/docs/enterprise/workspace-model-availability). Kein separat bezahlter API-Router eingerichtet.
 - Situative Einstiegshilfen zu langen Chats und Skills stehen in AGENTS.md: zwei bis drei natürliche Sätze, nur bei Anlass, keine erfundenen Statuswerte oder „intelligenteres Modell“-Versprechen. Übergaben enthalten belegten Arbeitsstand; persönliche Gesprächsinhalte bleiben außerhalb des öffentlichen Repositorys. Neue Chats und Skills werden erst auf ihre passende Auswahl hin angelegt, soweit die Laufzeit das unterstützt. Quellenstand 31.10.2026: [Gesprächsführung und Zusammenfassung](https://learn.chatgpt.com/docs/learn/best-practices), [wiederverwendbare Skills](https://learn.chatgpt.com/docs/skills-and-plugins).
+
+- Haushaltsentwurf: keine neuen persistenten Datenarten, keine Notification-Berechtigung und kein Backend. Reale gemeinsame Listen, Pläne und Familienprofile bleiben ein eigener Schritt.

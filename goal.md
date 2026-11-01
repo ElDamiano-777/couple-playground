@@ -5,6 +5,10 @@
 - Änderungen werden selbstständig umgesetzt, geprüft und über GitHub Pages veröffentlicht. Jede bestätigte Fertigmeldung enthält den festen App-Link und erklärt den sichtbaren Unterschied.
 - Zielgruppe: zunächst zwei Personen. Noch kein öffentlicher Produktstart, kein App Store und keine Zahlungen.
 
+## Produktziel
+
+- Gemeinsamer Paar-Haushalt: Einkäufe, Pläne, Kinder-/Haustierbedarf und Änderungsbenachrichtigungen. Zuerst ein warmer, mobil bedienbarer Designentwurf; echte gemeinsame Daten folgen nach separater Einrichtung.
+
 ## Aktueller Umfang
 
 - Mobile PWA mit Home-Bildschirm-Symbol, Offline-Hinweis und sicheren Aktualisierungen.
