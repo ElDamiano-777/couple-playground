@@ -75,7 +75,22 @@ export default function App() {
     return () => window.removeEventListener(`focus`, check);
   }, []);
 
-  function chooseProfile(value: Profile) {
+  useEffect(() => {
+    if (!shopping.pocUsername) return;
+    const value = shopping.pocUsername;
+    setProfile(value);
+    shopping.setUsername(value);
+    try { localStorage.setItem(profileKey, value); setProfileSaved(true); }
+    catch { setProfileSaved(false); }
+  }, [shopping.pocUsername]);
+
+  async function chooseProfile(value: Profile) {
+    if (shopping.session && shopping.session.user.email !== `${value}@poc.together.invalid`) {
+      if (!await shopping.signOut()) return;
+    }
+    shopping.setUsername(value);
+    shopping.setPassword(``);
+    setPage(`shopping`);
     try { localStorage.setItem(profileKey, value); setProfileSaved(true); }
     catch { setProfileSaved(false); }
     setProfile(value);
@@ -119,12 +134,12 @@ export default function App() {
       {!profile ? <section className="profile-choice">
         <p className="eyebrow">A LITTLE SPACE FOR TWO</p>
         <h1>Who’s here<span>?</span></h1>
-        <p className="intro">Choose your name to make this space feel like yours.</p>
+        <p className="intro">Choose your name, then enter your password to sign in.</p>
         <div className="profile-options">
-          <button className="primary" onClick={() => chooseProfile(`masha`)}>Masha</button>
-          <button className="primary" onClick={() => chooseProfile(`damian`)}>Damian</button>
+          <button className="primary" disabled={shopping.busy} onClick={() => { void chooseProfile(`masha`); }}>Masha</button>
+          <button className="primary" disabled={shopping.busy} onClick={() => { void chooseProfile(`damian`); }}>Damian</button>
         </div>
-        <p className="small-print">This is just a name choice. It doesn’t protect or share your notes.</p>
+        <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
       {([`home`, `shopping`, `plans`, `family`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} />}
       {page === `welcome` && <>

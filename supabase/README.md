@@ -9,3 +9,9 @@ Before auth/data implementation the required cases are: two separately authentic
 The hosted project is `lyewmhtufesdccisqmin`; only the public project URL and publishable key belong in the client. No database password or privileged key is needed by the browser. Do not commit session tokens, invitation codes or real purchases.
 
 The GitHub integration must report successful migration before enabling shared shopping. `supabase/config.toml` also documents the intended Auth site/redirect URLs; verify these in Authentication → URL Configuration because a database migration does not update the hosted Auth settings. Email confirmation stays enabled. Do not disable it to simplify testing.
+
+## Named POC accounts
+
+The third migration adds only two reserved, owner-requested POC users and a separate household. They authenticate through the real Auth service with an entered password; only bcrypt verifiers are committed. Global email-confirmation settings and existing personal users are untouched. A trigger prevents testers from changing or deleting these shared identities.
+
+`TOGETHER_POC_TEST_PASSWORD` plus `python3 scripts/test-poc-login.py` exercises the full migration chain with PostgreSQL 17 and GoTrue v2.197.0 in disposable containers, including login, wrong-password rejection, refresh, private/POC household isolation and identity protection. It never uses the hosted database. The simpler RLS runner continues to test the first two migrations with synthetic auth roles.

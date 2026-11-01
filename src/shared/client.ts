@@ -5,3 +5,9 @@ export const supabase = createClient(
   `https://lyewmhtufesdccisqmin.supabase.co`,
   `sb_publishable_r8MBYstfx-S8sNXbcFLOgA_xo4GrXcV`,
 );
+
+export const pocAccounts = {
+  masha: `masha@poc.together.invalid`,
+  damian: `damian@poc.together.invalid`,
+} as const;
+export type PocUsername = keyof typeof pocAccounts;

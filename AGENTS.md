@@ -48,6 +48,15 @@
 - Bestehende Projektbausteine und Konventionen nutzen. Neue Abhängigkeiten nur bei konkretem Nutzen; keine Bibliothek für eine leicht selbst lösbare Kleinigkeit.
 - Bestehende Daten und funktionierende Abläufe erhalten. Relevantes Verhalten gezielt prüfen; keine Tests, die nur die Implementierung nachschreiben, und keine unnötige Testserie für reine Textänderungen. Eingerichtete Pflichtprüfungen bleiben verbindlich.
 
+## Daten später featureübergreifend verknüpfen
+
+- Bei Architektur- und Datenmodellentscheidungen immer berücksichtigen: Später können sehr viele Daten aus unterschiedlichen App-Quellen und Features flexibel miteinander verknüpft, gemeinsam ausgewertet und als Grundlage automatisch ausgelöster Ereignisse verwendet werden.
+- Dafür nachvollziehbare, stabile Identitäten und klare Beziehungen vorsehen. Herkunft, Bedeutung und relevante Zeitpunkte eines Datensatzes erhalten; Datentypen, Einheiten und Zeitbezug eindeutig halten, soweit sie für das aktuelle Feature anfallen. Keine Verknüpfung allein über veränderbare Anzeigenamen oder zufällig passende Texte aufbauen.
+- Fachliche Daten von ihrer Darstellung trennen. Feature-Grenzen und Datenzugriffe so klar halten, dass spätere Auswertungen passende Daten kombinieren können, ohne UI-Code auszulesen oder Geschäftslogik zu duplizieren. Querverbindungen ausdrücklich modellieren, wenn der konkrete Anwendungsfall entsteht.
+- Datenerfassung, abgeleitete Auswertungen und daraus ausgelöste Aktionen getrennt halten. Automatische Aktionen bei ihrer tatsächlichen Einführung nachvollziehbar und gegen doppelte Ausführung absichern; Wiederholungen dürfen keine unbeabsichtigten Mehrfachwirkungen erzeugen.
+- Verknüpfungen und Auswertungen respektieren dieselbe Personen-/Paarzugehörigkeit und fachliche Sichtbarkeit wie die Quelldaten. Eine neue Verknüpfung darf keinen indirekten Zugriff auf fremde oder persönliche Inhalte ermöglichen. Nur benötigte Daten speichern; keine zusätzlichen persönlichen Informationen bloß für mögliche spätere Analysen sammeln.
+- Diese Leitlinie schafft Anschlussfähigkeit, keinen Vorratsauftrag: KISS und YAGNI gelten weiter. Jetzt weder generischen Event-Bus noch Regel-Engine, Data Warehouse, universelles Datenmodell oder zusätzliche Infrastruktur einführen, solange kein konkreter beauftragter Nutzen das erfordert.
+
 ## Caveman Full, BLUF und Auswahl
 
 - Caveman Full gilt standardmäßig für jede Aufgabe, ohne zusätzliche Skill-Installation: kurze Arbeitsanweisungen, gezielte Tool-Aufrufe, kompakte Notizen und Übergaben; keine Füllwörter oder wiederholten Erklärungen. Code, Tests und Dokumentation bleiben sauber und vollständig.
@@ -100,7 +109,7 @@
 - Lokal: Node.js 24, npm ci, npm run dev. Prüfung: npm run verify. Cloud-Setup: bash scripts/cloud-setup.sh.
 - In Codex Cloud: npm run verify:cloud prüft Build und den vorhandenen Chromium ohne Administratorinstallation. Beide Browser einschließlich iPhone-WebKit sind weiterhin verbindliche Pflichtprüfung in GitHub Actions. Erst nach deren Erfolg darf der Workflow auf GitHub Pages veröffentlichen; ein main-Push stößt diese Prüfstrecke an. Die Cloud-Vorprüfung ersetzt sie nicht.
 - Repository ist auf Damians ausdrücklichen Wunsch öffentlich. Niemals echte Paar-Inhalte oder Geheimnisse committen.
-- Aktuell nur lokale Notizen. Keine Anmeldung oder gemeinsame Datenhaltung eingerichtet. Keine Synchronisation, Verschlüsselung oder Paarverbindung behaupten, bevor sie implementiert und geprüft ist.
+- Gemeinsame Einkäufe liegen im separaten Supabase-Projekt; persönliche Notizen bleiben lokal. Für den ausdrücklich beauftragten POC gibt es die separaten Testkonten masha und damian mit Passworteingabe und eigener gemeinsamer Liste. POC-Passwort nicht in App-Code, Dokumentation oder Tests schreiben; nur den serverseitigen Verifier migrieren. Keine privaten Inhalte in den Testbereich übernehmen und ihn klar kennzeichnen. Persönliche E-Mail-Konten behalten ihren eigenen Zugriffsschutz; deren Mailbestätigung nicht global abschalten.
 - Der Agent kann Produktwünsche technisch planen; neue kostenpflichtige Dienste oder bestehende Fremdprojekte darf er dafür nicht eigenmächtig verwenden.
 
 ## Arbeiten bis zum sichtbaren Ergebnis

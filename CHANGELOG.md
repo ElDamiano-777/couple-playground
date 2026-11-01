@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.2.1 — 2026-11-01
+
+- POC-Login mit den Benutzernamen masha und damian und eigener Passworteingabe; keine E-Mail-Bestätigung für diese beiden ausdrücklich beauftragten Testkonten.
+- Beide Konten sind direkt mit einer separaten gemeinsamen POC-Einkaufsliste verbunden. Bestehende persönliche Konten und Haushalte bleiben getrennt.
+- Passwort wird serverseitig geprüft und nicht im Browser-Code hinterlegt; POC-Zugänge sind gegen Änderung/Löschung durch angemeldete Tester geschützt. Die Oberfläche kennzeichnet den Testbereich.
+
 ## 0.2.0 — 2026-11-01
 
 - Echte gemeinsame Einkaufsliste mit getrennten E-Mail-Konten, einmaliger Partner-Einladung und höchstens zwei Mitgliedern je Zuhause.
@@ -8,6 +14,8 @@
 - Pläne, Familienkarten und Änderungsmitteilungen bleiben ausdrücklich Beispiele; Telefon-Push ist noch nicht eingerichtet.
 
 ## Projektregeln — 2026-11-01
+
+- Datenarchitektur auf spätere featureübergreifende Verknüpfungen, Auswertungen und automatische Ereignisse ausrichten; klare Identitäten und Zugriffsrechte erhalten, ohne Infrastruktur auf Vorrat zu bauen.
 
 - Neuer Projektchat: eine Begrüßung startet die selbstständige Orientierung und einen einfachen App-Überblick mit drei passenden nächsten Schritten; kein ungefragter Featurebau.
 

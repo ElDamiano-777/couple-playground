@@ -68,3 +68,10 @@
 5. Die automatische GitHub-/Supabase-Migration muss grün sein. Zum Prüfen reichen öffentliche URL und Publishable Key; niemals Secret Key, service_role oder Datenbankpasswort in App oder Repository verwenden.
 
 Noch zu beobachten: echte E-Mail-Zustellung, beiderseitiger erster Beitritt und Nutzung auf den tatsächlichen iPhones. Supabase Free/Standard-Mailversand hat Limits; bei Zustellproblemen den tatsächlichen Fehler untersuchen statt E-Mail-Bestätigung abzuschalten oder ungefragt einen Maildienst zu buchen.
+
+## Aktueller POC-Einstieg (0.2.1)
+
+- Auf ausdrücklichen Wunsch des Eigentümers: Benutzernamen masha und damian mit demselben vom Eigentümer festgelegten POC-Passwort. Das Passwort wird nicht im Client oder dieser Dokumentation hinterlegt. Die Namensschaltflächen füllen den Benutzernamen vor; zum Anmelden ist die Passworteingabe nötig.
+- Die reservierten Konten verwenden nicht zustellbare `.invalid`-Adressen und einen separaten, bereits verbundenen Testhaushalt. Kein Mailversand und kein Einladungscode nötig. Nur Testinhalte verwenden; die absichtlich einfachen geteilten POC-Zugänge sind kein Ersatz für persönliche Konten.
+- Bestehende persönliche Konten bleiben erreichbar über Use a personal email account. Deren E-Mail-Bestätigung bleibt aktiviert. Der bisher verwendete Standard-Mailversand und ein gemeldeter localhost-Bestätigungslink sind für diesen persönlichen Weg noch zu klären; der POC-Login hängt davon nicht ab. Keine zusätzlichen Maildienste wurden eingerichtet.
+- Für lokale Auth-Integrationstests `TOGETHER_POC_TEST_PASSWORD` nur in der lokalen Umgebung bereitstellen und `python3 scripts/test-poc-login.py` verwenden. Keine echten Sitzungen oder Passwörter in Logs, Tests oder GitHub ablegen.
