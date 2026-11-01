@@ -177,12 +177,53 @@ test(`birthdays are shared calendar dates across time zones and can be changed o
     await expect(b.getByRole(`button`, { name: `Edit Birthday test pet`, exact: true })).toBeVisible();
     await refresh(a);
     await expect(card(a, `Birthday test pet`).locator(`time`)).toHaveCount(0);
+    await expect(card(a, `Birthday test pet`).locator(`.family-age`)).toHaveCount(0);
     await expect(card(a, `Birthday test pet`).getByText(`Cat`, { exact: true })).toBeVisible();
     expect(await a.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally {
     await first.close();
     await second.close();
   }
+});
+
+test(`children and pets show live age, preserving drafts over midnight and after sleep`, async ({ page, context }) => {
+  await page.clock.install({ time: new Date(`2024-03-01T23:59:00Z`) });
+  await transport().attach(context);
+  await login(page);
+  const card = (name: string) => page.getByRole(`article`).filter({ has: page.getByRole(`heading`, { name, exact: true }) });
+  await page.getByLabel(`Child’s name`).fill(`Age test child`);
+  await page.getByLabel(`Birthday (optional)`).fill(`2024-03-01`);
+  await page.getByRole(`button`, { name: `Add child to our home` }).click();
+  await expect(card(`Age test child`).locator(`.family-age`)).toHaveText(`Born today`);
+  await page.getByRole(`tab`, { name: `Pets`, exact: true }).click();
+  await page.getByLabel(`Pet’s name`).fill(`Age test pet`);
+  await page.getByLabel(`Pet type (optional)`).selectOption(`Cat`);
+  await page.getByLabel(`Birthday (optional)`).fill(`2022-12-31`);
+  await page.getByRole(`button`, { name: `Add pet to our home` }).click();
+  await expect(card(`Age test pet`).locator(`.family-age`)).toHaveText(`1 year, 2 months, 1 day old`);
+  await page.getByRole(`tab`, { name: `Kids`, exact: true }).click();
+  await page.getByLabel(`Child’s name`).fill(`Unfinished age test draft`);
+  await page.getByLabel(`Birthday (optional)`).fill(`2021-09-02`);
+  await page.clock.fastForward(61_000);
+  await expect(card(`Age test child`).locator(`.family-age`)).toHaveText(`1 day old`);
+  await expect(page.getByLabel(`Child’s name`)).toHaveValue(`Unfinished age test draft`);
+  await expect(page.getByLabel(`Birthday (optional)`)).toHaveValue(`2021-09-02`);
+  await page.clock.setSystemTime(new Date(`2024-03-03T12:00:00Z`));
+  await refresh(page);
+  await expect(card(`Age test child`).locator(`.family-age`)).toHaveText(`2 days old`);
+  await expect(page.getByLabel(`Child’s name`)).toHaveValue(`Unfinished age test draft`);
+  await page.getByRole(`tab`, { name: `Pets`, exact: true }).click();
+  await expect(card(`Age test pet`).locator(`.family-age`)).toHaveText(`1 year, 2 months, 3 days old`);
+  await page.getByRole(`tab`, { name: `Kids`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Edit Age test child`, exact: true }).click();
+  await page.getByLabel(`Birthday (optional)`).first().fill(`2023-03-03`);
+  await page.getByRole(`button`, { name: `Save changes`, exact: true }).click();
+  await expect(card(`Age test child`).locator(`.family-age`)).toHaveText(`1 year old`);
+  await page.getByRole(`button`, { name: `Edit Age test child`, exact: true }).click();
+  await page.getByRole(`article`).filter({ has: page.getByRole(`heading`, { name: `Edit Age test child`, exact: true }) }).getByRole(`button`, { name: `Clear birthday`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Save changes`, exact: true }).click();
+  await expect(page.getByRole(`button`, { name: `Edit Age test child`, exact: true })).toBeVisible();
+  await expect(card(`Age test child`).locator(`.family-age`)).toHaveCount(0);
 });
 
 test(`sign-out clears family drafts and a delayed old-household response cannot expose cards to a new account`, async ({ page, context }) => {

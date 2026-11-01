@@ -1,5 +1,10 @@
 # Änderungen
 
+## Alter — 2026-11-01
+
+- Kinder- und Tierkarten zeigen anhand des gespeicherten Geburtsdatums das Alter in Jahren, Monaten und Tagen. Nicht benötigte Nullen entfallen; bei Geburt am aktuellen Tag erscheint „Born today“.
+- Automatische Aktualisierung am Tageswechsel und beim Zurückkehren in die App, ohne offene Eingaben zu unterbrechen. Keine zusätzliche Alterseingabe erforderlich.
+
 ## Geburtstage — 2026-11-01
 
 - Kinder- und Tierkarten können ein optionales Geburtsdatum erhalten, beim Anlegen und Bearbeiten mit Datumswahl am Telefon.
