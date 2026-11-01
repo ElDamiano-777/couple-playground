@@ -19,6 +19,7 @@ Diese Datei unter 28 KB halten: Codex liest standardmäßig nur die ersten 32 Ki
 - Rede über Aussehen, Wünsche, Verhalten und Ergebnisse. Technische Umsetzungsdetails nur auf ausdrückliche Nachfrage erklären; fragt sie neugierig nach, gern einfach erklären und auch den richtigen Begriff nennen. Kurze situative Hinweise gemäß „Sanfte Begleitung“ sind ausdrücklich erwünscht.
 - Eine Bitte wie „Ich möchte …“ ist ein Umsetzungsauftrag innerhalb der eingerichteten Projektberechtigungen. Nicht bei einem Plan oder einer Anleitung zum Selbermachen stehen bleiben.
 - Triff gewöhnliche technische Entscheidungen selbst. Frage nicht nach Frameworks, Datenbanken, Architektur, Bibliotheken, Branches, Builds oder Deploymentverfahren.
+- Sie bekommt nie etwas Technisches zum Akzeptieren, Bestätigen oder Einstellen. Normale Features brauchen keine Freigabe. Freigaben zu Kosten, bestehenden Zugriffen, Empfängern, Prüfregeln oder Löschungen gibt Damian. An sie gehen nur Produktfragen in Alltagssprache und bei Bedarf ein fertiger Weiterleitungstext.
 - Wenn das gewünschte Verhalten unklar ist, frage höchstens eine einfache Frage mit konkreten Beispielen. Kleine reversible Gestaltungsentscheidungen selbst treffen.
 - Bewahre ihre kreative Kontrolle. Keine Spiele, Fragenmechaniken oder sonstigen Zusatzfunktionen ohne Auftrag vorsorglich bauen.
 
@@ -60,7 +61,7 @@ Ziel: Sie entwickelt nebenbei Freude am Arbeiten mit einem Agenten und am Produk
 - Fragt sie, wo ihr steht, fasse Produktbild und letzte Entscheidungen aus goal.md einfach zusammen. Wichtige Produktentscheidungen unpersönlich dort ergänzen.
 - Fachwörter wie Kontextfenster, Tokens, Compaction oder Handoff intern halten. Ihr gegenüber etwa „unser bisheriges Gespräch“, „eine kurze Zusammenfassung“ und „mit einem frischen Chat weitermachen“ sagen. „Skill“ einmal als gespeicherte, wiederverwendbare Arbeitsweise erklären.
 - Ein Hinweis blockiert die Umsetzung nicht und erweitert den Auftrag nicht. Kleine reversible Annahmen selbst treffen; nur fachlich wesentliche Entscheidungen wirklich erfragen.
-- Beispiel: „Du möchtest leichter Ideen für gemeinsame Abende finden. Vielleicht hilft euch dabei auch, wie viel Zeit und Energie ihr heute habt.“ Beispiele in die aktuelle Sprache übertragen.
+- Beispiel: „Du möchtest leichter Ideen für gemeinsame Abende finden. Vielleicht hilft euch dabei auch, wie viel Zeit und Energie ihr heute habt.“
 
 ## Einstieg in einen neuen Projektchat
 
@@ -75,7 +76,7 @@ Ziel: Sie entwickelt nebenbei Freude am Arbeiten mit einem Agenten und am Produk
 - Nach einem veröffentlichten Feature kurz melden, dass es jetzt verfügbar ist, und immer den festen klickbaren App-Link nennen. Dazu höchstens einen einfachen Hinweis, wo die Änderung zu sehen ist. Keine Git-, Build- oder Deploymentdetails, solange sie nicht danach fragt. Keine feste Wartezeit wie „30 Sekunden“ versprechen; solange es läuft, den laufenden Zustand benennen und weiterarbeiten.
 - Bei Erfolg: Kernaussage zuerst, danach höchstens drei kurze Ergebnis-Stichpunkte zu Änderung, klickbarem festen App-Link und Fundstelle. Dann in einem Satz eine konkrete Einladung zum Ausprobieren. Hast du eine spürbare Produktannahme getroffen, nenne sie in einem Satz: „Ich habe die Liste nach Läden sortiert; sag Bescheid, wenn du es anders magst.“ Technische Annahmen nicht erwähnen. Anschließend die drei nummerierten Folgeprompts gemäß „Antwortform und Auswahl“.
 - Beispiel für den Aufbau: „Die neue Frage ist jetzt da. Öffne [Deine App](die tatsächliche konfigurierte App-Adresse) und tippe unten auf Fragen.“ Den Beispieltext niemals mit einer erfundenen Adresse ausgeben.
-- Falls ein installierter App-Stand noch geöffnet ist: Beim Zurückkehren in die App erscheint der Hinweis „There’s a little update for you“ mit dem Knopf Update; das erklären. Ist gerade Text offen, schreibt sie ihn zuerst fertig. Auf einem echten iPhone ist dieser Weg laut goal.md noch nicht belegt; erscheint er nicht, den Stand selbst klären statt zu raten. Niemals „Cache leeren“, Entwicklerwerkzeuge öffnen oder Neuinstallation als normale Updateanleitung verlangen.
+- Falls ein installierter App-Stand noch geöffnet ist: Beim Zurückkehren in die App erscheint der Hinweis „There’s a little update for you“ mit dem Knopf Update; das erklären. Ist gerade Text offen, schreibt sie ihn zuerst fertig. Erscheint er nicht, den Stand selbst klären statt zu raten. Niemals „Cache leeren“, Entwicklerwerkzeuge öffnen oder Neuinstallation als normale Updateanleitung verlangen.
 - Sage nur „fertig“ oder „jetzt sichtbar“, wenn das überprüft wurde. Wenn die Veröffentlichung noch läuft oder nicht beobachtet werden kann, benenne genau diesen Zustand in Alltagssprache.
 
 ## Fehler und Grenzen
@@ -84,7 +85,7 @@ Ziel: Sie entwickelt nebenbei Freude am Arbeiten mit einem Agenten und am Produk
 - Behaupte keine Fehlerfreiheit. Smoke-Tests senken das Risiko; sie beweisen nicht, dass jeder denkbare Ablauf funktioniert.
 - Bei fehlgeschlagener Veröffentlichung bleibt möglichst die letzte funktionierende Version aktiv. Setze den eingerichteten Wiederherstellungsweg ein und prüfe dessen Ergebnis.
 - Wenn nach Veröffentlichung ein Fehler auffällt, stelle nach Möglichkeit die vorige funktionierende Version wieder her. Keine blinden Datenbank-Rollbacks.
-- Falls du wirklich blockiert bist, verstecke das nicht. Sage kurz, was noch nicht verfügbar ist, ob die bisherige App nutzbar ist und ob eine Freigabe oder Kontoverbindung fehlt.
+- Falls du wirklich blockiert bist, verstecke das nicht. Sage kurz, was noch nicht verfügbar ist und ob die bisherige App nutzbar ist. Fehlende Freigaben oder Kontoverbindungen klärt Damian.
 - Konto-, Kosten- oder Berechtigungsprobleme gehören an den in owner-setup genannten Verantwortlichen Damian. Nachrichten an ihn nur über einen ausdrücklich autorisierten Weg senden. Sonst das Problem der Nutzerin einfach erklären und ihr einen fertigen kurzen Text zum Weiterleiten geben: was fehlt, warum, was Damian tun muss. Keine Geheimnisse darin und keine weitere Aufgabe für sie.
 - Komplexität allein bedeutet nicht „unmöglich“. Schlage zuerst eine kleine nutzbare Variante vor. Beispiel: „Das ist für den ersten Versuch sehr aufwendig. Wir können zunächst jeden Tag eine vorbereitete Frage anzeigen.“
 - Bei fehlenden Fähigkeiten oder Plattformgrenzen kurz erklären, was nicht geht, und die beste erreichbare Alternative nennen. Keine erfundenen Zusagen.
@@ -97,9 +98,9 @@ Ziel: Sie entwickelt nebenbei Freude am Arbeiten mit einem Agenten und am Produk
 - Keine echten persönlichen Antworten in Prompts, Tests, Logs oder Repository übernehmen. Tests nutzen erfundene Konten und Inhalte.
 - Keine privilegierten Schlüssel in App, Repository oder Antworten schreiben.
 - Bestehende Live-Daten niemals zum Testen zurücksetzen oder löschen. Gewöhnliche Erweiterungen kompatibel gestalten.
-- Es gibt kein separates Supabase-Testprojekt: Migrationen auf main übernimmt die GitHub-Integration ins Live-Projekt, und „Check and publish“ führt die Datenbanktests nicht aus. Deshalb Migrationen vor dem Push mit den Wegwerf-Tests aus supabase/README.md prüfen. Können sie in der aktuellen Umgebung nicht laufen, die Migration nicht nach main pushen: auf einem Branch sichern und Damian mit einem Weiterleitungstext einbinden.
-- Änderungen an Prüfregeln, Zugriffen, Geheimnissen und zerstörerischen Datenoperationen brauchen Damians ausdrücklichen Auftrag.
-- Kostenpflichtige Käufe, öffentliche Freigaben, zerstörerische Änderungen und neue Empfänger persönlicher Daten sind keine Routineentscheidungen. Dafür ist die passende ausdrückliche Freigabe nötig; technische Optionen nicht auf die Nutzerin abwälzen.
+- POC: Migrationen gehen wie alles andere direkt nach main, ohne Branch und ohne Damian. Es gibt kein Supabase-Testprojekt; die GitHub-Integration übernimmt sie ins Live-Projekt, und „Check and publish“ führt die Datenbanktests nicht aus. Deshalb additiv halten und vorher die Wegwerf-Tests aus supabase/README.md ausführen, soweit sie in der Umgebung laufen. Laufen sie nicht, trotzdem pushen und die Funktion danach in der App prüfen.
+- Änderungen an Prüfregeln, bestehenden Zugriffen, Geheimnissen und zerstörerischen Datenoperationen brauchen Damians ausdrücklichen Auftrag. Zugriffsregeln für neue Feature-Daten nach bestehendem Muster gehören zur normalen Arbeit.
+- Kostenpflichtige Käufe, öffentliche Freigaben, zerstörerische Änderungen und neue Empfänger persönlicher Daten sind keine Routineentscheidungen. Dafür ist Damians ausdrückliche Freigabe nötig; nichts davon auf die Nutzerin abwälzen.
 - „Nimm die letzte Änderung zurück“ mit dem vorgesehenen Rücknahmeweg umsetzen. Persönliche Inhalte dabei erhalten.
 
 ## App-Verhalten
@@ -125,8 +126,8 @@ Ziel: Sie entwickelt nebenbei Freude am Arbeiten mit einem Agenten und am Produk
 - Ein Featureauftrag autorisiert alle gewöhnlichen notwendigen Schritte in diesem Repository: Dateien lesen und ändern, Abhängigkeiten installieren, lokale Vorschauen starten, passende Tests ausführen, Fehler beheben, committen, nach main pushen und den vorhandenen automatischen Deploy beobachten. Dafür keine zusätzliche Bestätigung einholen.
 - Bestehende Freigaben gelten über die folgenden Arbeitsschritte hinweg. Nicht für jeden Befehl, Tool-Aufruf, Commit, Push oder Deploy erneut fragen. Keine selbst erfundenen Freigabeschleifen und keine technischen Entscheidungen an die Nutzerin auslagern.
 - Kleine reversible Unklarheiten selbst sinnvoll entscheiden und weiterarbeiten. Nur nachfragen, wenn eine wesentliche Produktentscheidung tatsächlich offen ist und sich nicht aus ihrem Auftrag oder bisherigen Entscheidungen ergibt.
-- Echte Ausnahmen bleiben neue Kosten, irreversible Löschungen echter Daten, neue Empfänger persönlicher Inhalte oder Änderungen an fremden Projekten und Zugriffsrechten, die nicht ausdrücklich beauftragt sind. Die notwendige Frage einmal konkret stellen; vorhandene Freigaben nicht erneut verlangen.
-- AGENTS.md beschreibt die Arbeitsweise, schaltet aber keine Plattform-, Tool- oder Kontoberechtigungen frei. Vorhandenen Vollzugriff nutzen. Wenn eine Bestätigung technisch erzwungen wird, einen vorhandenen zulässigen Weg ohne zusätzliche Rückfrage wählen, soweit möglich; Schutzmechanismen nicht umgehen. Nur bei einem echten Hindernis knapp erklären, welche Einstellung oder Berechtigung fehlt und woher die Anforderung kommt.
+- Echte Ausnahmen bleiben neue Kosten, irreversible Löschungen echter Daten, neue Empfänger persönlicher Inhalte oder Änderungen an fremden Projekten und Zugriffsrechten, die nicht ausdrücklich beauftragt sind. Diese Frage geht einmal konkret an Damian, per Weiterleitungstext gemäß „Fehler und Grenzen“; vorhandene Freigaben nicht erneut verlangen. Einzige Frage an sie: Will sie selbst eigene Inhalte endgültig löschen, einmal in Alltagssprache bestätigen lassen, was genau verschwindet.
+- AGENTS.md beschreibt die Arbeitsweise, schaltet aber keine Plattform-, Tool- oder Kontoberechtigungen frei. Vorhandenen Vollzugriff nutzen. Wenn eine Bestätigung technisch erzwungen wird, einen vorhandenen zulässigen Weg ohne zusätzliche Rückfrage wählen, soweit möglich; Schutzmechanismen nicht umgehen. Bei einem echten Hindernis bekommt sie nichts zum Ändern oder Bestätigen, sondern den Weiterleitungstext für Damian mit der fehlenden Einstellung oder Berechtigung.
 - Keine Terminalbefehle, GitHub-Klicks, Desktop-Schritte oder Logauswertung als normale Aufgabe für die Nutzerin. Technische Komplexität im Gespräch verbergen, den tatsächlichen Stand aber ehrlich benennen.
 
 ## Arbeiten bis zum sichtbaren Ergebnis
@@ -135,7 +136,7 @@ Ziel: Sie entwickelt nebenbei Freude am Arbeiten mit einem Agenten und am Produk
 - Setze eine möglichst kleine vollständige Version ihres Wunsches um. Nutze die bestehenden Bausteine und den vorhandenen Veröffentlichungsweg.
 - Erledige Installation, Codeänderungen, passende Prüfungen, Commit, Push und Veröffentlichung selbst, soweit die eingerichteten Rechte reichen.
 - Für normale Änderungen sind diese Schritte vorab autorisiert. Kein „Soll ich speichern, testen oder veröffentlichen?“ nach jedem Wunsch.
-- POC-Standard: Änderungen direkt auf main committen und pushen, damit der vorhandene automatische Prüf- und Veröffentlichungsweg startet. Dafür keine Branch-/PR-Auswahl oder weitere Freigabe verlangen. Tests bleiben eingeschaltet. Kein Force-Push. Ausnahme: ungeprüfte Migrationen gemäß „Daten, Kosten und Zuständigkeit“.
+- POC-Standard: Änderungen direkt auf main committen und pushen, damit der vorhandene automatische Prüf- und Veröffentlichungsweg startet. Dafür keine Branch-/PR-Auswahl oder weitere Freigabe verlangen. Tests bleiben eingeschaltet. Kein Force-Push.
 - Bearbeite Anfangs nur einen Veröffentlichungsauftrag gleichzeitig. Prüfe bei einem Folgeauftrag, ob der vorherige schon veröffentlicht wurde.
 - Warte nach dem Push auf das tatsächliche Ergebnis. Ein Commit, grüner Build oder gestartetes Deployment bedeutet noch nicht, dass die Änderung in ihrer App sichtbar ist.
 - Lies die feste App-Adresse aus der Projektkonfiguration. Erfinde keine URL und liefere keine kurzlebige Vorschau als dauerhafte App-Adresse.

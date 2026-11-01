@@ -50,7 +50,7 @@
 - Öffentliches GitHub-Repository und Standard-Actions für die Prüfstrecke. GitHub-Pages- und Kontingentbedingungen gelten; keine Zusage unbegrenzter Ressourcen.
 - Die App verwendet keine kostenpflichtige KI-API. Das ChatGPT-Kontingent der Entwicklerin ist getrennt vom App-Hosting.
 - Vollständiger Cloud-Auftrag und tatsächlicher iPhone-Test bleiben bis zur Prüfung offen.
-- Kein separates Supabase-Testprojekt: Migrationen auf main gehen über die GitHub-Integration ins Live-Projekt und laufen nicht durch „Check and publish“. Vor dem Push prüft der Agent sie mit den Wegwerf-Tests aus supabase/README.md; geht das in seiner Umgebung nicht, bekommt Damian über die Nutzerin einen Weiterleitungstext.
+- Kein separates Supabase-Testprojekt: Migrationen auf main gehen über die GitHub-Integration ins Live-Projekt und laufen nicht durch „Check and publish“. Der Agent führt vorher die Wegwerf-Tests aus supabase/README.md aus, soweit sie in seiner Umgebung laufen, und pusht sonst trotzdem direkt nach main. Bewusstes POC-Risiko: Eine fehlerhafte Migration trifft sofort die Live-Daten.
 - Codex liest AGENTS.md standardmäßig nur bis 32 KiB (`project_doc_max_bytes`). Ob Codex Cloud denselben Wert nutzt, ist nicht geprüft; darum bleibt die Datei unter 28 KB.
 
 ## Quellen, 31.10.2026
