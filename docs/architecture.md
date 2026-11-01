@@ -1,5 +1,7 @@
 # Kleine Architektur
 
+- Lesbarkeit: globale Grundschrift 17px/500, kräftigere Überschriften und dunklere Vordergrundfarben; Texteingaben verwenden 17px (Einladungscodes 16px); Navigations-/Hilfstexte sind ebenfalls vergrößert. `src/family/family.css` stimmt Familienkarten darauf ab. Mobile Breakpoints und Touch-Ziele bleiben bestehen. Keine Änderungen an Daten oder Abläufen.
+
 - Altersanzeige: `birth_date` bleibt der gespeicherte Fakt; `age.ts` berechnet daraus Jahre, Monate und Resttage für den gemeinsamen UTC-Kalendertag. Volle Monate folgen dem ursprünglichen Geburtstag, begrenzt auf den letzten Tag des Zielmonats (29. Februar → 28. Februar im Nicht-Schaltjahr). Fehlende/ungültige/zukünftige Daten liefern kein Alter. Null-Einheiten entfallen. `useAgeDate` erneuert die Anzeige an UTC-Mitternacht sowie bei Fokus/Rückkehr, ohne Neuladen oder Verlust offener Entwürfe. Keine zusätzlichen Daten, Migrationen oder Ereignisse. Tests prüfen Kalendergrenzen und Tageswechsel bei offener Eingabe.
 
 - Geburtstage: `family_profiles.birth_date` ist ein optionaler PostgreSQL-Kalendertag (`date`); der Client sendet `YYYY-MM-DD` oder null. Anlegen/Bearbeiten verwenden die native Datumswahl und bieten Leeren an. Karten formatieren den Kalendertag ausdrücklich in UTC, damit kein anderer Tag angezeigt wird. Client und Datenbank prüfen das Intervall Jahr 0001 bis zum aktuellen UTC-Tag, einschließlich Schaltjahren. Die additive Migration befüllt keine alten Karten; Haushalts-RLS bleibt erhalten. Geburtstagsentwürfe nehmen am bestehenden Schutz offener Eingaben teil.
