@@ -278,3 +278,14 @@
 .add-fab{position:fixed;z-index:20;right:20px;bottom:calc(88px + env(safe-area-inset-bottom));width:56px;height:56px;padding:0;border-radius:50%;background:#8040be;color:white;font-size:32px;box-shadow:0 4px 16px #53306655}
 .add-sheet{position:fixed;z-index:30;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(500px, calc(100% - 24px));max-height:70dvh;overflow:auto;box-shadow:0 5px 35px #38204466}
 @media(max-width:760px){.header{padding-top:env(safe-area-inset-top)}.home-navigation{margin-bottom:8px}.footer{padding-bottom:calc(90px + env(safe-area-inset-bottom))}}
+
+/* Shopping categories */
+.shopping-categories{display:grid;gap:12px;margin:18px 0}
+.shopping-category{display:flex;align-items:center;gap:16px;min-height:112px;width:100%;padding:19px;text-align:left;border-radius:22px;color:#3d2c4b}
+.shopping-category-home{background:#e8d7f5}.shopping-category-pets{background:#f4e1d9}.shopping-category-kids{background:#e7eddb}
+.shopping-category-icon{display:grid;place-items:center;flex:none;width:58px;height:58px;border-radius:18px;background:#fffaf3a8;font-size:29px}
+.shopping-category-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}
+.shopping-category-copy strong{font:600 23px Georgia,serif}.shopping-category-copy small{font-size:13px;line-height:1.4;color:#665773}
+.shopping-category-arrow{font-size:22px;color:#80529b}.shopping-back{margin:4px 0 12px;min-height:44px}
+.shopping-edit{display:grid;gap:8px;flex:1;min-width:0;padding:12px 0}.shopping-edit label{font-size:14px}.shopping-edit-button{min-height:44px;padding:8px;font-size:13px}
+.shopping-edit-button{flex:none;width:auto;border:0}

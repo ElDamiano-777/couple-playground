@@ -258,7 +258,9 @@ export function transport() {
         );
         if (!row) return reply({ message: `Not found` }, 404);
         if (method === `PATCH`) {
-          row.bought = data.bought;
+          if (`bought` in data) row.bought = data.bought;
+          if (`name` in data) row.name = data.name;
+          if (`category` in data) row.category = data.category;
           return reply(row);
         }
         if (method === `DELETE`) {

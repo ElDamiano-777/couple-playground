@@ -28,3 +28,7 @@ export async function closeAddForm(page: Page) {
   const close = page.locator('form.add-sheet').getByRole('button', { name: 'Close', exact: true });
   if (await close.isVisible()) await close.click();
 }
+
+export async function openShoppingCategory(page: Page, category: 'Home' | 'Pets' | 'Kids') {
+  await page.locator('.shopping-categories').getByRole('button', { name: new RegExp(`^${category}\\b`) }).click();
+}

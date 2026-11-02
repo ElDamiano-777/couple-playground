@@ -8,7 +8,7 @@ async function login(page: Page, name: `Masha` | `Damian` = `Masha`) {
   await page.getByRole(`button`, { name, exact: true }).click();
   await page.getByLabel(`Password`, { exact: true }).fill(pocPassword);
   await page.getByRole(`button`, { name: `Sign in`, exact: true }).click();
-  await expect(page.getByRole(`button`, { name: `Add purchase`, exact: true })).toBeVisible();
+  await expect(page.locator(`.shopping-categories`)).toBeVisible();
   await openChildren(page, true);
   await expect(page.getByLabel(`Child’s name`)).toBeVisible();
 }

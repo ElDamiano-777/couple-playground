@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { SharedShoppingState } from "./useSharedShopping";
+import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
 
 export default function SharedShopping({
   state,
@@ -10,7 +10,7 @@ export default function SharedShopping({
 }) {
   const [mode, setMode] = useState<`poc` | `signin` | `signup`>(`poc`);
   const [adding, setAdding] = useState(false);
-  const [filter, setFilter] = useState(`All`);
+  const [filter, setFilter] = useState<ShoppingItem[`category`] | null>(null);
   const [copied, setCopied] = useState(false);
   const feedback = (
     <>
@@ -174,7 +174,7 @@ export default function SharedShopping({
                 `Sign out and discard unfinished text? Your saved items stay in your home.`,
               )
             )
-              void state.signOut();
+              void state.signOut().then(success => { if (success) { setFilter(null); setAdding(false); } });
           }}
         >
           Sign out
@@ -282,12 +282,23 @@ export default function SharedShopping({
               )}
             </section>
           )}
-          <button className="add-fab" aria-label="Add purchase" onClick={() => setAdding(true)}>+</button>
+          {!filter ? <div className="shopping-categories" role="group" aria-label="Shopping categories">
+            {([
+              { name: `Home`, icon: `🏠`, description: `Household and everyday shopping`, style: `home` },
+              { name: `Pets`, icon: `🐾`, description: `Food, treats, litter and pet supplies`, style: `pets` },
+              { name: `Kids`, icon: `🧸`, description: `Children’s products and essentials`, style: `kids` },
+            ] as const).map(item => <button className={`shopping-category shopping-category-${item.style}`} key={item.name} onClick={() => { if (!state.draft.trim()) state.setCategory(item.name); setFilter(item.name); }}>
+              <span className="shopping-category-icon" aria-hidden="true">{item.icon}</span><span className="shopping-category-copy"><strong>{item.name}</strong><small>{item.description}</small></span><span className="shopping-category-arrow" aria-hidden="true">→</span>
+            </button>)}
+          </div> : <>
+          <button className="text-action shopping-back" onClick={() => { setAdding(false); setFilter(null); }}>← Shopping</button>
+          <button className="add-fab" aria-label="Add purchase" onClick={() => { if (!state.draft.trim()) state.setCategory(filter); setAdding(true); }}>+</button>
           {adding && <form
             className="note-form add-sheet"
             onSubmit={(event) => {
               event.preventDefault();
-              void state.add();
+              const target = state.category;
+              void state.add().then(success => { if (success) { setFilter(target); setAdding(false); } });
             }}
           >
             <button className="text-action" type="button" onClick={() => setAdding(false)}>Close</button>
@@ -295,6 +306,7 @@ export default function SharedShopping({
             <label htmlFor="purchase-name">What do we need?</label>
             <input
               id="purchase-name"
+              disabled={state.busy}
               value={state.draft}
               onChange={(event) => state.setDraft(event.target.value)}
               maxLength={200}
@@ -304,6 +316,7 @@ export default function SharedShopping({
             <label htmlFor="purchase-category">For whom?</label>
             <select
               id="purchase-category"
+              disabled={state.busy}
               value={state.category}
               onChange={(event) =>
                 state.setCategory(event.target.value as typeof state.category)
@@ -320,20 +333,9 @@ export default function SharedShopping({
               Add purchase
             </button>
           </form>}
-          <div className="filter-tabs" aria-label="Shared shopping categories">
-            {[`All`, `Home`, `Kids`, `Pets`].map((value) => (
-              <button
-                key={value}
-                aria-pressed={filter === value}
-                onClick={() => setFilter(value)}
-              >
-                {value}
-              </button>
-            ))}
-          </div>
           <section className="dashboard-card">
             <div className="card-heading">
-              <h2>Our shopping list</h2>
+              <h2>{filter} shopping</h2>
               <button
                 className="refresh-list"
                 disabled={state.busy}
@@ -344,24 +346,29 @@ export default function SharedShopping({
                 Refresh
               </button>
             </div>
-            {state.items.length === 0 && (
+            {!state.items.some(item => item.category === filter) && (
               <p className="page-intro">
                 Your list is empty. Add the first thing you need.
               </p>
             )}
-            {state.items.length > 0 &&
-              !state.items.some(
-                (item) => filter === `All` || filter === item.category,
-              ) && <p className="page-intro">Nothing in this category yet.</p>}
+
             <div className="grocery-list">
               {state.items
-                .filter((item) => filter === `All` || filter === item.category)
+                .filter((item) => filter === item.category)
                 .sort((a, b) => Number(a.bought) - Number(b.bought))
                 .map((item) => (
                   <div
                     className={`grocery-row ${item.bought ? `is-bought` : ``}`}
                     key={item.id}
                   >
+                    {state.edit?.id === item.id ? <form className="shopping-edit" onSubmit={event => { event.preventDefault(); void state.saveEdit(); }}>
+                      <label htmlFor={`edit-purchase-${item.id}`}>Item name</label>
+                      <input id={`edit-purchase-${item.id}`} value={state.edit.name} maxLength={200} required onChange={event => state.setEditName(event.target.value)} />
+                      <label htmlFor={`edit-category-${item.id}`}>Category</label>
+                      <select id={`edit-category-${item.id}`} value={state.edit.category} onChange={event => state.setEditCategory(event.target.value as ShoppingItem[`category`])}><option>Home</option><option>Pets</option><option>Kids</option></select>
+                      <button className="primary" disabled={state.busy || !state.edit.name.trim() || !navigator.onLine}>Save item</button>
+                      <button type="button" className="text-action" disabled={state.busy} onClick={state.cancelEdit}>Cancel</button>
+                    </form> : <>
                     <label className="shared-item-label">
                       <input
                         type="checkbox"
@@ -387,6 +394,7 @@ export default function SharedShopping({
                     >
                       {item.category}
                     </span>
+                    <button className="text-action shopping-edit-button" disabled={state.busy || !!state.edit} aria-label={`Edit ${item.name}`} onClick={() => state.startEdit(item)}>Edit</button>
                     <button
                       className="remove-purchase"
                       aria-label={`Remove ${item.name}`}
@@ -402,6 +410,7 @@ export default function SharedShopping({
                     >
                       ×
                     </button>
+                    </>}
                   </div>
                 ))}
             </div>
@@ -412,6 +421,7 @@ export default function SharedShopping({
               Saved online. You’ll need a connection to change this list.
             </p>
           </section>
+          </>}
         </>
       )}
       {feedback}

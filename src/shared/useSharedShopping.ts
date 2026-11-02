@@ -57,6 +57,7 @@ export function useSharedShopping() {
   const [code, setCode] = useState(``);
   const [draft, setDraft] = useState(``);
   const [category, setCategory] = useState<ShoppingItem[`category`]>(`Home`);
+  const [edit, setEdit] = useState<{ id: string; name: string; category: ShoppingItem[`category`] } | null>(null);
   const pocUsername =
     session?.user.app_metadata?.together_poc === true
       ? ((Object.keys(pocAccounts) as PocUsername[]).find(
@@ -68,7 +69,7 @@ export function useSharedShopping() {
   const currentUser = useRef(userId);
   currentUser.current = userId;
   const requestVersion = useRef(0);
-  const dirty = !!(draft.trim() || code.trim() || email.trim() || password);
+  const dirty = !!(draft.trim() || code.trim() || email.trim() || password || edit);
 
   useEffect(() => {
     let active = true;
@@ -82,6 +83,7 @@ export function useSharedShopping() {
           setMemberCount(0);
           setInvite(``);
           setDraft(``);
+          setEdit(null);
           setCode(``);
           setPassword(``);
           setEmail(``);
@@ -271,6 +273,20 @@ export function useSharedShopping() {
       setDraft(``);
       setNotice(`Added to your shared list.`);
     });
+  const saveEdit = () =>
+    perform(async () => {
+      if (!edit || !edit.name.trim() || !navigator.onLine) throw new Error(`Offline`);
+      const result = await supabase.from(`shopping_items`)
+        .update({ name: edit.name.trim(), category: edit.category })
+        .eq(`id`, edit.id).select().single();
+      if (result.error) throw result.error;
+      ++requestVersion.current;
+      if (currentUser.current === userId) {
+        setItems(previous => previous.map(row => row.id === edit.id ? result.data as ShoppingItem : row));
+        setEdit(null);
+        setNotice(`Your shared list is updated.`);
+      }
+    });
   const markBought = (item: ShoppingItem) =>
     perform(async () => {
       if (!navigator.onLine) throw new Error(`Offline`);
@@ -356,6 +372,12 @@ export function useSharedShopping() {
     setCode,
     setDraft,
     setCategory,
+    edit,
+    startEdit: (item: ShoppingItem) => setEdit({ id: item.id, name: item.name, category: item.category }),
+    setEditName: (name: string) => setEdit(previous => previous && ({ ...previous, name })),
+    setEditCategory: (category: ShoppingItem[`category`]) => setEdit(previous => previous && ({ ...previous, category })),
+    cancelEdit: () => setEdit(null),
+    saveEdit,
     authenticate,
     createHome,
     joinHome,

@@ -22,7 +22,7 @@ async function login(page: Page, name: `Masha` | `Damian` = `Masha`) {
   await page.getByRole(`button`, { name, exact: true }).click();
   await page.getByLabel(`Password`, { exact: true }).fill(pocPassword);
   await page.getByRole(`button`, { name: `Sign in`, exact: true }).click();
-  await expect(page.getByRole(`button`, { name: `Add purchase`, exact: true })).toBeVisible();
+  await expect(page.locator(`.shopping-categories`)).toBeVisible();
 }
 async function refresh(page: Page) { await page.evaluate(() => window.dispatchEvent(new Event(`focus`))); }
 

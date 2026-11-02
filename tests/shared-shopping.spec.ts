@@ -1,5 +1,5 @@
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
-import { mainNavigation, openHome, openShopping } from "./navigation";
+import { mainNavigation, openHome, openShopping, openShoppingCategory } from "./navigation";
 
 import { transport } from "./helpers/sharedTransport";
 // Mock transport stays separate from service workers; real PWA coverage lives in app.spec.ts.
@@ -32,7 +32,7 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
   const server = transport();
   const first = await browser.newContext({
     serviceWorkers: `block`,
-    viewport: { width: 390, height: 844 },
+    viewport: { width: 320, height: 844 },
     isMobile: true,
     hasTouch: true,
   });
@@ -60,6 +60,13 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
     await signIn(b, `beta@example.test`);
     await b.getByLabel(`Invitation code from your partner`).fill(invitation);
     await b.getByRole(`button`, { name: `Join our home`, exact: true }).click();
+    await expect(a.locator(`.shopping-categories button`)).toHaveCount(3);
+    await openShoppingCategory(a, `Kids`);
+    await expect(a.getByRole(`heading`, { name: `Kids shopping` })).toBeVisible();
+    expect(await a.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await a.getByRole(`button`, { name: `← Shopping` }).click();
+    await openShoppingCategory(a, `Home`);
+    await openShoppingCategory(b, `Home`);
     await a.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
     await b.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
     await expect(b.getByLabel(`What do we need?`)).toBeVisible();
@@ -80,28 +87,34 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
     await expect(
       a.getByRole(`checkbox`, { name: /Synthetic apples/ }),
     ).toBeChecked();
+    await b.getByRole(`button`, { name: `← Shopping` }).click();
+    await openShoppingCategory(b, `Pets`);
+    await b.getByRole(`button`, { name: `Add purchase`, exact: true }).click();
     await b.getByLabel(`What do we need?`).fill(`Synthetic pet food`);
-    await b.getByLabel(`For whom?`).selectOption(`Pets`);
-    await b.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
-    await expect(
-      b.getByText(`Synthetic pet food`, { exact: true }),
-    ).toBeVisible();
+    await b.locator(`form`).getByRole(`button`, { name: `Add purchase`, exact: true }).click();
+    await expect(b.getByText(`Synthetic pet food`, { exact: true })).toBeVisible();
     await a.reload();
     await openShopping(a);
-    await expect(
-      a.getByText(`Synthetic pet food`, { exact: true }),
-    ).toBeVisible();
-    b.once(`dialog`, (dialog) => dialog.accept());
-    await b
-      .getByRole(`button`, { name: `Remove Synthetic apples`, exact: true })
-      .click();
-    await expect(b.getByText(`Synthetic apples`, { exact: true })).toHaveCount(
-      0,
-    );
+    await openShoppingCategory(a, `Pets`);
+    await expect(a.getByText(`Synthetic pet food`, { exact: true })).toBeVisible();
+    await a.getByRole(`button`, { name: `Edit Synthetic pet food` }).click();
+    await a.getByLabel(`Item name`).fill(`Synthetic renamed pet food`);
+    await a.getByLabel(`Category`, { exact: true }).selectOption(`Kids`);
+    await a.getByRole(`button`, { name: `Save item` }).click();
+    await b.getByRole(`button`, { name: `Refresh`, exact: true }).click();
+    await expect(b.getByText(`Synthetic renamed pet food`, { exact: true })).toHaveCount(0);
+    await b.getByRole(`button`, { name: `← Shopping` }).click();
+    await openShoppingCategory(b, `Kids`);
+    await expect(b.getByText(`Synthetic renamed pet food`, { exact: true })).toBeVisible();
+    await b.getByRole(`button`, { name: `← Shopping` }).click();
+    await openShoppingCategory(b, `Home`);
+    b.once(`dialog`, dialog => dialog.accept());
+    await b.getByRole(`button`, { name: `Remove Synthetic apples`, exact: true }).click();
+    await expect(b.getByText(`Synthetic apples`, { exact: true })).toHaveCount(0);
+    await a.getByRole(`button`, { name: `← Shopping` }).click();
+    await openShoppingCategory(a, `Home`);
     await a.getByRole(`button`, { name: `Refresh`, exact: true }).click();
-    await expect(a.getByText(`Synthetic apples`, { exact: true })).toHaveCount(
-      0,
-    );
+    await expect(a.getByText(`Synthetic apples`, { exact: true })).toHaveCount(0);
     await a.getByRole(`button`, { name: `Sign out`, exact: true }).click();
     await expect(a.getByLabel(`Username`, { exact: true })).toBeVisible();
     await expect(
@@ -130,6 +143,7 @@ test(`failed and offline saves preserve the draft; updates and navigation preser
   await page
     .getByRole(`button`, { name: `Create our home`, exact: true })
     .click();
+  await openShoppingCategory(page, `Home`);
   await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
   server.failNextSave();
   await page
@@ -148,6 +162,7 @@ test(`failed and offline saves preserve the draft; updates and navigation preser
     page.getByRole(`button`, { name: `Update`, exact: true }),
   ).toBeDisabled();
   await openShopping(page);
+  await openShoppingCategory(page, `Home`);
   await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
   await expect(page.getByLabel(`What do we need?`)).toHaveValue(
     `Synthetic unfinished purchase`,
