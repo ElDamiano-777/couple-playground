@@ -22,7 +22,7 @@
 .pet-profile-summary p { margin:0; color:#665875; font-size:14px; line-height:1.5; }
 .pet-feature-card { display:block; width:100%; border:0; border-radius:24px; padding:20px; text-align:left; color:#39274a; margin:0 0 12px; }
 .pet-feature-food { background:#e9d6f6; min-height:180px; }
-.pet-feature-dislikes { background:#f8e9df; min-height:94px; }
+.pet-feature-dislikes { background:#f8e9df; min-height:128px; }
 .pet-feature-header { display:flex; justify-content:space-between; gap:12px; align-items:start; }
 .pet-feature-header strong,.pet-feature-header small { display:block; }
 .pet-feature-header strong { font-size:21px; line-height:1.2; }

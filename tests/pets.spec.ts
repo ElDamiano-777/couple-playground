@@ -27,7 +27,13 @@ test('partners share pet details and food', async ({ browser }) => {
     await expect(first.getByLabel('Likes', { exact: true })).toBeHidden();
     await expect(first.getByRole('button', { name: 'Save details' })).toHaveCount(0);
     await expect(first.locator('.pet-feature-food')).toBeVisible();
-    await expect(first.locator('.pet-feature-dislikes')).toBeVisible();
+    await expect(first.locator('.pet-feature-dislikes')).toContainText('Food Preferences');
+    await first.getByRole('button', { name: /Food Preferences/ }).click();
+    await expect(first.getByRole('heading', { name: 'Likes', exact: true })).toBeVisible();
+    await expect(first.getByRole('heading', { name: 'Dislikes', exact: true })).toBeVisible();
+    await expect(first.getByRole('heading', { name: 'Important Notes', exact: true })).toBeVisible();
+    await first.getByRole('button', { name: '← Pets' }).click();
+    await first.getByRole('button', { name: "Open Test pet's profile" }).click();
     expect(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await first.getByText('Photo and saved notes').click();
     const photo = 'public/icons/icon-192.png';
