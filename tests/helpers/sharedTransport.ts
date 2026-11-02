@@ -33,6 +33,7 @@ export function transport() {
   let familyRows: FamilyRow[] = [];
   let petDetails: any[] = [];
   let petFoods: any[] = [];
+  let petDislikes: any[] = [];
   let failFamilySave = false;
   let familyRequests = 0;
   let delayedFamilyRead: Promise<void> | null = null;
@@ -172,23 +173,29 @@ export function transport() {
           return reply({ id });
         }
       }
-      if (url.pathname === `/rest/v1/pet_details` || url.pathname === `/rest/v1/pet_food`) {
+      if ([`/rest/v1/pet_details`, `/rest/v1/pet_food`, `/rest/v1/pet_dislikes`].includes(url.pathname)) {
         const household = homeFor(user);
         const visible = (row: any) => familyRows.some(p => p.id === row.pet_id && p.kind === `pet` && p.household_id === household);
         const details = url.pathname.endsWith(`pet_details`);
-        const rows = details ? petDetails : petFoods;
-        if (method === `GET`) return reply(rows.filter(visible));
+        const food = url.pathname.endsWith(`pet_food`);
+        const rows = details ? petDetails : food ? petFoods : petDislikes;
+        const petFilter = url.searchParams.get(`pet_id`)?.replace(`eq.`, ``);
+        if (method === `GET`) return reply(rows.filter(row => visible(row) && (!petFilter || row.pet_id === petFilter)));
         if (method === `POST`) {
           if (!visible(data)) return reply({ message: `Forbidden` }, 403);
           const row = details ? data : { ...data, id: crypto.randomUUID(), created_at: new Date().toISOString() };
           if (details) petDetails = [...petDetails.filter(r => r.pet_id !== row.pet_id), row];
-          else petFoods.push(row);
+          else rows.push(row);
           return reply(row, 201);
         }
+        const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
+        const row = rows.find(item => item.id === id && visible(item) && (!petFilter || item.pet_id === petFilter));
+        if (!row) return reply({ message: `Not found` }, 404);
+        if (method === `PATCH`) { Object.assign(row, data); return reply(row); }
         if (method === `DELETE`) {
-          const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
-          petFoods = petFoods.filter(row => row.id !== id || !visible(row));
-          return reply(null, 204);
+          if (food) petFoods = petFoods.filter(item => item !== row);
+          else petDislikes = petDislikes.filter(item => item !== row);
+          return reply({ id });
         }
       }
       if (url.pathname === `/rest/v1/family_profiles`) {

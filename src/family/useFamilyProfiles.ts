@@ -186,6 +186,7 @@ export function useFamilyProfiles({
     },
     setEditField: (field: keyof Draft, value: string) => setEdit((previous) => previous && ({ ...previous, [field]: value })),
     cancelEdit: () => { if (window.confirm(`Discard your unfinished changes to this family card?`)) setEdit(null); },
+    clearNotice: () => setNotice(``),
     add, saveEdit, remove,
   };
 }
