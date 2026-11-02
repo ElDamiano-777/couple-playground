@@ -1,4 +1,5 @@
 import FamilyProfiles from './family/FamilyProfiles';
+import Pets from './family/Pets';
 import type { FamilyProfilesState } from './family/useFamilyProfiles';
 import SharedShopping from './shared/SharedShopping';
 import type { SharedShoppingState } from './shared/useSharedShopping';
@@ -36,7 +37,8 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   return <div className="household-preview">
     {[`home`, `shopping`, `recipes`, `children`, `pets`].includes(page) && <HomeNavigation page={page} navigate={navigate} />}
     {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} />
-      : page === `children` || page === `pets` ? <FamilyProfiles state={family} fixedKind={page === `children` ? `child` : `pet`} onSignIn={() => navigate(`shopping`)} />
+      : page === `pets` ? <Pets key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
+      : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
       : page === `recipes` || page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
       : <FolderPages page={page} navigate={navigate} />}
   </div>;

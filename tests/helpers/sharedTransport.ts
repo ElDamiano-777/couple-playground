@@ -31,6 +31,8 @@ export function transport() {
   let delayedEntryWrite: Promise<void> | null = null;
   let releaseEntryWrite: (() => void) | null = null;
   let familyRows: FamilyRow[] = [];
+  let petDetails: any[] = [];
+  let petFoods: any[] = [];
   let failFamilySave = false;
   let familyRequests = 0;
   let delayedFamilyRead: Promise<void> | null = null;
@@ -168,6 +170,25 @@ export function transport() {
         if (method === `DELETE`) {
           entryRows = entryRows.filter((row) => row.id !== id);
           return reply({ id });
+        }
+      }
+      if (url.pathname === `/rest/v1/pet_details` || url.pathname === `/rest/v1/pet_food`) {
+        const household = homeFor(user);
+        const visible = (row: any) => familyRows.some(p => p.id === row.pet_id && p.kind === `pet` && p.household_id === household);
+        const details = url.pathname.endsWith(`pet_details`);
+        const rows = details ? petDetails : petFoods;
+        if (method === `GET`) return reply(rows.filter(visible));
+        if (method === `POST`) {
+          if (!visible(data)) return reply({ message: `Forbidden` }, 403);
+          const row = details ? data : { ...data, id: crypto.randomUUID(), created_at: new Date().toISOString() };
+          if (details) petDetails = [...petDetails.filter(r => r.pet_id !== row.pet_id), row];
+          else petFoods.push(row);
+          return reply(row, 201);
+        }
+        if (method === `DELETE`) {
+          const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
+          petFoods = petFoods.filter(row => row.id !== id || !visible(row));
+          return reply(null, 204);
         }
       }
       if (url.pathname === `/rest/v1/family_profiles`) {
