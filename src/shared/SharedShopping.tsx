@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
+import QuickAdd from "./QuickAdd";
 
 export default function SharedShopping({
   state,
@@ -10,6 +11,7 @@ export default function SharedShopping({
 }) {
   const [mode, setMode] = useState<`poc` | `signin` | `signup`>(`poc`);
   const [adding, setAdding] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
   const [filter, setFilter] = useState<ShoppingItem[`category`] | null>(null);
   const [copied, setCopied] = useState(false);
   const feedback = (
@@ -174,7 +176,7 @@ export default function SharedShopping({
                 `Sign out and discard unfinished text? Your saved items stay in your home.`,
               )
             )
-              void state.signOut().then(success => { if (success) { setFilter(null); setAdding(false); } });
+              void state.signOut().then(success => { if (success) { setFilter(null); setAdding(false); setQuickOpen(false); } });
           }}
         >
           Sign out
@@ -287,12 +289,14 @@ export default function SharedShopping({
               { name: `Home`, icon: `🏠`, description: `Household and everyday shopping`, style: `home` },
               { name: `Pets`, icon: `🐾`, description: `Food, treats, litter and pet supplies`, style: `pets` },
               { name: `Kids`, icon: `🧸`, description: `Children’s products and essentials`, style: `kids` },
-            ] as const).map(item => <button className={`shopping-category shopping-category-${item.style}`} key={item.name} onClick={() => { if (!state.draft.trim()) state.setCategory(item.name); setFilter(item.name); }}>
+            ] as const).map(item => <button className={`shopping-category shopping-category-${item.style}`} key={item.name} onClick={() => { if (!state.draft.trim() && !state.draftNotes.trim()) state.setCategory(item.name); setFilter(item.name); }}>
               <span className="shopping-category-icon" aria-hidden="true">{item.icon}</span><span className="shopping-category-copy"><strong>{item.name}</strong><small>{item.description}</small></span><span className="shopping-category-arrow" aria-hidden="true">→</span>
             </button>)}
           </div> : <>
-          <button className="text-action shopping-back" onClick={() => { setAdding(false); setFilter(null); }}>← Shopping</button>
-          <button className="add-fab" aria-label="Add purchase" onClick={() => { if (!state.draft.trim()) state.setCategory(filter); setAdding(true); }}>+</button>
+          <button className="text-action shopping-back" disabled={state.busy} onClick={() => { setAdding(false); setQuickOpen(false); setFilter(null); }}>← Shopping</button>
+          {quickOpen ? <QuickAdd category={filter} state={state} onClose={() => setQuickOpen(false)} /> : <>
+          <button className="quick-open" onClick={() => setQuickOpen(true)}>✦ Quick Add</button>
+          <button className="add-fab" aria-label="Add purchase" onClick={() => { if (!state.draft.trim() && !state.draftNotes.trim()) state.setCategory(filter); setAdding(true); }}>+</button>
           {adding && <form
             className="note-form add-sheet"
             onSubmit={(event) => {
@@ -313,6 +317,8 @@ export default function SharedShopping({
               required
               placeholder="Milk, bread, pet food…"
             />
+            <label htmlFor="purchase-notes">Details (optional)</label>
+            <input id="purchase-notes" maxLength={1000} disabled={state.busy} value={state.draftNotes} placeholder="Brand, flavor, quantity, size or notes" onChange={event => state.setDraftNotes(event.target.value)} />
             <label htmlFor="purchase-category">For whom?</label>
             <select
               id="purchase-category"
@@ -364,6 +370,8 @@ export default function SharedShopping({
                     {state.edit?.id === item.id ? <form className="shopping-edit" onSubmit={event => { event.preventDefault(); void state.saveEdit(); }}>
                       <label htmlFor={`edit-purchase-${item.id}`}>Item name</label>
                       <input id={`edit-purchase-${item.id}`} value={state.edit.name} maxLength={200} required onChange={event => state.setEditName(event.target.value)} />
+                      <label htmlFor={`edit-notes-${item.id}`}>Details (optional)</label>
+                      <input id={`edit-notes-${item.id}`} maxLength={1000} value={state.edit.notes} onChange={event => state.setEditNotes(event.target.value)} />
                       <label htmlFor={`edit-category-${item.id}`}>Category</label>
                       <select id={`edit-category-${item.id}`} value={state.edit.category} onChange={event => state.setEditCategory(event.target.value as ShoppingItem[`category`])}><option>Home</option><option>Pets</option><option>Kids</option></select>
                       <button className="primary" disabled={state.busy || !state.edit.name.trim() || !navigator.onLine}>Save item</button>
@@ -380,6 +388,7 @@ export default function SharedShopping({
                       />
                       <span className="grocery-copy">
                         <strong>{item.name}</strong>
+                        {item.notes && <small className="shopping-item-notes">{item.notes}</small>}
                         <small>
                           {item.bought
                             ? `Bought`
@@ -422,9 +431,10 @@ export default function SharedShopping({
             </p>
           </section>
           </>}
+          </>}
         </>
       )}
-      {feedback}
+      {!quickOpen && feedback}
       {!state.isPoc && (
         <details className="account-options">
           <summary>Account options</summary>

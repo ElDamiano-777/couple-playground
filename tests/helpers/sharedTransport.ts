@@ -242,15 +242,17 @@ export function transport() {
         if (method === `POST`) {
           if (failSave)
             return reply({ message: `Synthetic storage failure` }, 503);
-          const row = {
-            ...data,
+          const batch = Array.isArray(data) ? data : [data];
+          if (batch.some(item => item.household_id !== homeFor(user))) return reply({ message: `Forbidden` }, 403);
+          const added = batch.map(item => ({
+            ...item,
             id: crypto.randomUUID(),
             created_by: user,
             created_at: new Date().toISOString(),
             bought: false,
-          } as Row;
-          rows = [row, ...rows];
-          return reply(row, 201);
+          } as Row));
+          rows = [...added, ...rows];
+          return reply(Array.isArray(data) ? added : added[0], 201);
         }
         const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
         const row = rows.find(
@@ -261,6 +263,7 @@ export function transport() {
           if (`bought` in data) row.bought = data.bought;
           if (`name` in data) row.name = data.name;
           if (`category` in data) row.category = data.category;
+          if (`notes` in data) (row as Row & { notes: string }).notes = data.notes;
           return reply(row);
         }
         if (method === `DELETE`) {

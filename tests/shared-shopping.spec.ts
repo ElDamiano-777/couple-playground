@@ -1,5 +1,5 @@
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
-import { mainNavigation, openHome, openShopping, openShoppingCategory } from "./navigation";
+import { closeAddForm, mainNavigation, openHome, openShopping, openShoppingCategory } from "./navigation";
 
 import { transport } from "./helpers/sharedTransport";
 // Mock transport stays separate from service workers; real PWA coverage lives in app.spec.ts.
@@ -75,6 +75,7 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
     await expect(
       a.getByText(`Synthetic apples`, { exact: true }),
     ).toBeVisible();
+    await closeAddForm(b);
     await b.getByRole(`button`, { name: `Refresh`, exact: true }).click();
     await expect(
       b.getByRole(`checkbox`, { name: /Synthetic apples/ }),

@@ -7,11 +7,17 @@ export type ShoppingItem = {
   id: string;
   household_id: string;
   name: string;
+  notes: string;
   category: `Home` | `Kids` | `Pets`;
   bought: boolean;
   created_by: string | null;
   created_at: string;
 };
+
+export type QuickItem = { id: string; name: string; notes: string };
+type ShoppingCategory = ShoppingItem[`category`];
+const emptyQuick = (): Record<ShoppingCategory, QuickItem[]> => ({ Home: [], Pets: [], Kids: [] });
+const emptyCustom = (): Record<ShoppingCategory, string> => ({ Home: ``, Pets: ``, Kids: `` });
 
 function friendlyError(error: unknown): string {
   const text =
@@ -56,8 +62,11 @@ export function useSharedShopping() {
   const [password, setPassword] = useState(``);
   const [code, setCode] = useState(``);
   const [draft, setDraft] = useState(``);
+  const [draftNotes, setDraftNotes] = useState(``);
   const [category, setCategory] = useState<ShoppingItem[`category`]>(`Home`);
-  const [edit, setEdit] = useState<{ id: string; name: string; category: ShoppingItem[`category`] } | null>(null);
+  const [edit, setEdit] = useState<{ id: string; name: string; notes: string; category: ShoppingItem[`category`] } | null>(null);
+  const [quickItems, setQuickItems] = useState(emptyQuick);
+  const [quickCustom, setQuickCustom] = useState(emptyCustom);
   const pocUsername =
     session?.user.app_metadata?.together_poc === true
       ? ((Object.keys(pocAccounts) as PocUsername[]).find(
@@ -69,7 +78,7 @@ export function useSharedShopping() {
   const currentUser = useRef(userId);
   currentUser.current = userId;
   const requestVersion = useRef(0);
-  const dirty = !!(draft.trim() || code.trim() || email.trim() || password || edit);
+  const dirty = !!(draft.trim() || draftNotes.trim() || code.trim() || email.trim() || password || edit || Object.values(quickItems).some(items => items.length) || Object.values(quickCustom).some(value => value.trim()));
 
   useEffect(() => {
     let active = true;
@@ -83,7 +92,10 @@ export function useSharedShopping() {
           setMemberCount(0);
           setInvite(``);
           setDraft(``);
+          setDraftNotes(``);
           setEdit(null);
+          setQuickItems(emptyQuick());
+          setQuickCustom(emptyCustom());
           setCode(``);
           setPassword(``);
           setEmail(``);
@@ -263,7 +275,7 @@ export function useSharedShopping() {
       if (!navigator.onLine) throw new Error(`Offline`);
       const result = await supabase
         .from(`shopping_items`)
-        .insert({ household_id: household, name: draft.trim(), category })
+        .insert({ household_id: household, name: draft.trim(), category, notes: draftNotes.trim() })
         .select()
         .single();
       if (result.error) throw result.error;
@@ -271,13 +283,28 @@ export function useSharedShopping() {
       ++requestVersion.current;
       setItems((previous) => [result.data as ShoppingItem, ...previous]);
       setDraft(``);
+      setDraftNotes(``);
       setNotice(`Added to your shared list.`);
+    });
+  const addQuick = (target: ShoppingCategory) =>
+    perform(async () => {
+      const selected = quickItems[target];
+      if (!household || !selected.length || !navigator.onLine) throw new Error(`Offline`);
+      const result = await supabase.from(`shopping_items`).insert(selected.map(item => ({
+        household_id: household, category: target, name: item.name.trim(), notes: item.notes.trim(),
+      }))).select();
+      if (result.error || !result.data) throw result.error ?? new Error(`No saved items`);
+      if (currentUser.current !== userId) return;
+      ++requestVersion.current;
+      setItems(previous => [...result.data as ShoppingItem[], ...previous]);
+      setQuickItems(previous => ({ ...previous, [target]: [] }));
+      setNotice(`${selected.length} ${selected.length === 1 ? `item` : `items`} added to your shared list.`);
     });
   const saveEdit = () =>
     perform(async () => {
       if (!edit || !edit.name.trim() || !navigator.onLine) throw new Error(`Offline`);
       const result = await supabase.from(`shopping_items`)
-        .update({ name: edit.name.trim(), category: edit.category })
+        .update({ name: edit.name.trim(), notes: edit.notes.trim(), category: edit.category })
         .eq(`id`, edit.id).select().single();
       if (result.error) throw result.error;
       ++requestVersion.current;
@@ -328,6 +355,10 @@ export function useSharedShopping() {
       setHousehold(null);
       setItems([]);
       setDraft(``);
+      setDraftNotes(``);
+      setEdit(null);
+      setQuickItems(emptyQuick());
+      setQuickCustom(emptyCustom());
       setCode(``);
       setInvite(``);
     });
@@ -340,6 +371,10 @@ export function useSharedShopping() {
       setHousehold(null);
       setItems([]);
       setDraft(``);
+      setDraftNotes(``);
+      setEdit(null);
+      setQuickItems(emptyQuick());
+      setQuickCustom(emptyCustom());
       setCode(``);
       setInvite(``);
       setNotice(`Your account has been deleted.`);
@@ -365,16 +400,24 @@ export function useSharedShopping() {
     password,
     code,
     draft,
+    draftNotes,
     category,
     dirty,
     setEmail,
     setPassword,
     setCode,
     setDraft,
+    setDraftNotes,
     setCategory,
+    quickItems,
+    quickCustom,
+    setQuickItems: (target: ShoppingCategory, items: QuickItem[]) => setQuickItems(previous => ({ ...previous, [target]: items })),
+    setQuickCustom: (target: ShoppingCategory, value: string) => setQuickCustom(previous => ({ ...previous, [target]: value })),
+    addQuick,
     edit,
-    startEdit: (item: ShoppingItem) => setEdit({ id: item.id, name: item.name, category: item.category }),
+    startEdit: (item: ShoppingItem) => setEdit({ id: item.id, name: item.name, notes: item.notes ?? ``, category: item.category }),
     setEditName: (name: string) => setEdit(previous => previous && ({ ...previous, name })),
+    setEditNotes: (notes: string) => setEdit(previous => previous && ({ ...previous, notes })),
     setEditCategory: (category: ShoppingItem[`category`]) => setEdit(previous => previous && ({ ...previous, category })),
     cancelEdit: () => setEdit(null),
     saveEdit,
