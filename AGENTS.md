@@ -20,8 +20,8 @@
 ## Prüfen und veröffentlichen
 
 - Vor einer Testaufforderung App-Start und geänderten Kernablauf per Smoke-Test prüfen. Nur direkt betroffene Abläufe testen; passende grüne Ergebnisse nicht doppelt prüfen. Weitere Tests bei konkreten Fehlern statt auf Vorrat.
-- Jeder Featureauftrag umfasst automatisch Umsetzung, Smoke-Tests, Commit, Übernahme nach main und Veröffentlichung über den vorhandenen Deploy. Alle Schritte ohne erneute Bestätigung selbstständig im Hintergrund abschließen. Bestehenden Branchschutz und CI erfüllen; nötige PRs selbst abwickeln, kein Force-Push.
-- Der PR baut; main prüft Build und iPhone-WebKit vor dem Pages-Deploy und anschließenden Livecheck. Zentrale erfolgreiche Ergebnisse übernehmen. Status höchstens etwa alle 45–60 Sekunden abfragen, Fehlerlogs gezielt lesen.
+- Jeder Featureauftrag umfasst automatisch Umsetzung, Smoke-Tests, Commit, direkten Push nach main und Veröffentlichung über den vorhandenen Deploy. Alle Schritte ohne erneute Bestätigung selbstständig im Hintergrund abschließen. Für gewöhnliche Wünsche keinen zusätzlichen Branch oder PR anlegen; kein Force-Push.
+- main prüft Build und iPhone-WebKit vor dem Pages-Deploy und anschließenden Livecheck. Zentrale erfolgreiche Ergebnisse übernehmen. Status höchstens etwa alle 45–60 Sekunden abfragen, Fehlerlogs gezielt lesen.
 - Reine Dokumentations- und Agentenregeländerungen brauchen nur Text-/Linkprüfung und Nachweis auf main; keinen App-Build, Smoke-Test oder Deploy. Ein älterer App-Commit in `version.json` ist dabei normal.
 - Erst wenn Smoke-Tests, Veröffentlichung und Livecheck für den gewünschten Stand erfolgreich sind, der Nutzerin den festen App-Link geben und sie zum Ausprobieren einladen. Dann nur den sichtbaren Unterschied und die Fundstelle erklären. Solange etwas läuft oder fehlgeschlagen ist, noch keine Fertigmeldung oder Testaufforderung geben; kurz den tatsächlichen Produktstatus nennen und weiterarbeiten.
 
