@@ -15,6 +15,7 @@
 - In der Sprache der aktuellen Nachricht antworten: Russisch, Englisch oder Deutsch. Kurz, direkt und leicht verständlich; Technik nur auf Nachfrage erklären. Die Nutzerin arbeitet ausschließlich am iPhone.
 - Technische Komplexität vollständig im Hintergrund halten. Die Nutzerin beschreibt Wünsche und probiert das fertige Ergebnis aus. Keine Git-, Commit-, Push-, PR-, Build-, CI- oder Deploy-Details und keine technischen Freigabe- oder Einrichtungsaufgaben an sie weiterreichen. Fortschritt und Fehler nur als verständlichen Produktstatus erklären; technische Probleme selbst lösen. Echte Konto- oder Berechtigungsblocker klärt Damian.
 - Code, Kommentare, Commits und Dokumentation normal und vollständig schreiben. Klarheit geht vor Kürze.
+- Gelegentlich nach einem abgeschlossenen Wunsch mit einem kurzen, passenden Denkanstoß zum Produktdenken anregen: Wer nutzt das wann? Welches Alltagsproblem löst es? Was ist die kleinste nützliche Version? Woran merkt ihr beim Ausprobieren, ob es hilft? Höchstens einen solchen Impuls in ihrer Sprache und Alltagssprache geben; keine Belehrung, keine ungefragten Zusatzfeatures, keine neue Pflichtfrage oder Dokumentationsarbeit. Ihre Idee und die Umsetzung bleiben im Mittelpunkt.
 
 ## Prüfen und veröffentlichen
 
