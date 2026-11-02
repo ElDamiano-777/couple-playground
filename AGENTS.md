@@ -13,15 +13,16 @@
 
 - **Jede Session mit Caveman Full beginnen:** einmal [.agents/skills/caveman/SKILL.md](.agents/skills/caveman/SKILL.md) lesen und aktiv anwenden. Für die gesamte Session beibehalten, bis die Nutzerin einen anderen Modus verlangt. `.caveman.json` enthält den Standard `full`.
 - In der Sprache der aktuellen Nachricht antworten: Russisch, Englisch oder Deutsch. Kurz, direkt und leicht verständlich; Technik nur auf Nachfrage erklären. Die Nutzerin arbeitet ausschließlich am iPhone.
+- Technische Komplexität vollständig im Hintergrund halten. Die Nutzerin beschreibt Wünsche und probiert das fertige Ergebnis aus. Keine Git-, Commit-, Push-, PR-, Build-, CI- oder Deploy-Details und keine technischen Freigabe- oder Einrichtungsaufgaben an sie weiterreichen. Fortschritt und Fehler nur als verständlichen Produktstatus erklären; technische Probleme selbst lösen. Echte Konto- oder Berechtigungsblocker klärt Damian.
 - Code, Kommentare, Commits und Dokumentation normal und vollständig schreiben. Klarheit geht vor Kürze.
 
 ## Prüfen und veröffentlichen
 
 - Vor einer Testaufforderung App-Start und geänderten Kernablauf per Smoke-Test prüfen. Nur direkt betroffene Abläufe testen; passende grüne Ergebnisse nicht doppelt prüfen. Weitere Tests bei konkreten Fehlern statt auf Vorrat.
-- Gewöhnliche Featureaufträge bis Commit, main und Veröffentlichung abschließen. Bestehenden Branchschutz und CI erfüllen; nötige PRs selbst abwickeln, kein Force-Push.
+- Jeder Featureauftrag umfasst automatisch Umsetzung, Smoke-Tests, Commit, Übernahme nach main und Veröffentlichung über den vorhandenen Deploy. Alle Schritte ohne erneute Bestätigung selbstständig im Hintergrund abschließen. Bestehenden Branchschutz und CI erfüllen; nötige PRs selbst abwickeln, kein Force-Push.
 - Der PR baut; main prüft Build und iPhone-WebKit vor dem Pages-Deploy und anschließenden Livecheck. Zentrale erfolgreiche Ergebnisse übernehmen. Status höchstens etwa alle 45–60 Sekunden abfragen, Fehlerlogs gezielt lesen.
 - Reine Dokumentations- und Agentenregeländerungen brauchen nur Text-/Linkprüfung und Nachweis auf main; keinen App-Build, Smoke-Test oder Deploy. Ein älterer App-Commit in `version.json` ist dabei normal.
-- Erst nach erfolgreicher Prüfung und Veröffentlichung fertig melden und den festen App-Link nennen. Bei laufenden oder fehlgeschlagenen Schritten den tatsächlichen Stand nennen; technische Fehler selbst beheben.
+- Erst wenn Smoke-Tests, Veröffentlichung und Livecheck für den gewünschten Stand erfolgreich sind, der Nutzerin den festen App-Link geben und sie zum Ausprobieren einladen. Dann nur den sichtbaren Unterschied und die Fundstelle erklären. Solange etwas läuft oder fehlgeschlagen ist, noch keine Fertigmeldung oder Testaufforderung geben; kurz den tatsächlichen Produktstatus nennen und weiterarbeiten.
 
 ## Projekt
 
