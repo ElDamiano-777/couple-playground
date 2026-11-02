@@ -5,15 +5,15 @@ import { mainNavigation, openHome, openShopping } from './navigation';
 test.use({ serviceWorkers: `block` });
 type Kind = `recipe` | `wish` | `place`;
 const copy = {
-  recipe: { title: `Название рецепта`, notes: `Рецепт (необязательно)`, add: `Добавить рецепт` },
-  wish: { title: `Желание`, notes: `Заметка (необязательно)`, add: `Добавить желание` },
-  place: { title: `Название места`, notes: `Адрес или заметка (необязательно)`, add: `Добавить место` },
+  recipe: { title: `Recipe name`, notes: `Recipe (optional)`, add: `Add recipe` },
+  wish: { title: `Wish`, notes: `Note (optional)`, add: `Add wish` },
+  place: { title: `Place name`, notes: `Address or note (optional)`, add: `Add place` },
 };
 async function openFolder(page: Page, kind: Kind) {
   if (kind === `recipe`) {
     await openHome(page);
-    await page.getByRole(`button`, { name: `Рецепты`, exact: true }).click();
-  } else await mainNavigation(page).getByRole(`button`, { name: kind === `wish` ? `Wishlist` : `Места`, exact: true }).click();
+    await page.getByRole(`button`, { name: `Recipes`, exact: true }).click();
+  } else await mainNavigation(page).getByRole(`button`, { name: kind === `wish` ? `Wishlist` : `Places`, exact: true }).click();
 }
 async function login(page: Page, name: `Masha` | `Damian` = `Masha`) {
   await page.goto(`./`);
@@ -48,10 +48,10 @@ test(`two separate phones save, edit and confirm deletion in recipes, wishlist a
       await openFolder(b, kind);
       await refresh(b);
       await expect(b.getByRole(`heading`, { name: text, exact: true })).toBeVisible();
-      await b.getByRole(`button`, { name: `Изменить ${text}`, exact: true }).click();
+      await b.getByRole(`button`, { name: `Edit ${text}`, exact: true }).click();
       await b.locator(`#collection-edit-title`).fill(`${text} updated`);
       await b.locator(`#collection-edit-notes`).fill(`Synthetic revised notes\nSecond line`);
-      await b.getByRole(`button`, { name: `Сохранить изменения`, exact: true }).click();
+      await b.getByRole(`button`, { name: `Save changes`, exact: true }).click();
       await expect(b.getByRole(`heading`, { name: `${text} updated`, exact: true })).toBeVisible();
       await a.reload();
       await openFolder(a, kind);
@@ -59,10 +59,10 @@ test(`two separate phones save, edit and confirm deletion in recipes, wishlist a
       await expect(a.locator(`.collection-notes`)).toHaveText(`Synthetic revised notes\nSecond line`);
       expect(await a.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       b.once(`dialog`, (dialog) => dialog.dismiss());
-      await b.getByRole(`button`, { name: `Удалить ${text} updated`, exact: true }).click();
+      await b.getByRole(`button`, { name: `Delete ${text} updated`, exact: true }).click();
       await expect(b.getByRole(`heading`, { name: `${text} updated`, exact: true })).toBeVisible();
       b.once(`dialog`, (dialog) => dialog.accept());
-      await b.getByRole(`button`, { name: `Удалить ${text} updated`, exact: true }).click();
+      await b.getByRole(`button`, { name: `Delete ${text} updated`, exact: true }).click();
       await expect(b.getByRole(`heading`, { name: `${text} updated`, exact: true })).toHaveCount(0);
       await refresh(a);
       await expect(a.getByRole(`heading`, { name: `${text} updated`, exact: true })).toHaveCount(0);
@@ -80,7 +80,7 @@ test(`failed saves and offline mode preserve per-folder drafts, edits and the up
   await page.getByLabel(copy.recipe.notes, { exact: true }).fill(`Synthetic recipe draft`);
   server.failNextEntrySave();
   await page.getByRole(`button`, { name: copy.recipe.add, exact: true }).click();
-  await expect(page.getByRole(`alert`)).toContainText(`Не удалось сохранить`);
+  await expect(page.getByRole(`alert`)).toContainText(`We couldn’t save`);
   await expect(page.getByRole(`heading`, { name: `Synthetic unfinished recipe`, exact: true })).toHaveCount(0);
   await expect(page.getByLabel(copy.recipe.title, { exact: true })).toHaveValue(`Synthetic unfinished recipe`);
   await expect(page.getByRole(`button`, { name: `Update`, exact: true })).toBeDisabled();
@@ -93,15 +93,15 @@ test(`failed saves and offline mode preserve per-folder drafts, edits and the up
   await expect(page.getByLabel(copy.recipe.notes, { exact: true })).toHaveValue(`Synthetic recipe draft`);
   await context.setOffline(true);
   await expect(page.getByRole(`button`, { name: copy.recipe.add, exact: true })).toBeDisabled();
-  await expect(page.getByText(/Вы не в сети/)).toBeVisible();
+  await expect(page.getByText(/You’re offline/)).toBeVisible();
   await context.setOffline(false);
   await page.getByRole(`button`, { name: copy.recipe.add, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `Synthetic unfinished recipe`, exact: true })).toBeVisible();
-  await page.getByRole(`button`, { name: `Изменить Synthetic unfinished recipe`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Edit Synthetic unfinished recipe`, exact: true }).click();
   await page.locator(`#collection-edit-notes`).fill(`Synthetic unsaved edit`);
   server.failNextEntrySave();
-  await page.getByRole(`button`, { name: `Сохранить изменения`, exact: true }).click();
-  await expect(page.getByRole(`alert`)).toContainText(`Не удалось сохранить`);
+  await page.getByRole(`button`, { name: `Save changes`, exact: true }).click();
+  await expect(page.getByRole(`alert`)).toContainText(`We couldn’t save`);
   await openFolder(page, `wish`);
   await expect(page.getByLabel(copy.wish.title, { exact: true })).toHaveValue(`Synthetic wish draft`);
   await expect(page.getByLabel(copy.wish.notes, { exact: true })).toHaveValue(`Synthetic wish note`);
@@ -126,7 +126,7 @@ test(`a delayed old-account save cannot expose entries, drafts or success in the
   const saving = page.waitForRequest((request) => request.url().includes(`/folder_entries`) && request.method() === `POST`);
   await page.getByRole(`button`, { name: copy.wish.add, exact: true }).click();
   await saving;
-  await expect(page.getByRole(`button`, { name: `Сохраняем…`, exact: true })).toBeDisabled();
+  await expect(page.getByRole(`button`, { name: `Saving…`, exact: true })).toBeDisabled();
   await openShopping(page);
   page.once(`dialog`, (dialog) => dialog.accept());
   await page.getByRole(`button`, { name: `Sign out`, exact: true }).click();
@@ -137,16 +137,16 @@ test(`a delayed old-account save cannot expose entries, drafts or success in the
   await expect(page.getByRole(`button`, { name: `Create our home`, exact: true })).toBeVisible();
   const requestCount = requests.length;
   await openFolder(page, `wish`);
-  await expect(page.getByRole(`button`, { name: `Подключить дом`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`button`, { name: `Connect home`, exact: true })).toBeVisible();
   expect(requests).toHaveLength(requestCount);
-  await page.getByRole(`button`, { name: `Подключить дом`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Connect home`, exact: true }).click();
   await page.getByRole(`button`, { name: `Create our home`, exact: true }).click();
   await openFolder(page, `wish`);
   const response = page.waitForResponse((value) => value.url().includes(`/folder_entries`) && value.request().method() === `POST`);
   server.releaseEntryWrites();
   await response;
-  await expect(page.getByRole(`heading`, { name: `Эта папка пока пуста.`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `This folder is empty for now.`, exact: true })).toBeVisible();
   await expect(page.getByText(`Synthetic old account wish`, { exact: true })).toHaveCount(0);
-  await expect(page.getByText(`Добавлено в вашу общую папку.`, { exact: true })).toHaveCount(0);
+  await expect(page.getByText(`Added to your shared folder.`, { exact: true })).toHaveCount(0);
   await expect(page.getByLabel(copy.wish.title, { exact: true })).toHaveValue(``);
 });

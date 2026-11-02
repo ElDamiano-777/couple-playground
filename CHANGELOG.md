@@ -1,5 +1,10 @@
 # Änderungen
 
+## Navigation — 2026-11-02
+
+- Five bottom destinations: Places, Home, Us, Wishlist and More. Home opens Shopping with compact tabs for Recipes, Children and Pets.
+- Smaller overview cards and direct access to notes and help in More; all interface copy is English. Existing colors, saved data and features stay intact.
+
 ## POC-Prüfaufwand — 2026-11-01
 
 - Entwicklungsdokumentation überspringt App-Build, Browser und Deploy. App-PRs bauen; main prüft iPhone-WebKit einmal vor Veröffentlichung.

@@ -1,7 +1,8 @@
-export type SymbolName = `home` | `shopping` | `plans` | `family` | `bell` | `plus` | `arrow` | `heart` | `folder` | `recipe` | `pet` | `pin` | `wishlist`;
+export type SymbolName = `more` | `home` | `shopping` | `plans` | `family` | `bell` | `plus` | `arrow` | `heart` | `folder` | `recipe` | `pet` | `pin` | `wishlist`;
 
 export function Symbol({ name }: { name: SymbolName }) {
   const paths: Record<SymbolName, string> = {
+    more: `M4 12h.01M12 12h.01M20 12h.01`,
     home: `m3 10 9-7 9 7v10H15v-7H9v7H3Z`,
     shopping: `M5 7h14l2 14H3L5 7Zm3 0V6a4 4 0 0 1 8 0v1`,
     plans: `M4 5h16v16H4ZM8 2v6m8-6v6M4 11h16m-12 4h3m2 0h3`,

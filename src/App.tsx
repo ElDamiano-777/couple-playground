@@ -123,18 +123,18 @@ export default function App() {
     if (next === `recipes`) collections.setKind(`recipe`);
     if (next === `wishlist`) collections.setKind(`wish`);
     if (next === `places`) collections.setKind(`place`);
-    setPage(next);
+    setPage(next === `home` ? `shopping` : next);
     if (!loadFailed) setMessage(``);
     window.scrollTo({ top: 0, behavior: `instant` });
   }
 
   const homePages: Page[] = [`home`, `shopping`, `recipes`, `children`, `pets`];
-  const activeFolder = homePages.includes(page) ? `home` : page;
+  const activeFolder = homePages.includes(page) ? `home` : [`notes`, `welcome`, `activity`].includes(page) ? `more` : page;
 
   return <div className="app">
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="header">
-      <a className="wordmark" href={config.basePath} aria-label="Together — все папки" onClick={event => { event.preventDefault(); navigate(`folders`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
+      <a className="wordmark" href={config.basePath} aria-label="Together — Us" onClick={event => { event.preventDefault(); navigate(`folders`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
       <div className="header-tools">{profile && <><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Help and settings" onClick={() => navigate(`more`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}<span className="edition"><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</span></div>
     </header>
 
@@ -158,26 +158,26 @@ export default function App() {
       </section> : <>
       {([`folders`, `home`, `shopping`, `recipes`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} />}
       {page === `welcome` && <>
-        <section className="hero welcome-hero" lang="ru">
+        <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">
-            <p className="eyebrow">МАЛЕНЬКОЕ ПРОСТРАНСТВО ДЛЯ НАС ДВОИХ</p>
+            <p className="eyebrow">A LITTLE SPACE FOR THE TWO OF US</p>
             <h1>Masheri<span>!</span></h1>
-            <p className="welcome-lead">Как же я рад тебя видеть, любимая.</p>
+            <p className="welcome-lead">I’m so happy to see you, my love.</p>
             <div className="welcome-message">
-              <p>Первый шаг может немного пугать, но бояться здесь нечего. Тебе не нужно разбираться, как всё устроено. Твоё маленькое приложение уже работает — это чистый лист для нас двоих.</p>
-              <p>Теперь зови своего помощника, включай фантазию и воплощай всё, что придёт в голову. Дай себе волю! Здесь (почти) нет границ.</p>
-              <p>Помощник возьмёт на себя всё сложное. Если что-то окажется невозможным, он объяснит это самыми простыми словами и поможет найти другой путь.</p>
-              <p className="welcome-invitation">А теперь открывай ChatGPT и создавай для нас что-нибудь безу-у-умно классное, моя любовь :)</p>
-              <p className="welcome-signoff"><span>ОЧЕНЬ СИЛЬНО ЛЮБЛЮ,</span><span>ОБНИМАЮ И ЦЕЛУЮ :**</span></p>
+              <p>The first step can feel a little daunting, but there’s nothing to fear here. You don’t need to understand how everything works. Your little app is already running — a blank page for the two of us.</p>
+              <p>Now call your assistant, let your imagination run free, and bring your ideas to life. Go for it! There are (almost) no limits here.</p>
+              <p>Your assistant will handle the complicated parts. If something isn’t possible, it will explain in simple words and help you find another way.</p>
+              <p className="welcome-invitation">Now open ChatGPT and make something wildly wonderful for us, my love :)</p>
+              <p className="welcome-signoff"><span>ALL MY LOVE,</span><span>HUGS AND KISSES :**</span></p>
             </div>
             <a className="primary welcome-cta" lang="en" href="https://chatgpt.com/codex/cloud" target="_blank" rel="noopener noreferrer">Open ChatGPT <Icon name="arrow" /></a>
           </div>
           <div className="illustration" aria-hidden="true">
             <div className="orbit orbit-one" /><div className="orbit orbit-two" />
             <span className="little-star star-one">✦</span><span className="little-star star-two">✧</span>
-            <div className="heart-card heart-back"><Icon name="heart" /><span>ты</span></div>
-            <div className="heart-card heart-front"><Icon name="heart" /><span>я</span></div>
-            <span className="tiny-label">вместе лучше</span>
+            <div className="heart-card heart-back"><Icon name="heart" /><span>you</span></div>
+            <div className="heart-card heart-front"><Icon name="heart" /><span>me</span></div>
+            <span className="tiny-label">better together</span>
           </div>
         </section>
 
@@ -215,7 +215,8 @@ export default function App() {
 
       {page === `more` && <section className="inner-page">
         <p className="eyebrow">MAKE IT YOURS</p>
-        <h1>It all starts<br />with an idea<span>.</span></h1>
+        <h1>More<span>.</span></h1>
+        <div className="more-shortcuts" aria-label="More sections"><button className="start-card" onClick={() => navigate(`notes`)}><Icon name="note" /><strong>Personal notes</strong><Icon name="arrow" /></button><button className="start-card create-card" onClick={() => navigate(`activity`)}><Symbol name="bell" /><strong>Example updates</strong><Icon name="arrow" /></button></div>
         <p className="intro">You don’t need to know about computers. Just tell your agent what you’d like to change.</p>
         <div className="help-card"><span className="card-icon"><Icon name="spark" /></span><h2>Say it in your own words</h2><p>Open your chat with your agent, tap the microphone on your keyboard, and describe your idea. After making the change, your agent will send you the app link and tell you where to find it.</p><blockquote>“I’d love a shared list of date ideas here.”</blockquote><p className="muted">You can speak Russian, English or German.</p></div>
         <div className="help-card"><span className="card-icon peach"><Icon name="home" /></span><h2>Add it to your iPhone</h2><p>Open this app in Safari. Tap Share, then Add to Home Screen. Now you’ll have your own little app icon.</p></div>
@@ -228,8 +229,8 @@ export default function App() {
     </main>
 
     <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>
-    {profile && <nav className="bottom-nav" aria-label="Main navigation" lang="ru">
-      {([{ id: `folders`, icon: `folder`, label: `Папки` }, { id: `home`, icon: `home`, label: `Наш дом` }, { id: `wishlist`, icon: `wishlist`, label: `Wishlist` }, { id: `places`, icon: `pin`, label: `Места` }] as const).map(item => <button key={item.id} className={activeFolder === item.id ? `active` : ``} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
+    {profile && <nav className="bottom-nav" aria-label="Main navigation" lang="en">
+      {([{ id: `places`, icon: `pin`, label: `Places` }, { id: `home`, icon: `home`, label: `Home` }, { id: `folders`, icon: `heart`, label: `Us` }, { id: `wishlist`, icon: `wishlist`, label: `Wishlist` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={`${item.id === `folders` ? `nav-us ` : ``}${activeFolder === item.id ? `active` : ``}`} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
     </nav>}
   </div>;
 }

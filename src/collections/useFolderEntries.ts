@@ -16,7 +16,7 @@ type Edit = Draft & { id: string; kind: FolderKind };
 const emptyDraft = (): Draft => ({ title: ``, notes: `` });
 const emptyDrafts = () => ({ recipe: emptyDraft(), wish: emptyDraft(), place: emptyDraft() });
 const emptyEdits = (): Record<FolderKind, Edit | null> => ({ recipe: null, wish: null, place: null });
-const failure = `Не удалось сохранить изменение. Проверьте соединение и попробуйте ещё раз. Ваш текст остался здесь.`;
+const failure = `We couldn’t save this change. Check your connection and try again. Your text is still here.`;
 
 export function useFolderEntries({
   userId,
@@ -81,7 +81,7 @@ export function useFolderEntries({
         setError(``);
       } catch {
         if (active && isCurrent() && request === generation.current)
-          setError(`Не удалось обновить папки. Проверьте соединение и попробуйте ещё раз.`);
+          setError(`We couldn’t refresh your folders. Check your connection and try again.`);
       } finally {
         if (active && isCurrent() && request === generation.current) setLoading(false);
       }
@@ -125,7 +125,7 @@ export function useFolderEntries({
     }
   }
   const valid = (draft: Draft) => draft.title.trim().length > 0 && draft.title.trim().length <= 150 && draft.notes.length <= 20000;
-  const validationMessage = `Введите название до 150 символов и заметку до 20 000 символов.`;
+  const validationMessage = `Enter a title up to 150 characters and a note up to 20,000 characters.`;
   function add() {
     const draft = drafts[kind];
     if (!valid(draft)) { setError(validationMessage); return; }
@@ -137,7 +137,7 @@ export function useFolderEntries({
       if (!isCurrent()) return;
       setEntries((previous) => [...previous, result.data as FolderEntry]);
       setDrafts((previous) => ({ ...previous, [kind]: emptyDraft() }));
-      setNotice(`Добавлено в вашу общую папку.`);
+      setNotice(`Added to your shared folder.`);
     });
   }
   function saveEdit() {
@@ -151,7 +151,7 @@ export function useFolderEntries({
       if (!isCurrent()) return;
       setEntries((previous) => previous.map((row) => row.id === edit.id ? result.data as FolderEntry : row));
       setEdits((previous) => ({ ...previous, [edit.kind]: null }));
-      setNotice(`Изменения сохранены в общей папке.`);
+      setNotice(`Changes saved in your shared folder.`);
     });
   }
   function remove(entry: FolderEntry) {
@@ -162,7 +162,7 @@ export function useFolderEntries({
       if (!isCurrent()) return;
       setEntries((previous) => previous.filter((row) => row.id !== entry.id));
       setEdits((previous) => ({ ...previous, [entry.kind]: previous[entry.kind]?.id === entry.id ? null : previous[entry.kind] }));
-      setNotice(`Удалено из вашей общей папки.`);
+      setNotice(`Removed from your shared folder.`);
     });
   }
   return {
@@ -174,13 +174,13 @@ export function useFolderEntries({
     error: sameScope ? error : ``, notice: sameScope ? notice : ``,
     setDraft: (field: keyof Draft, value: string) => setDrafts((previous) => ({ ...previous, [kind]: { ...previous[kind], [field]: value } })),
     startEdit: (entry: FolderEntry) => {
-      if (edits[entry.kind] && !window.confirm(`Заменить несохранённые изменения в этой папке?`)) return;
+      if (edits[entry.kind] && !window.confirm(`Replace unfinished changes in this folder?`)) return;
       setEdits((previous) => ({ ...previous, [entry.kind]: { id: entry.id, kind: entry.kind, title: entry.title, notes: entry.notes } }));
       setNotice(``);
     },
     setEditField: (field: keyof Draft, value: string) => setEdits((previous) => ({ ...previous, [kind]: previous[kind] && { ...previous[kind], [field]: value } })),
     cancelEdit: () => {
-      if (window.confirm(`Отменить несохранённые изменения этой записи?`)) setEdits((previous) => ({ ...previous, [kind]: null }));
+      if (window.confirm(`Discard unfinished changes to this entry?`)) setEdits((previous) => ({ ...previous, [kind]: null }));
     },
     add, saveEdit, remove,
   };
