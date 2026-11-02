@@ -60,9 +60,11 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
     await signIn(b, `beta@example.test`);
     await b.getByLabel(`Invitation code from your partner`).fill(invitation);
     await b.getByRole(`button`, { name: `Join our home`, exact: true }).click();
+    await a.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
+    await b.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
     await expect(b.getByLabel(`What do we need?`)).toBeVisible();
     await a.getByLabel(`What do we need?`).fill(`Synthetic apples`);
-    await a.getByRole(`button`, { name: `Add purchase`, exact: true }).click();
+    await a.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
     await expect(
       a.getByText(`Synthetic apples`, { exact: true }),
     ).toBeVisible();
@@ -80,7 +82,7 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
     ).toBeChecked();
     await b.getByLabel(`What do we need?`).fill(`Synthetic pet food`);
     await b.getByLabel(`For whom?`).selectOption(`Pets`);
-    await b.getByRole(`button`, { name: `Add purchase`, exact: true }).click();
+    await b.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
     await expect(
       b.getByText(`Synthetic pet food`, { exact: true }),
     ).toBeVisible();
@@ -128,11 +130,12 @@ test(`failed and offline saves preserve the draft; updates and navigation preser
   await page
     .getByRole(`button`, { name: `Create our home`, exact: true })
     .click();
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
   server.failNextSave();
   await page
     .getByLabel(`What do we need?`)
     .fill(`Synthetic unfinished purchase`);
-  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
   await expect(page.getByRole(`alert`)).toContainText(`couldn’t complete`);
   await expect(page.getByLabel(`What do we need?`)).toHaveValue(
     `Synthetic unfinished purchase`,
@@ -145,12 +148,13 @@ test(`failed and offline saves preserve the draft; updates and navigation preser
     page.getByRole(`button`, { name: `Update`, exact: true }),
   ).toBeDisabled();
   await openShopping(page);
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
   await expect(page.getByLabel(`What do we need?`)).toHaveValue(
     `Synthetic unfinished purchase`,
   );
   await context.setOffline(true);
   await expect(
-    page.getByRole(`button`, { name: `Add purchase`, exact: true }),
+    page.locator(`form`).getByRole(`button`, { name: `Add purchase`, exact: true }),
   ).toBeDisabled();
   await context.setOffline(false);
   await expect(page.getByLabel(`What do we need?`)).toHaveValue(

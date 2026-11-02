@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { transport, pocPassword } from './helpers/sharedTransport';
-import { mainNavigation, openHome, openShopping } from './navigation';
+import { closeAddForm, mainNavigation, openHome, openShopping } from './navigation';
 
 test.use({ serviceWorkers: `block` });
 type Kind = `recipe` | `wish` | `place`;
@@ -9,18 +9,20 @@ const copy = {
   wish: { title: `Wish`, notes: `Note (optional)`, add: `Add wish` },
   place: { title: `Place name`, notes: `Address or note (optional)`, add: `Add place` },
 };
-async function openFolder(page: Page, kind: Kind) {
+async function openFolder(page: Page, kind: Kind, add = true) {
   if (kind === `recipe`) {
     await openHome(page);
     await page.getByRole(`button`, { name: `Recipes`, exact: true }).click();
   } else await mainNavigation(page).getByRole(`button`, { name: kind === `wish` ? `Wishlist` : `Places`, exact: true }).click();
+  if (add && !await page.getByLabel(copy[kind].title, { exact: true }).isVisible())
+    await page.getByRole(`button`, { name: copy[kind].add, exact: true }).first().click();
 }
 async function login(page: Page, name: `Masha` | `Damian` = `Masha`) {
   await page.goto(`./`);
   await page.getByRole(`button`, { name, exact: true }).click();
   await page.getByLabel(`Password`, { exact: true }).fill(pocPassword);
   await page.getByRole(`button`, { name: `Sign in`, exact: true }).click();
-  await expect(page.getByLabel(`What do we need?`)).toBeVisible();
+  await expect(page.getByRole(`button`, { name: `Add purchase`, exact: true })).toBeVisible();
 }
 async function refresh(page: Page) { await page.evaluate(() => window.dispatchEvent(new Event(`focus`))); }
 
@@ -41,13 +43,14 @@ test(`two separate phones save, edit and confirm deletion in recipes, wishlist a
       await openFolder(a, kind);
       await a.getByLabel(copy[kind].title, { exact: true }).fill(text);
       await a.getByLabel(copy[kind].notes, { exact: true }).fill(rawNotes);
-      await a.getByRole(`button`, { name: copy[kind].add, exact: true }).click();
+      await a.locator(`form`).getByRole(`button`, { name: copy[kind].add, exact: true }).click();
       await expect(a.getByRole(`heading`, { name: text, exact: true })).toBeVisible();
       await expect(a.locator(`.collection-notes`)).toHaveText(rawNotes);
       await expect(a.locator(`.collection-list img`)).toHaveCount(0);
       await openFolder(b, kind);
       await refresh(b);
       await expect(b.getByRole(`heading`, { name: text, exact: true })).toBeVisible();
+      await closeAddForm(b);
       await b.getByRole(`button`, { name: `Edit ${text}`, exact: true }).click();
       await b.locator(`#collection-edit-title`).fill(`${text} updated`);
       await b.locator(`#collection-edit-notes`).fill(`Synthetic revised notes\nSecond line`);
@@ -59,9 +62,11 @@ test(`two separate phones save, edit and confirm deletion in recipes, wishlist a
       await expect(a.locator(`.collection-notes`)).toHaveText(`Synthetic revised notes\nSecond line`);
       expect(await a.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       b.once(`dialog`, (dialog) => dialog.dismiss());
+      await closeAddForm(b);
       await b.getByRole(`button`, { name: `Delete ${text} updated`, exact: true }).click();
       await expect(b.getByRole(`heading`, { name: `${text} updated`, exact: true })).toBeVisible();
       b.once(`dialog`, (dialog) => dialog.accept());
+      await closeAddForm(b);
       await b.getByRole(`button`, { name: `Delete ${text} updated`, exact: true }).click();
       await expect(b.getByRole(`heading`, { name: `${text} updated`, exact: true })).toHaveCount(0);
       await refresh(a);
@@ -79,7 +84,7 @@ test(`failed saves and offline mode preserve per-folder drafts, edits and the up
   await page.getByLabel(copy.recipe.title, { exact: true }).fill(`Synthetic unfinished recipe`);
   await page.getByLabel(copy.recipe.notes, { exact: true }).fill(`Synthetic recipe draft`);
   server.failNextEntrySave();
-  await page.getByRole(`button`, { name: copy.recipe.add, exact: true }).click();
+  await page.locator(`form`).getByRole(`button`, { name: copy.recipe.add, exact: true }).click();
   await expect(page.getByRole(`alert`)).toContainText(`We couldn’t save`);
   await expect(page.getByRole(`heading`, { name: `Synthetic unfinished recipe`, exact: true })).toHaveCount(0);
   await expect(page.getByLabel(copy.recipe.title, { exact: true })).toHaveValue(`Synthetic unfinished recipe`);
@@ -92,11 +97,12 @@ test(`failed saves and offline mode preserve per-folder drafts, edits and the up
   await openFolder(page, `recipe`);
   await expect(page.getByLabel(copy.recipe.notes, { exact: true })).toHaveValue(`Synthetic recipe draft`);
   await context.setOffline(true);
-  await expect(page.getByRole(`button`, { name: copy.recipe.add, exact: true })).toBeDisabled();
+  await expect(page.locator(`form`).getByRole(`button`, { name: copy.recipe.add, exact: true })).toBeDisabled();
   await expect(page.locator(`.collection-page`).getByText(/You’re offline/)).toBeVisible();
   await context.setOffline(false);
-  await page.getByRole(`button`, { name: copy.recipe.add, exact: true }).click();
+  await page.locator(`form`).getByRole(`button`, { name: copy.recipe.add, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `Synthetic unfinished recipe`, exact: true })).toBeVisible();
+  await closeAddForm(page);
   await page.getByRole(`button`, { name: `Edit Synthetic unfinished recipe`, exact: true }).click();
   await page.locator(`#collection-edit-notes`).fill(`Synthetic unsaved edit`);
   server.failNextEntrySave();
@@ -124,7 +130,7 @@ test(`a delayed old-account save cannot expose entries, drafts or success in the
   await page.getByLabel(copy.wish.title, { exact: true }).fill(`Synthetic old account wish`);
   server.delayEntryWrites();
   const saving = page.waitForRequest((request) => request.url().includes(`/folder_entries`) && request.method() === `POST`);
-  await page.getByRole(`button`, { name: copy.wish.add, exact: true }).click();
+  await page.locator(`form`).getByRole(`button`, { name: copy.wish.add, exact: true }).click();
   await saving;
   await expect(page.getByRole(`button`, { name: `Saving…`, exact: true })).toBeDisabled();
   await openShopping(page);
@@ -136,7 +142,7 @@ test(`a delayed old-account save cannot expose entries, drafts or success in the
   await page.getByRole(`button`, { name: `Sign in`, exact: true }).click();
   await expect(page.getByRole(`button`, { name: `Create our home`, exact: true })).toBeVisible();
   const requestCount = requests.length;
-  await openFolder(page, `wish`);
+  await openFolder(page, `wish`, false);
   await expect(page.getByRole(`button`, { name: `Connect home`, exact: true })).toBeVisible();
   expect(requests).toHaveLength(requestCount);
   await page.getByRole(`button`, { name: `Connect home`, exact: true }).click();

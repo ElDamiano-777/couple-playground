@@ -29,6 +29,7 @@ test(`local note persists after reload and is honestly labelled as local`, async
   await enterAs(page);
   await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
   await expect(page.getByText(`Only on this phone for now. Not shared with your partner yet.`)).toBeVisible();
+  await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic test: walk by the sea`);
   await page.getByRole(`button`, { name: `Save thought` }).click();
   await expect(page.getByRole(`status`)).toHaveText(`Saved on this phone.`);
@@ -41,6 +42,7 @@ test(`storage failure keeps draft and does not claim success`, async ({ page }) 
   await page.addInitScript(() => { Storage.prototype.setItem = () => { throw new DOMException(`Full`, `QuotaExceededError`); }; });
   await enterAs(page);
   await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic unsaved draft`);
   await page.getByRole(`button`, { name: `Save thought` }).click();
   await expect(page.getByRole(`status`)).toContainText(`We couldn’t save that`);
@@ -53,6 +55,7 @@ test(`unreadable saved data is not silently overwritten`, async ({ page }) => {
   await enterAs(page);
   await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
   await expect(page.getByRole(`status`)).toContainText(`we won’t overwrite them`);
+  await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`New draft`);
   await expect(page.getByRole(`button`, { name: `Save thought` })).toBeDisabled();
   expect(await page.evaluate(() => localStorage.getItem(`ryadom.notes.v1`))).toBe(`{bad json`);
@@ -62,6 +65,7 @@ test(`notes render as text rather than executable markup`, async ({ page }) => {
   await enterAs(page);
   await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
   const text = `<img src=x onerror="window.bad=true">`;
+  await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(text);
   await page.getByRole(`button`, { name: `Save thought` }).click();
   await expect(page.locator(`.saved-note p`)).toHaveText(text);
@@ -103,6 +107,7 @@ test(`update detection does not reload an unfinished draft`, async ({ page }) =>
   await page.route(`**/version.json*`, route => route.fulfill({ json: { commit: `f`.repeat(40) } }));
   await enterAs(page);
   await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic unfinished thought`);
   await expect(page.getByRole(`button`, { name: `Update`, exact: true })).toBeDisabled();
   await expect(page.getByLabel(`What would you like to remember?`)).toHaveValue(`Synthetic unfinished thought`);
@@ -159,7 +164,7 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   }
   await nav.getByRole(`button`, { name: `Us`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `Us.`, exact: true })).toBeVisible();
-  await page.getByRole(`main`).getByRole(`button`, { name: `Home`, exact: true }).click();
+  await nav.getByRole(`button`, { name: `Home`, exact: true }).click();
   const sections = page.getByRole(`navigation`, { name: `Home sections`, exact: true });
   await expect(sections.getByRole(`button`)).toHaveText([`Shopping`, `Recipes`, `Children`, `Pets`]);
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
@@ -183,6 +188,7 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await nav.getByRole(`button`, { name: `More`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `More.`, exact: true })).toBeVisible();
   await page.locator(`.more-shortcuts`).getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic navigation draft`);
   await nav.getByRole(`button`, { name: `Us`, exact: true }).click();
   await nav.getByRole(`button`, { name: `More`, exact: true }).click();

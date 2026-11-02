@@ -13,12 +13,18 @@ export async function openShopping(page: Page) {
   await page.getByRole('navigation', { name: 'Home sections', exact: true }).getByRole('button', { name: 'Shopping', exact: true }).click();
 }
 
-export async function openChildren(page: Page) {
+export async function openChildren(page: Page, add = false) {
   await openHome(page);
   await page.getByRole('navigation', { name: 'Home sections', exact: true }).getByRole('button', { name: 'Children', exact: true }).click();
+  if (add) await page.getByRole('button', { name: 'Add child', exact: true }).click();
 }
 
 export async function openPets(page: Page) {
   await openHome(page);
   await page.getByRole('navigation', { name: 'Home sections', exact: true }).getByRole('button', { name: 'Pets', exact: true }).click();
+}
+
+export async function closeAddForm(page: Page) {
+  const close = page.locator('form.add-sheet').getByRole('button', { name: 'Close', exact: true });
+  if (await close.isVisible()) await close.click();
 }

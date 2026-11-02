@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { mainNavigation, openShopping, openChildren, openPets } from "./navigation";
+import { closeAddForm, mainNavigation, openShopping, openChildren, openPets } from "./navigation";
 import { transport, pocPassword, pocHome, pocMasha } from "./helpers/sharedTransport";
 
 test.use({ serviceWorkers: `block` });
@@ -8,8 +8,8 @@ async function login(page: Page, name: `Masha` | `Damian` = `Masha`) {
   await page.getByRole(`button`, { name, exact: true }).click();
   await page.getByLabel(`Password`, { exact: true }).fill(pocPassword);
   await page.getByRole(`button`, { name: `Sign in`, exact: true }).click();
-  await expect(page.getByLabel(`What do we need?`)).toBeVisible();
-  await openChildren(page);
+  await expect(page.getByRole(`button`, { name: `Add purchase`, exact: true })).toBeVisible();
+  await openChildren(page, true);
   await expect(page.getByLabel(`Child’s name`)).toBeVisible();
 }
 async function refresh(page: Page) {
@@ -30,6 +30,7 @@ test(`renaming an existing pet preserves its previously typed animal type`, asyn
   });
   await login(page);
   await openPets(page);
+  await closeAddForm(page);
   await page.getByRole(`button`, { name: `Edit Legacy test pet`, exact: true }).click();
   await expect(page.getByLabel(`Pet type (optional)`).first()).toHaveValue(`Small parrot`);
   await expect(page.getByLabel(`Birthday (optional)`).first()).toHaveValue(``);
@@ -57,6 +58,7 @@ test(`two separate phones share children and pets, edits and confirmed removals`
     await expect(a.getByRole(`heading`, { name: `Synthetic child`, exact: true })).toBeVisible();
     await refresh(b);
     await expect(b.getByRole(`heading`, { name: `Synthetic child`, exact: true })).toBeVisible();
+    await closeAddForm(b);
     await b.getByRole(`button`, { name: `Edit Synthetic child`, exact: true }).click();
     await b.getByLabel(`Name`, { exact: true }).fill(`Synthetic renamed child`);
     await b.getByRole(`button`, { name: `Save changes`, exact: true }).click();
@@ -71,6 +73,7 @@ test(`two separate phones share children and pets, edits and confirmed removals`
     await openPets(b);
     await refresh(b);
     await expect(b.getByRole(`heading`, { name: `Synthetic pet`, exact: true })).toBeVisible();
+    await closeAddForm(b);
     await b.getByRole(`button`, { name: `Edit Synthetic pet`, exact: true }).click();
     await expect(b.getByLabel(`Pet type (optional)`).first()).toHaveValue(`Cat`);
     await b.getByLabel(`Pet type (optional)`).first().selectOption(`Dog`);
@@ -79,16 +82,18 @@ test(`two separate phones share children and pets, edits and confirmed removals`
     await expect(a.getByText(`Dog`, { exact: true })).toBeVisible();
     let confirmations = 0;
     a.once(`dialog`, async (dialog) => { ++confirmations; await dialog.dismiss(); });
+    await closeAddForm(a);
     await a.getByRole(`button`, { name: `Remove Synthetic pet`, exact: true }).click();
     await expect(a.getByRole(`heading`, { name: `Synthetic pet`, exact: true })).toBeVisible();
     a.once(`dialog`, async (dialog) => { ++confirmations; await dialog.accept(); });
+    await closeAddForm(a);
     await a.getByRole(`button`, { name: `Remove Synthetic pet`, exact: true }).click();
     await expect(a.getByRole(`heading`, { name: `Synthetic pet`, exact: true })).toHaveCount(0);
     expect(confirmations).toBe(2);
     await refresh(b);
     await expect(b.getByRole(`heading`, { name: `Synthetic pet`, exact: true })).toHaveCount(0);
     await a.reload();
-    await openChildren(a);
+    await openChildren(a, true);
     await expect(a.getByRole(`heading`, { name: `Synthetic renamed child`, exact: true })).toBeVisible();
     expect(await a.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   } finally {
@@ -117,7 +122,7 @@ test(`failed saves, offline changes, folders and navigation preserve family draf
   await expect(page.getByRole(`button`, { name: `Update`, exact: true })).toBeDisabled();
   await openPets(page);
   await expect(page.getByLabel(`Pet’s name`)).toHaveValue(`Synthetic unfinished pet`);
-  await openChildren(page);
+  await openChildren(page, true);
   await expect(page.getByLabel(`Child’s name`)).toHaveValue(`Synthetic unfinished child`);
   await context.setOffline(true);
   await expect(page.getByRole(`button`, { name: `Add child to our home` })).toBeDisabled();
@@ -126,6 +131,7 @@ test(`failed saves, offline changes, folders and navigation preserve family draf
   await expect(page.getByLabel(`Child’s name`)).toHaveValue(`Synthetic unfinished child`);
   await page.getByRole(`button`, { name: `Add child to our home` }).click();
   await expect(page.getByRole(`heading`, { name: `Synthetic unfinished child`, exact: true })).toBeVisible();
+  await closeAddForm(page);
   await page.getByRole(`button`, { name: `Edit Synthetic unfinished child`, exact: true }).click();
   await page.getByLabel(`Name`, { exact: true }).fill(`Synthetic failed rename`);
   await page.getByLabel(`Birthday (optional)`).first().fill(`2020-03-01`);
@@ -155,13 +161,14 @@ test(`birthdays are shared calendar dates across time zones and can be changed o
     await refresh(b);
     await expect(card(b, `Birthday test child`).locator(`time`)).toHaveAttribute(`datetime`, `2020-02-29`);
     await expect(card(b, `Birthday test child`).locator(`time`)).toHaveText(`29 February 2020`);
+    await closeAddForm(b);
     await b.getByRole(`button`, { name: `Edit Birthday test child`, exact: true }).click();
     await expect(b.getByLabel(`Birthday (optional)`).first()).toHaveValue(`2020-02-29`);
     await b.getByLabel(`Birthday (optional)`).first().fill(`2020-03-01`);
     await b.getByRole(`button`, { name: `Save changes`, exact: true }).click();
     await expect(card(b, `Birthday test child`).locator(`time`)).toHaveText(`1 March 2020`);
     await a.reload();
-    await openChildren(a);
+    await openChildren(a, true);
     await expect(card(a, `Birthday test child`).locator(`time`)).toHaveText(`1 March 2020`);
     await openPets(a);
     await a.getByLabel(`Pet’s name`).fill(`Birthday test pet`);
@@ -172,6 +179,7 @@ test(`birthdays are shared calendar dates across time zones and can be changed o
     await openPets(b);
     await refresh(b);
     await expect(card(b, `Birthday test pet`).locator(`time`)).toHaveText(`1 January 2022`);
+    await closeAddForm(b);
     await b.getByRole(`button`, { name: `Edit Birthday test pet`, exact: true }).click();
     await b.getByRole(`button`, { name: `Clear birthday`, exact: true }).click();
     await b.getByRole(`button`, { name: `Save changes`, exact: true }).click();
@@ -202,7 +210,7 @@ test(`children and pets show live age, preserving drafts over midnight and after
   await page.getByLabel(`Birthday (optional)`).fill(`2022-12-31`);
   await page.getByRole(`button`, { name: `Add pet to our home` }).click();
   await expect(card(`Age test pet`).locator(`.family-age`)).toHaveText(`1 year, 2 months, 1 day old`);
-  await openChildren(page);
+  await openChildren(page, true);
   await page.getByLabel(`Child’s name`).fill(`Unfinished age test draft`);
   await page.getByLabel(`Birthday (optional)`).fill(`2021-09-02`);
   await page.clock.fastForward(61_000);
@@ -215,11 +223,13 @@ test(`children and pets show live age, preserving drafts over midnight and after
   await expect(page.getByLabel(`Child’s name`)).toHaveValue(`Unfinished age test draft`);
   await openPets(page);
   await expect(card(`Age test pet`).locator(`.family-age`)).toHaveText(`1 year, 2 months, 3 days old`);
-  await openChildren(page);
+  await openChildren(page, true);
+  await closeAddForm(page);
   await page.getByRole(`button`, { name: `Edit Age test child`, exact: true }).click();
   await page.getByLabel(`Birthday (optional)`).first().fill(`2023-03-03`);
   await page.getByRole(`button`, { name: `Save changes`, exact: true }).click();
   await expect(card(`Age test child`).locator(`.family-age`)).toHaveText(`1 year old`);
+  await closeAddForm(page);
   await page.getByRole(`button`, { name: `Edit Age test child`, exact: true }).click();
   await page.getByRole(`article`).filter({ has: page.getByRole(`heading`, { name: `Edit Age test child`, exact: true }) }).getByRole(`button`, { name: `Clear birthday`, exact: true }).click();
   await page.getByRole(`button`, { name: `Save changes`, exact: true }).click();
@@ -257,7 +267,7 @@ test(`sign-out clears family drafts and a delayed old-household response cannot 
   expect(server.familyRequestCount()).toBe(requestsBeforeHome);
   await page.getByRole(`button`, { name: `Connect our home` }).click();
   await page.getByRole(`button`, { name: `Create our home`, exact: true }).click();
-  await openChildren(page);
+  await openChildren(page, true);
   await expect(page.getByLabel(`Child’s name`)).toHaveValue(``);
   await expect(page.getByRole(`heading`, { name: `No children added yet` })).toBeVisible();
 });
@@ -282,7 +292,7 @@ test(`a delayed save from a previous account cannot add a card or success messag
   await page.getByRole(`button`, { name: `Sign in`, exact: true }).click();
   await expect(page.getByRole(`button`, { name: `Create our home`, exact: true })).toBeVisible();
   await page.getByRole(`button`, { name: `Create our home`, exact: true }).click();
-  await openChildren(page);
+  await openChildren(page, true);
   const response = page.waitForResponse((value) => value.url().includes(`/family_profiles`) && value.request().method() === `POST`);
   server.releaseFamilyWrites();
   await response;

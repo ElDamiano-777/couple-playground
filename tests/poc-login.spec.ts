@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { openShopping } from "./navigation";
+import { closeAddForm, openShopping } from "./navigation";
 import { transport, pocPassword } from "./helpers/sharedTransport";
 
 test.use({ serviceWorkers: `block` });
@@ -13,6 +13,7 @@ async function login(page: Page, name: `Masha` | `Damian`) {
   await expect(page.getByLabel(`Password`, { exact: true })).toHaveValue(``);
   await page.getByLabel(`Password`, { exact: true }).fill(pocPassword);
   await page.getByRole(`button`, { name: `Sign in`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).click();
   await expect(page.getByLabel(`What do we need?`)).toBeVisible();
 }
 
@@ -55,10 +56,11 @@ test(`named POC accounts require a password and share a ready-made list without 
       a.getByRole(`button`, { name: `Delete my account`, exact: true }),
     ).toHaveCount(0);
     await a.getByLabel(`What do we need?`).fill(`Synthetic POC shopping`);
-    await a.getByRole(`button`, { name: `Add purchase`, exact: true }).click();
+    await a.locator(`form`).getByRole(`button`, { name: `Add purchase`, exact: true }).click();
     await expect(
       a.getByText(`Synthetic POC shopping`, { exact: true }),
     ).toBeVisible();
+    await closeAddForm(b);
     await b.getByRole(`button`, { name: `Refresh`, exact: true }).click();
     await expect(
       b.getByRole(`checkbox`, { name: /Synthetic POC shopping/ }),
@@ -111,5 +113,6 @@ test(`wrong passwords and unknown usernames never unlock the shared list`, async
   await page.getByLabel(`Password`, { exact: true }).fill(pocPassword);
   await page.getByRole(`button`, { name: `Sign in`, exact: true }).click();
   await expect(page.getByText(`Hi, Damian`, { exact: true })).toBeVisible();
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).click();
   await expect(page.getByLabel(`What do we need?`)).toBeVisible();
 });
