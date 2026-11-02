@@ -39,7 +39,14 @@ test('partners share pet details and food', async ({ browser }) => {
     await first.getByRole('button', { name: 'Save changes' }).click();
     await first.getByRole('button', { name: 'My Food' }).click();
     await first.getByRole('button', { name: '+ Add Food' }).click();
-    await first.getByLabel('Packaging photo').setInputFiles(photo);
+    const tallImage = await first.evaluate(() => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 500; canvas.height = 2000;
+      const context = canvas.getContext('2d')!;
+      context.fillStyle = '#663399'; context.fillRect(0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/png').split(',')[1];
+    });
+    await first.getByLabel('Packaging photo').setInputFiles({ name: 'tall-screenshot.png', mimeType: 'image/png', buffer: Buffer.from(tallImage, 'base64') });
     await expect(first.getByAltText('Food packaging preview')).toBeVisible();
     await first.getByLabel('Name', { exact: true }).fill('Dinner');
     await first.getByLabel('Brand').fill('Example');
@@ -50,16 +57,38 @@ test('partners share pet details and food', async ({ browser }) => {
     await expect(first.getByText('Dinner')).toBeVisible();
     await expect(first.getByText('1.8 kg', { exact: false })).toBeVisible();
     await expect(first.locator('.food-product-photo img')).toHaveCSS('object-fit', 'contain');
+    const bounds = await first.locator('.food-product').evaluate(card => {
+      const container = card.querySelector('.food-product-photo')!.getBoundingClientRect();
+      const image = card.querySelector('img')!.getBoundingClientRect();
+      const body = card.querySelector('.food-product-body')!.getBoundingClientRect();
+      return { container: { left: container.left, right: container.right, top: container.top, bottom: container.bottom }, image: { left: image.left, right: image.right, top: image.top, bottom: image.bottom }, bodyTop: body.top };
+    });
+    expect(bounds.image.left).toBeGreaterThanOrEqual(bounds.container.left);
+    expect(bounds.image.right).toBeLessThanOrEqual(bounds.container.right);
+    expect(bounds.image.top).toBeGreaterThanOrEqual(bounds.container.top);
+    expect(bounds.image.bottom).toBeLessThanOrEqual(bounds.container.bottom);
+    expect(bounds.bodyTop).toBeGreaterThanOrEqual(bounds.container.bottom);
+    await first.locator('.food-product').evaluate(card => card.scrollIntoView({ block: 'start' }));
+    const clearOfNavigation = await first.evaluate(() => document.querySelector('.food-product')!.getBoundingClientRect().bottom <= document.querySelector('.bottom-nav')!.getBoundingClientRect().top);
+    expect(clearOfNavigation).toBe(true);
     const singleWidth = await first.locator('.food-product').evaluate(el => el.getBoundingClientRect().width);
     const gridWidth = await first.locator('.food-grid').evaluate(el => el.getBoundingClientRect().width);
     expect(Math.abs(singleWidth - gridWidth)).toBeLessThan(2);
     await first.getByRole('button', { name: '+ Add Food' }).click();
     await first.getByLabel('Name', { exact: true }).fill('Second product');
+    await first.getByLabel('Packaging photo').setInputFiles({ name: 'second-tall.png', mimeType: 'image/png', buffer: Buffer.from(tallImage, 'base64') });
+    await expect(first.getByAltText('Food packaging preview')).toBeVisible();
     await first.getByRole('button', { name: 'Save food' }).click();
     await expect(first.locator('.food-product')).toHaveCount(2);
     const boxes = await first.locator('.food-product').evaluateAll(nodes => nodes.map(node => ({ left: node.getBoundingClientRect().left, top: node.getBoundingClientRect().top })));
     expect(boxes[0].left).toBeLessThan(boxes[1].left);
     expect(boxes[0].top).toBe(boxes[1].top);
+    const contained = await first.locator('.food-product-photo').evaluateAll(containers => containers.every(container => {
+      const image = container.querySelector('img')!.getBoundingClientRect();
+      const bounds = container.getBoundingClientRect();
+      return image.left >= bounds.left && image.right <= bounds.right && image.top >= bounds.top && image.bottom <= bounds.bottom;
+    }));
+    expect(contained).toBe(true);
     await first.getByLabel('Actions for Second product').click();
     first.once('dialog', dialog => dialog.accept());
     await first.getByRole('button', { name: 'Remove Second product' }).click();
