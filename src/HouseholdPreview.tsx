@@ -2,7 +2,7 @@ import FamilyProfiles from './family/FamilyProfiles';
 import type { FamilyProfilesState } from './family/useFamilyProfiles';
 import SharedShopping from './shared/SharedShopping';
 import type { SharedShoppingState } from './shared/useSharedShopping';
-import FolderPages, { FolderBack, type FolderPage } from './folders/FolderPages';
+import FolderPages, { HomeNavigation, type FolderPage } from './folders/FolderPages';
 import { Symbol } from './ui/Symbol';
 import FolderEntries from './collections/FolderEntries';
 import type { FolderEntriesState } from './collections/useFolderEntries';
@@ -18,7 +18,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   collections: FolderEntriesState;
 }) {
   if (page === `activity`) return <section className="preview-page">
-    <button className="text-action" onClick={() => navigate(`folders`)}>← Все папки</button>
+    <button className="text-action" onClick={() => navigate(`folders`)}>← Us</button>
     <p className="eyebrow">KEEPING EACH OTHER IN THE LOOP</p>
     <h1>Little updates<span>.</span></h1>
     <p className="page-intro">This is how your shared activity could look.</p>
@@ -32,13 +32,10 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   </section>;
 
   return <div className="household-preview">
-    <FolderBack page={page} navigate={navigate} />
+    {[`home`, `shopping`, `recipes`, `children`, `pets`].includes(page) && <HomeNavigation page={page} navigate={navigate} />}
     {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} />
       : page === `children` || page === `pets` ? <FamilyProfiles state={family} fixedKind={page === `children` ? `child` : `pet`} onSignIn={() => navigate(`shopping`)} />
       : page === `recipes` || page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
-      : <FolderPages page={page} navigate={navigate}
-        shoppingCount={shopping.items.filter(item => !item.bought).length}
-        childrenCount={family.profiles.filter(profile => profile.kind === `child`).length}
-        petsCount={family.profiles.filter(profile => profile.kind === `pet`).length} />}
+      : <FolderPages page={page} navigate={navigate} />}
   </div>;
 }

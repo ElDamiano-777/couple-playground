@@ -81,7 +81,7 @@ function FamilyBody({ state, onSignIn, fixedKind }: FamilyProfilesProps) {
   </div>;
 }
 export function FamilyProfiles(props: FamilyProfilesProps) {
-  const heading = props.heading ?? (props.fixedKind === `child` ? `Дети` : props.fixedKind === `pet` ? `Животные` : `Our family`);
-  return <section className="preview-page"><p className="eyebrow" lang={props.fixedKind ? `ru` : undefined}>{props.fixedKind ? `НАШ ДОМ` : `EVERYONE WE LOVE`}</p><h1 lang={props.fixedKind ? `ru` : undefined}>{heading}<span>.</span></h1><FamilyBody {...props} /></section>;
+  const heading = props.heading ?? (props.fixedKind === `child` ? `Children` : props.fixedKind === `pet` ? `Pets` : `Our family`);
+  return <section className="preview-page"><p className="eyebrow" lang={props.fixedKind ? `en` : undefined}>{props.fixedKind ? `OUR HOME` : `EVERYONE WE LOVE`}</p><h1 lang={props.fixedKind ? `en` : undefined}>{heading}<span>.</span></h1><FamilyBody {...props} /></section>;
 }
 export default FamilyProfiles;
