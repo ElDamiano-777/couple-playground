@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./family.css";
 import type { FamilyKind, FamilyProfilesState } from "./useFamilyProfiles";
 import PetTypeSelect from './PetTypeSelect';
@@ -19,6 +20,7 @@ type FamilyProfilesProps = {
 
 function FamilyBody({ state, onSignIn, fixedKind }: FamilyProfilesProps) {
   const today = useAgeDate();
+  const [adding, setAdding] = useState(false);
   if (!state.authReady || state.contextLoading)
     return <p role="status">Opening your family…</p>;
   if (!state.userId || !state.household)
@@ -43,7 +45,7 @@ function FamilyBody({ state, onSignIn, fixedKind }: FamilyProfilesProps) {
     {state.error && <p className="feedback error-message" role="alert">{state.error}</p>}
     {state.notice && <p className="feedback" role="status">{state.notice}</p>}
     <section aria-label={pet ? `Pets` : `Kids`}>
-      {state.loading ? <p role="status">Opening your shared family…</p> : rows.length === 0 && <section className="dashboard-card"><h2>{pet ? `No pets added yet` : `No children added yet`}</h2><p>{pet ? `Add your first pet below.` : `Add your first child below.`}</p></section>}
+      {state.loading ? <p role="status">Opening your shared family…</p> : rows.length === 0 && <section className="dashboard-card"><h2>{pet ? `No pets added yet` : `No children added yet`}</h2><p>{pet ? `Add your first pet below.` : `Tap + to add your first child.`}</p></section>}
       {rows.map((profile) => <article className="dashboard-card" key={profile.id}>
         {state.edit?.id === profile.id ? <form className="note-form" onSubmit={(event) => { event.preventDefault(); void state.saveEdit(); }}>
           <h2>Edit {profile.name}</h2>
@@ -67,7 +69,9 @@ function FamilyBody({ state, onSignIn, fixedKind }: FamilyProfilesProps) {
         </>}
       </article>)}
     </section>
-    <form className="note-form" onSubmit={(event) => { event.preventDefault(); void state.add(); }}>
+    {!pet && <button className="add-fab" aria-label="Add child" onClick={() => setAdding(true)}>+</button>}
+    {(pet || adding) && <form className={pet ? "note-form" : "note-form add-sheet"} onSubmit={(event) => { event.preventDefault(); void state.add(); }}>
+      {!pet && <button className="text-action" type="button" onClick={() => setAdding(false)}>Close</button>}
       <h2>{pet ? `Add a pet` : `Add a child`}</h2>
       <label htmlFor="family-add-name">{pet ? `Pet’s name` : `Child’s name`}</label>
       <input id="family-add-name" required maxLength={100} value={draft.name} disabled={state.busy} onChange={(event) => state.setDraft(`name`, event.target.value)} />
@@ -77,7 +81,7 @@ function FamilyBody({ state, onSignIn, fixedKind }: FamilyProfilesProps) {
       {draft.birthDate && <button type="button" className="text-action" disabled={state.busy} onClick={() => state.setDraft(`birthDate`, ``)}>Clear birthday</button>}
       <button className="primary" disabled={disabled || !draft.name.trim()} type="submit">{state.busy ? `Saving…` : pet ? `Add pet to our home` : `Add child to our home`}</button>
       <p className="small-print">Saved online and shared with the accounts in your home. You need a connection to save changes.</p>
-    </form>
+    </form>}
   </div>;
 }
 export function FamilyProfiles(props: FamilyProfilesProps) {

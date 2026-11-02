@@ -9,6 +9,7 @@ export default function SharedShopping({
   hasOtherDraft?: boolean;
 }) {
   const [mode, setMode] = useState<`poc` | `signin` | `signup`>(`poc`);
+  const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState(`All`);
   const [copied, setCopied] = useState(false);
   const feedback = (
@@ -281,13 +282,15 @@ export default function SharedShopping({
               )}
             </section>
           )}
-          <form
-            className="note-form"
+          <button className="add-fab" aria-label="Add purchase" onClick={() => setAdding(true)}>+</button>
+          {adding && <form
+            className="note-form add-sheet"
             onSubmit={(event) => {
               event.preventDefault();
               void state.add();
             }}
           >
+            <button className="text-action" type="button" onClick={() => setAdding(false)}>Close</button>
             <h2>Add a little something</h2>
             <label htmlFor="purchase-name">What do we need?</label>
             <input
@@ -316,7 +319,7 @@ export default function SharedShopping({
             >
               Add purchase
             </button>
-          </form>
+          </form>}
           <div className="filter-tabs" aria-label="Shared shopping categories">
             {[`All`, `Home`, `Kids`, `Pets`].map((value) => (
               <button
