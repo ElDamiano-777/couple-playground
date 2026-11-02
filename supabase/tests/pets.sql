@@ -56,3 +56,13 @@ set role anon;
 do $$ begin
   begin perform * from public.pet_dislikes; raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
 end $$;
+reset role;
+\ir ../migrations/20261102030000_pet_food_package_size.sql
+set role authenticated;
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001', false);
+select pg_temp.check_true((select name = 'Dinner' and photo is not null and notes = 'Dinner note' and package_size = '' from public.pet_food where pet_id = :'pet_id'));
+update public.pet_food set package_size = '1.8 kg' where pet_id = :'pet_id';
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000002', false);
+select pg_temp.check_true((select package_size = '1.8 kg' and photo is not null from public.pet_food where pet_id = :'pet_id'));
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000003', false);
+select pg_temp.check_true((select count(*) = 0 from public.pet_food));

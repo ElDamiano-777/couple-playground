@@ -36,3 +36,22 @@
 .pet-extra { margin:8px 0; color:#6c4d80; }
 .pet-extra summary { min-height:44px; padding:12px 0; cursor:pointer; font-size:14px; }
 .pet-remove { display:block; margin-top:24px; color:#99536a; }
+.food-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0; align-items:start; }
+.food-product { min-width:0; border:1px solid #ead9ef; border-radius:22px; background:#fffaf3; box-shadow:0 5px 18px #5c38700c; }
+.food-product:only-child { grid-column:1 / -1; }
+.food-product-photo { display:grid; place-items:center; height:180px; padding:12px; background:#f4eaf8; border-radius:21px 21px 0 0; color:#a77cb6; font-size:36px; }
+.food-product:only-child .food-product-photo { height:240px; }
+.food-product-photo img { width:100%; height:100%; object-fit:contain; }
+.food-product-body { padding:14px; }
+.food-product-heading { display:flex; justify-content:space-between; gap:5px; align-items:start; }
+.food-product-heading > div:first-child { min-width:0; }
+.food-product h3 { margin:3px 0 0; font-size:16px; line-height:1.3; overflow-wrap:anywhere; }
+.food-product-brand { margin:0; color:#80638f; font-size:12px; font-weight:700; overflow-wrap:anywhere; }
+.food-product-meta,.food-product .pet-notes { margin:8px 0 0; color:#6b5a73; font-size:13px; line-height:1.45; overflow-wrap:anywhere; }
+.food-menu { position:relative; flex:none; }
+.food-menu summary { display:grid; place-items:center; width:44px; height:44px; margin:-8px -8px 0 0; border-radius:50%; color:#6f4386; font-size:24px; cursor:pointer; list-style:none; }
+.food-menu summary::-webkit-details-marker { display:none; }
+.food-menu-options { position:absolute; z-index:5; right:0; top:38px; min-width:120px; padding:5px; background:#fffaf3; border:1px solid #ead9ef; border-radius:14px; box-shadow:0 8px 20px #3f254033; }
+.food-menu-options button { display:block; width:100%; min-height:44px; padding:8px 12px; border-radius:9px; background:transparent; color:#633583; text-align:left; }
+.food-menu-options button:focus-visible,.food-menu summary:focus-visible { outline:3px solid #a566df; outline-offset:2px; }
+@media (max-width:340px) { .food-grid { gap:8px; } .food-product-body { padding:10px; } }

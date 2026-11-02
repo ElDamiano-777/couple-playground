@@ -2,11 +2,11 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { supabase } from '../shared/client';
 import { readPhoto } from './petPhoto';
 
-type Food = { id: string; pet_id: string; photo: string | null; brand: string; name: string; flavor: string; food_type: string; notes: string };
+type Food = { id: string; pet_id: string; photo: string | null; brand: string; name: string; flavor: string; food_type: string; notes: string; package_size: string };
 type Dislike = { id: string; pet_id: string; ingredient: string; food_type: string; notes: string };
 type FoodDraft = Omit<Food, 'id' | 'pet_id'>;
 type DislikeDraft = Omit<Dislike, 'id' | 'pet_id'>;
-const emptyFood = (): FoodDraft => ({ photo: null, brand: '', name: '', flavor: '', food_type: '', notes: '' });
+const emptyFood = (): FoodDraft => ({ photo: null, brand: '', name: '', flavor: '', food_type: '', notes: '', package_size: '' });
 const emptyDislike = (): DislikeDraft => ({ ingredient: '', food_type: '', notes: '' });
 const types = ['Wet', 'Dry', 'Treats', 'Other'];
 
@@ -98,14 +98,19 @@ export default function PetCollections({ petId, initialTab, onBack }: { petId: s
     <button className="text-action" onClick={onBack}>← Pets</button>
     <nav className="pet-tabs" aria-label="Pet collections">
       <button aria-current={tab === 'food' ? 'page' : undefined} onClick={() => switchTab('food')}>My Food</button>
-      <button aria-current={tab === 'dislikes' ? 'page' : undefined} onClick={() => switchTab('dislikes')}>Dislikes</button>
+      <button aria-current={tab === 'dislikes' ? 'page' : undefined} onClick={() => switchTab('dislikes')}>Food Preferences</button>
     </nav>
     {error && <p className="feedback error-message" role="alert">{error}</p>}
     {loading && <p role="status">Loading collection…</p>}
-    {tab === 'food' && <><h2>My Food</h2><div className="pet-grid">{foods.map(item => <article className="pet-card food-card" key={item.id}>
-      {item.photo && <img src={item.photo} alt="" />}<strong>{item.name}</strong><p>{[item.brand, item.flavor, item.food_type].filter(Boolean).join(' · ')}</p>{item.notes && <p className="pet-notes">{item.notes}</p>}
-      <button className="text-action" disabled={busy} aria-label={`Edit ${item.name}`} onClick={() => { setEditingFood(item.id); setFood({ photo: item.photo, brand: item.brand, name: item.name, flavor: item.flavor, food_type: item.food_type, notes: item.notes ?? '' }); setFoodForm(true); }}>Edit</button>
-      <button className="text-action" disabled={busy} aria-label={`Remove ${item.name}`} onClick={() => void remove('pet_food', item.id, item.name)}>Remove</button>
+    {tab === 'food' && <><h2>My Food</h2><div className="food-grid">{foods.map(item => <article className="food-product" key={item.id}>
+      <div className="food-product-photo">{item.photo ? <img src={item.photo} alt={`${item.name} packaging`} /> : <span aria-hidden="true">✦</span>}</div>
+      <div className="food-product-body"><div className="food-product-heading"><div>{item.brand && <p className="food-product-brand">{item.brand}</p>}<h3>{item.name}</h3></div>
+        <details className="food-menu"><summary aria-label={`Actions for ${item.name}`}>⋯</summary><div className="food-menu-options">
+          <button disabled={busy} aria-label={`Edit ${item.name}`} onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); setEditingFood(item.id); setFood({ photo: item.photo, brand: item.brand, name: item.name, flavor: item.flavor, food_type: item.food_type, notes: item.notes ?? '', package_size: item.package_size ?? '' }); setFoodForm(true); }}>Edit</button>
+          <button disabled={busy} aria-label={`Remove ${item.name}`} onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); void remove('pet_food', item.id, item.name); }}>Remove</button>
+        </div></details></div>
+        <p className="food-product-meta">{[item.flavor, item.food_type === 'Dry' ? 'Dry Food' : item.food_type === 'Wet' ? 'Wet Food' : item.food_type, item.package_size].filter(Boolean).join(' · ')}</p>{item.notes && <p className="pet-notes">{item.notes}</p>}
+      </div>
     </article>)}</div>{!loading && foods.length === 0 && <p>No food saved yet.</p>}
     {!foodForm && <button className="primary" disabled={loading} onClick={() => { setEditingFood(null); setFood(emptyFood()); setFoodForm(true); }}>+ Add Food</button>}
     {foodForm && <form className="note-form" onSubmit={saveFood}><h2>{editingFood ? 'Edit Food' : 'Add Food'}</h2>
@@ -113,6 +118,7 @@ export default function PetCollections({ petId, initialTab, onBack }: { petId: s
       {food.photo && <><img className="pet-profile-photo" src={food.photo} alt="Food packaging preview" /><button type="button" className="text-action" onClick={() => setFood({ ...food, photo: null })}>Remove photo</button></>}
       {(['brand', 'name', 'flavor'] as const).map(key => <div key={key}><label htmlFor={`food-${key}`}>{key[0].toUpperCase() + key.slice(1)}</label><input id={`food-${key}`} required={key === 'name'} maxLength={150} value={food[key]} onChange={event => setFood({ ...food, [key]: event.target.value })} /></div>)}
       <FoodType value={food.food_type} onChange={value => setFood({ ...food, food_type: value })} />
+      <label htmlFor="food-size">Package size (optional)</label><input id="food-size" maxLength={100} value={food.package_size} onChange={event => setFood({ ...food, package_size: event.target.value })} placeholder="e.g. 1.8 kg" />
       <label htmlFor="food-notes">Notes (optional)</label><textarea id="food-notes" rows={3} maxLength={4000} value={food.notes} onChange={event => setFood({ ...food, notes: event.target.value })} />
       <button className="primary" disabled={busy || photoLoading || !food.name.trim()}>Save food</button><button type="button" className="text-action" disabled={busy || photoLoading} onClick={() => setFoodForm(false)}>Close</button>
     </form>}</>}
