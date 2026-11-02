@@ -9,12 +9,15 @@ import './pets.css';
 import { readPhoto } from './petPhoto';
 import PetCollections from './PetCollections';
 
+type FoodPreview = { id: string; name: string; photo: string | null };
 type Detail = { pet_id: string; photo: string | null; likes: string; dislikes: string; important_notes: string };
 const emptyDetail = (pet_id: string): Detail => ({ pet_id, photo: null, likes: '', dislikes: '', important_notes: '' });
 
 
 export default function Pets({ state, onSignIn }: { state: FamilyProfilesState; onSignIn: () => void }) {
   const [details, setDetails] = useState<Detail[]>([]);
+  const [foodPreview, setFoodPreview] = useState<FoodPreview[]>([]);
+  const [previewStatus, setPreviewStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [selected, setSelected] = useState<string | null>(null);
   const [view, setView] = useState<'list' | 'profile' | 'food' | 'dislikes' | 'add'>('list');
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -43,7 +46,24 @@ export default function Pets({ state, onSignIn }: { state: FamilyProfilesState; 
     window.addEventListener('focus', refresh);
     return () => { active = false; window.removeEventListener('focus', refresh); };
   }, [state.userId, state.household, reload]);
+  useEffect(() => {
+    if (view !== 'profile' || !selected) return;
+    let active = true;
+    const load = async () => {
+      setPreviewStatus('loading');
+      const result = await supabase.from('pet_food').select('id,name,photo').eq('pet_id', selected).order('created_at').limit(3);
+      if (!active) return;
+      if (result.error) { setFoodPreview([]); setPreviewStatus('error'); }
+      else { setFoodPreview(result.data as FoodPreview[]); setPreviewStatus('ready'); }
+    };
+    setFoodPreview([]);
+    void load();
+    const refresh = () => { if (!document.hidden) void load(); };
+    window.addEventListener('focus', refresh);
+    return () => { active = false; window.removeEventListener('focus', refresh); };
+  }, [selected, view]);
   function open(p: FamilyProfile, next: 'profile' | 'food' | 'dislikes') {
+    if (next === 'profile') { setFoodPreview([]); setPreviewStatus('loading'); }
     setSelected(p.id); setDetail(details.find(d => d.pet_id === p.id) ?? emptyDetail(p.id));
     setView(next); setError('');
   }
@@ -75,7 +95,24 @@ export default function Pets({ state, onSignIn }: { state: FamilyProfilesState; 
       <button className="pet-food-button" disabled={loading || !detailsReady} onClick={() => open(p, 'food')}>My Food</button>
     </article>)}</div>{pets.length === 0 && !state.loading && <p>No pets yet. Add your first pet.</p>}<button className="primary" onClick={() => { state.setKind('pet'); state.clearNotice(); setView('add'); }}>+ Add Pet</button></>}
     {view === 'add' && <form className="note-form" onSubmit={async e => { e.preventDefault(); await state.add(); }}><button type="button" className="text-action" onClick={() => setView('list')}>← Pets</button><h2>Add Pet</h2><label htmlFor="pet-name">Name</label><input id="pet-name" required maxLength={100} value={state.drafts.pet.name} onChange={e => state.setDraft('name', e.target.value)} /><PetTypeSelect id="pet-type" value={state.drafts.pet.animalType} disabled={state.busy} onChange={v => state.setDraft('animalType', v)} /><label htmlFor="pet-birthday">Birthday (optional)</label><input id="pet-birthday" type="date" max={today} value={state.drafts.pet.birthDate} onChange={e => state.setDraft('birthDate', e.target.value)} /><button className="primary" disabled={state.busy || !state.drafts.pet.name.trim()}>Add pet</button>{state.notice && <p role="status">{state.notice} <button type="button" className="text-action" onClick={() => setView('list')}>View pets</button></p>}</form>}
-    {view === 'profile' && pet && detail && <><button className="text-action" onClick={() => setView('list')}>← Pets</button><form className="note-form" onSubmit={saveDetail}><h2>Profile</h2><p>{pet.animal_type || 'Pet'}{pet.birth_date && ` · Birthday: ${formatBirthday(pet.birth_date)} · ${formatAge(calculateAge(pet.birth_date, today)!)}`}</p>{detail.photo && <img className="pet-profile-photo" src={detail.photo} alt={`${pet.name}`} />}<label htmlFor="pet-photo">Photo</label><input id="pet-photo" type="file" accept="image/*" onChange={e => void photo(e.target.files?.[0])} />{detail.photo && <button type="button" className="text-action" onClick={() => setDetail({ ...detail, photo: null })}>Remove photo</button>}{(['likes', 'dislikes', 'important_notes'] as const).map(key => <div key={key}><label htmlFor={key}>{key === 'important_notes' ? 'Important Notes' : key === 'likes' ? 'Likes' : 'Dislikes'}</label><textarea id={key} rows={3} maxLength={4000} value={detail[key]} onChange={e => setDetail({ ...detail, [key]: e.target.value })} /></div>)}<button className="primary" disabled={busy}>Save details</button></form><button className="text-action" onClick={() => { state.startEdit(pet); }}>Edit name, type or birthday</button>{state.edit?.id === pet.id && <form className="note-form" onSubmit={e => { e.preventDefault(); void state.saveEdit(); }}><label htmlFor="edit-pet-name">Name</label><input id="edit-pet-name" required maxLength={100} value={state.edit.name} onChange={e => state.setEditField('name', e.target.value)} /><PetTypeSelect id="edit-pet-type" value={state.edit.animalType} disabled={state.busy} onChange={v => state.setEditField('animalType', v)} /><label htmlFor="edit-pet-birthday">Birthday</label><input id="edit-pet-birthday" type="date" max={today} value={state.edit.birthDate} onChange={e => state.setEditField('birthDate', e.target.value)} /><button className="primary" disabled={state.busy}>Save profile</button><button type="button" onClick={state.cancelEdit}>Cancel</button></form>}<button className="text-action" onClick={() => open(pet, 'food')}>My Food →</button><button className="text-action" onClick={() => open(pet, 'dislikes')}>Dislikes →</button><button className="text-action" onClick={() => { if (window.confirm(`Remove ${pet.name} and their food for both of you?`)) { void state.remove(pet); setView('list'); } }}>Remove pet</button></>}
+    {view === 'profile' && pet && detail && <>
+      <button className="text-action" onClick={() => setView('list')}>← Pets</button>
+      <div className="pet-profile-summary">
+        {detail.photo ? <img className="pet-profile-photo" src={detail.photo} alt={pet.name} /> : <div className="pet-profile-placeholder" aria-hidden="true">🐾</div>}
+        <p>{pet.animal_type || 'Pet'}{pet.birth_date && ` · Birthday: ${formatBirthday(pet.birth_date)} · ${formatAge(calculateAge(pet.birth_date, today)!)}`}</p>
+      </div>
+      <button className="pet-feature-card pet-feature-food" onClick={() => open(pet, 'food')}>
+        <span className="pet-feature-header"><span><strong>My Food</strong><small>Favorite food, all in one place</small></span><span aria-hidden="true">↗</span></span>
+        {previewStatus === 'loading' ? <span className="pet-feature-message">Loading food…</span> : previewStatus === 'error' ? <span className="pet-feature-message">Open your food collection</span> : foodPreview.length === 0 ? <span className="pet-feature-message">Add their first food</span> : <span className="pet-food-previews">{foodPreview.map(item => <span className="pet-food-preview" key={item.id}>{item.photo ? <img src={item.photo} alt="" /> : <span className="pet-food-placeholder" aria-hidden="true">✦</span>}<span>{item.name}</span></span>)}</span>}
+      </button>
+      <button className="pet-feature-card pet-feature-dislikes" onClick={() => open(pet, 'dislikes')}>
+        <span className="pet-feature-header"><span><strong>Dislikes</strong><small>Flavors and food notes to remember</small></span><span aria-hidden="true">↗</span></span>
+      </button>
+      <button className="text-action" onClick={() => { state.startEdit(pet); }}>Edit name, type or birthday</button>
+      {state.edit?.id === pet.id && <form className="note-form" onSubmit={e => { e.preventDefault(); void state.saveEdit(); }}><label htmlFor="edit-pet-name">Name</label><input id="edit-pet-name" required maxLength={100} value={state.edit.name} onChange={e => state.setEditField('name', e.target.value)} /><PetTypeSelect id="edit-pet-type" value={state.edit.animalType} disabled={state.busy} onChange={v => state.setEditField('animalType', v)} /><label htmlFor="edit-pet-birthday">Birthday</label><input id="edit-pet-birthday" type="date" max={today} value={state.edit.birthDate} onChange={e => state.setEditField('birthDate', e.target.value)} /><button className="primary" disabled={state.busy}>Save profile</button><button type="button" onClick={state.cancelEdit}>Cancel</button></form>}
+      <details className="pet-extra"><summary>Photo and saved notes</summary><form className="note-form" onSubmit={saveDetail}><label htmlFor="pet-photo">Photo</label><input id="pet-photo" type="file" accept="image/*" onChange={e => void photo(e.target.files?.[0])} />{detail.photo && <button type="button" className="text-action" onClick={() => setDetail({ ...detail, photo: null })}>Remove photo</button>}{(['likes', 'dislikes', 'important_notes'] as const).map(key => <div key={key}><label htmlFor={key}>{key === 'important_notes' ? 'Important Notes' : key === 'likes' ? 'Likes' : 'Dislikes'}</label><textarea id={key} rows={3} maxLength={4000} value={detail[key]} onChange={e => setDetail({ ...detail, [key]: e.target.value })} /></div>)}<button className="primary" disabled={busy}>Save changes</button></form></details>
+      <button className="text-action pet-remove" onClick={() => { if (window.confirm(`Remove ${pet.name} and their food for both of you?`)) { void state.remove(pet); setView('list'); } }}>Remove pet</button>
+    </>}
     {(view === 'food' || view === 'dislikes') && pet && <PetCollections key={pet.id} petId={pet.id} initialTab={view} onBack={() => setView('list')} />}
   </section>;
 }
