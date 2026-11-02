@@ -10,15 +10,15 @@ export async function openHome(page: Page) {
 
 export async function openShopping(page: Page) {
   await openHome(page);
-  await page.getByRole('button', { name: 'Shopping', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Home sections', exact: true }).getByRole('button', { name: 'Shopping', exact: true }).click();
 }
 
 export async function openChildren(page: Page) {
   await openHome(page);
-  await page.getByRole('button', { name: 'Children', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Home sections', exact: true }).getByRole('button', { name: 'Children', exact: true }).click();
 }
 
 export async function openPets(page: Page) {
   await openHome(page);
-  await page.getByRole('button', { name: 'Pets', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Home sections', exact: true }).getByRole('button', { name: 'Pets', exact: true }).click();
 }
