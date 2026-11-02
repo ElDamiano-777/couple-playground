@@ -93,7 +93,7 @@ test(`failed saves and offline mode preserve per-folder drafts, edits and the up
   await expect(page.getByLabel(copy.recipe.notes, { exact: true })).toHaveValue(`Synthetic recipe draft`);
   await context.setOffline(true);
   await expect(page.getByRole(`button`, { name: copy.recipe.add, exact: true })).toBeDisabled();
-  await expect(page.getByText(/You’re offline/)).toBeVisible();
+  await expect(page.locator(`.collection-page`).getByText(/You’re offline/)).toBeVisible();
   await context.setOffline(false);
   await page.getByRole(`button`, { name: copy.recipe.add, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `Synthetic unfinished recipe`, exact: true })).toBeVisible();
