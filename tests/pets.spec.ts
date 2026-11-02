@@ -7,7 +7,7 @@ test('partners share pet details and food', async ({ browser }) => {
   test.setTimeout(90000);
   const server = transport();
   const a = await browser.newContext({ viewport: { width: 320, height: 844 } });
-  const b = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const b = await browser.newContext({ viewport: { width: 320, height: 844 } });
   await server.attach(a); await server.attach(b);
   const first = await a.newPage(), second = await b.newPage();
   try {
@@ -106,6 +106,16 @@ test('partners share pet details and food', async ({ browser }) => {
     await expect(second.getByLabel('Likes', { exact: true })).toBeHidden();
     await expect(second.locator('.pet-feature-food')).toContainText('Dinner');
     await expect(second.locator('.pet-food-preview img')).toBeVisible();
+    await expect(second.locator('.pet-food-preview img')).toHaveCSS('object-fit', 'contain');
+    await expect(second.locator('.pet-food-preview')).toContainText('Example');
+    await expect(second.locator('.pet-food-preview')).toContainText('1.8 kg');
+    const preview = await second.locator('.pet-food-preview').evaluate(row => {
+      const image = row.querySelector('.pet-food-thumb')!.getBoundingClientRect();
+      const text = row.querySelector('.pet-food-copy')!.getBoundingClientRect();
+      return { imageRight: image.right, textLeft: text.left, rowRight: row.getBoundingClientRect().right, textRight: text.right };
+    });
+    expect(preview.imageRight).toBeLessThan(preview.textLeft);
+    expect(preview.textRight).toBeLessThanOrEqual(preview.rowRight);
     await second.getByText('Photo and saved notes').click();
     await expect(second.getByLabel('Likes', { exact: true })).toHaveValue('Playing');
     await expect(second.getByLabel('Dislikes', { exact: true })).toHaveValue('Old dislike note');

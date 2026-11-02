@@ -9,7 +9,7 @@ import './pets.css';
 import { readPhoto } from './petPhoto';
 import PetCollections from './PetCollections';
 
-type FoodPreview = { id: string; name: string; photo: string | null };
+type FoodPreview = { id: string; name: string; brand: string; package_size: string; photo: string | null };
 type Detail = { pet_id: string; photo: string | null; likes: string; dislikes: string; important_notes: string };
 const emptyDetail = (pet_id: string): Detail => ({ pet_id, photo: null, likes: '', dislikes: '', important_notes: '' });
 
@@ -51,7 +51,7 @@ export default function Pets({ state, onSignIn }: { state: FamilyProfilesState; 
     let active = true;
     const load = async () => {
       setPreviewStatus('loading');
-      const result = await supabase.from('pet_food').select('id,name,photo').eq('pet_id', selected).order('created_at').limit(3);
+      const result = await supabase.from('pet_food').select('id,name,brand,package_size,photo').eq('pet_id', selected).order('created_at').limit(3);
       if (!active) return;
       if (result.error) { setFoodPreview([]); setPreviewStatus('error'); }
       else { setFoodPreview(result.data as FoodPreview[]); setPreviewStatus('ready'); }
@@ -103,7 +103,7 @@ export default function Pets({ state, onSignIn }: { state: FamilyProfilesState; 
       </div>
       <button className="pet-feature-card pet-feature-food" onClick={() => open(pet, 'food')}>
         <span className="pet-feature-header"><span><strong>My Food</strong><small>Favorite food, all in one place</small></span><span aria-hidden="true">↗</span></span>
-        {previewStatus === 'loading' ? <span className="pet-feature-message">Loading food…</span> : previewStatus === 'error' ? <span className="pet-feature-message">Open your food collection</span> : foodPreview.length === 0 ? <span className="pet-feature-message">Add their first food</span> : <span className="pet-food-previews">{foodPreview.map(item => <span className="pet-food-preview" key={item.id}>{item.photo ? <img src={item.photo} alt="" /> : <span className="pet-food-placeholder" aria-hidden="true">✦</span>}<span>{item.name}</span></span>)}</span>}
+        {previewStatus === 'loading' ? <span className="pet-feature-message">Loading food…</span> : previewStatus === 'error' ? <span className="pet-feature-message">Open your food collection</span> : foodPreview.length === 0 ? <span className="pet-feature-message">Add their first food</span> : <span className="pet-food-previews">{foodPreview.map(item => <span className="pet-food-preview" key={item.id}><span className="pet-food-thumb">{item.photo ? <img src={item.photo} alt="" /> : <span className="pet-food-placeholder" aria-hidden="true">✦</span>}</span><span className="pet-food-copy">{item.brand && <span className="pet-food-brand">{item.brand}</span>}<strong>{item.name}</strong>{item.package_size && <span className="pet-food-size">{item.package_size}</span>}</span></span>)}</span>}
       </button>
       <button className="pet-feature-card pet-feature-dislikes" onClick={() => open(pet, 'dislikes')}>
         <span className="pet-feature-header"><span><strong>Dislikes</strong><small>Flavors and food notes to remember</small></span><span aria-hidden="true">↗</span></span>
