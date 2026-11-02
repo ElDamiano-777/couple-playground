@@ -31,8 +31,8 @@
 - Anmeldung: getrennte E-Mail-/Passwort-Konten mit E-Mail-Bestätigung. Ein Mitglied erstellt das Zuhause und einen 48 Stunden gültigen Einmalcode, das andere tritt bei. Ein Codewechsel ersetzt den alten; ein drittes Konto kann nicht beitreten.
 - Für Together wurde ein separates Supabase-Projekt eingerichtet: lyewmhtufesdccisqmin (Free, Organisation Together). GitHub-Integration: dieses Repo, Working directory `.`, Produktionsbranch main. Die früher belegten Plätze in einem anderen Konto werden nicht verwendet; keine fremden Projekte verändern.
 - Öffentliche Verbindung ist vorhanden. Direkte Supabase-Verwaltung ist in diesem Chat weiterhin nicht verfügbar; Migrationen müssen über die eingerichtete GitHub-Integration bestätigt werden. Damian hat am 01.11.2026 bestätigt, dass Auth Site URL und Redirect URLs auf die feste App-Adresse zeigen.
-- Für zusätzliche Daten oder Dienste: separater Projektzugang beziehungsweise freigegebener Tarif, dokumentierter Zweck und Datenarten, Empfänger, Zugriffs-/Löschregeln, Aufbewahrung und gegebenenfalls Vereinbarungen. Rechtliche Rollen und Grundlagen sind nicht durch dieses Setup festgestellt.
-- Vor echten Paar-Daten: zwei Konten, sichere ablaufende Einladungen, serverseitige Zugriffsregeln, direkte Negativtests mit fremdem Konto und Abmelde-/Löschpfade. Keine gemeinsamen Fake-Logins als Abkürzung.
+- Für POC-Wünsche vorhandenes Supabase und bestehende Muster nutzen. Zusätzliche Dienste und rechtliche Dokumentation nicht vorsorglich einführen; maßgeblich ist der konkrete Featureauftrag.
+- POC-Prüfmaßstab seit 02.11.2026: App-Start und geänderter Kernablauf per Smoke-Test vor der Testaufforderung. Keine zusätzlichen Datenschutz- oder Auth-Audits als allgemeiner Featureblocker; die vorhandene Anmeldung und Speicherung bleiben implementiert.
 
 ## Prüf- und Veröffentlichungsweg
 
@@ -52,8 +52,8 @@
 - Öffentliches GitHub-Repository und Standard-Actions für die Prüfstrecke. GitHub-Pages- und Kontingentbedingungen gelten; keine Zusage unbegrenzter Ressourcen.
 - Die App verwendet keine kostenpflichtige KI-API. Das ChatGPT-Kontingent der Entwicklerin ist getrennt vom App-Hosting.
 - Vollständiger Cloud-Auftrag und tatsächlicher iPhone-Test bleiben bis zur Prüfung offen.
-- Kein separates Supabase-Testprojekt: Migrationen auf main gehen über die GitHub-Integration ins Live-Projekt und laufen nicht durch „Check and publish“. Der Agent führt vorher die Wegwerf-Tests aus supabase/README.md aus, soweit sie in seiner Umgebung laufen, und pusht sonst trotzdem direkt nach main. Bewusstes POC-Risiko: Eine fehlerhafte Migration trifft sofort die Live-Daten.
-- Codex liest AGENTS.md standardmäßig nur bis 32 KiB (`project_doc_max_bytes`). Ob Codex Cloud denselben Wert nutzt, ist nicht geprüft; darum bleibt die Datei unter 28 KB.
+- Kein separates Supabase-Testprojekt: Migrationen auf main gehen über die GitHub-Integration ins Live-Projekt und laufen nicht durch „Check and publish“. Gemäß POC-Entscheidung vom 02.11.2026 prüft der Agent den betroffenen Speicherablauf per Smoke-Test; die Wegwerf-Datenbanktests aus supabase/README.md dienen gezielter Fehlerdiagnose und sind keine zusätzliche Routinepflicht. Bewusstes POC-Risiko: Eine fehlerhafte Migration trifft sofort die Live-Daten.
+- AGENTS.md bleibt kompakt; seltene Anleitungen werden nur bei tatsächlichem Bedarf gelesen. Alle Featurewünsche sind POC. Keine zusätzlichen Datenschutz-, Produktionshärtungs- oder Architekturrunden; vor einer Testaufforderung müssen App-Start und geänderter Kernablauf im Smoke-Test funktionieren.
 
 ## Quellen, 31.10.2026
 

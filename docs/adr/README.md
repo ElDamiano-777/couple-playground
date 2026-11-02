@@ -7,8 +7,7 @@ ADRs erklären wenige, dauerhafte Entscheidungen. Erst diesen Index lesen, dann 
 | [0001](0001-github-pages-veroeffentlichung.md) | Veröffentlichung | Hosting, Pages, main, Deploy, Liveprüfung | Akzeptiert |
 | [0002](0002-gemeinsame-daten-und-zugriff.md) | Gemeinsame Daten | Haushalt, Einkäufe, RLS, Datenverknüpfung | Akzeptiert |
 | [0003](0003-benannte-poc-zugaenge.md) | POC-Zugänge | masha/damian, Anmeldung, Testkonten | Akzeptiert – POC |
-
-| [0004](0004-proportionale-poc-pruefungen.md) | POC-Prüfaufwand | CI, Dokumentation, Testumfang, Tokenaufwand | Akzeptiert |
+| [0004](0004-proportionale-poc-pruefungen.md) | POC-Prüfaufwand | gesamtes Projekt, Smoke-Tests, Dokumentation, Tokenaufwand | Akzeptiert |
 
 Die drei Start-Einträge wurden am 01.11.2026 nachträglich aus belegten Entscheidungen dokumentiert. Aktuellen Zustand in [Architektur](../architecture.md) und [Betrieb](../owner-setup.md) beachten.
 

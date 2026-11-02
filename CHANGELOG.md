@@ -1,5 +1,11 @@
 # Änderungen
 
+## Durchgängiger POC-Modus — 2026-11-02
+
+- Jeder Featurewunsch bleibt POC: kleinste nutzbare Umsetzung, keine Zukunftsarchitektur oder zusätzlichen Datenschutz-, Produktionshärtungs- und Reviewrunden.
+- Vor einer Testaufforderung müssen App-Start und geänderter Kernablauf im Smoke-Test funktionieren. Bestehende CI bleibt unverändert; zentrale Ergebnisse nicht doppelt prüfen.
+- Agentenregeln und verlinkte Anleitungen gekürzt; direkte Bearbeitung statt routinemäßiger Modellwahl, Delegation, Stil-Skill und Dokumentationspflege.
+
 ## Navigation — 2026-11-02
 
 - Five bottom destinations: Places, Home, Us, Wishlist and More. Home opens Shopping with compact tabs for Recipes, Children and Pets.

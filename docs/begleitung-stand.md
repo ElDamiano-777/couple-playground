@@ -1,6 +1,6 @@
 # Stand der sanften Begleitung
 
-Regeln stehen in AGENTS.md unter „Sanfte Begleitung“. Das Repository ist öffentlich: nur Themennamen und allgemeine Begriffe eintragen, keine Zitate oder Gesprächsinhalte. Im Zweifel nichts eintragen.
+Optionale Merkliste für passende Begleithinweise und abgelehnte Vorschläge. Nur bei Bedarf lesen oder mit einem ohnehin nötigen Commit aktualisieren; keine Routinepflicht und kein eigener Veröffentlichungsschritt. Nur allgemeine Themennamen eintragen.
 
 ## Schon dran gewesen
 
