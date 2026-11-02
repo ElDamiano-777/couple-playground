@@ -32,12 +32,11 @@
 - Für Together wurde ein separates Supabase-Projekt eingerichtet: lyewmhtufesdccisqmin (Free, Organisation Together). GitHub-Integration: dieses Repo, Working directory `.`, Produktionsbranch main. Die früher belegten Plätze in einem anderen Konto werden nicht verwendet; keine fremden Projekte verändern.
 - Öffentliche Verbindung ist vorhanden. Direkte Supabase-Verwaltung ist in diesem Chat weiterhin nicht verfügbar; Migrationen müssen über die eingerichtete GitHub-Integration bestätigt werden. Damian hat am 01.11.2026 bestätigt, dass Auth Site URL und Redirect URLs auf die feste App-Adresse zeigen.
 - Für POC-Wünsche vorhandenes Supabase und bestehende Muster nutzen. Zusätzliche Dienste und rechtliche Dokumentation nicht vorsorglich einführen; maßgeblich ist der konkrete Featureauftrag.
-- POC-Prüfmaßstab seit 02.11.2026: App-Start und geänderter Kernablauf per Smoke-Test vor der Testaufforderung. Keine zusätzlichen Datenschutz- oder Auth-Audits als allgemeiner Featureblocker; die vorhandene Anmeldung und Speicherung bleiben implementiert.
 
 ## Prüf- und Veröffentlichungsweg
 
 - App-PR: CI-Scope-Test, npm ci und Build ohne Browserinstallation. Entwicklungsdokumentation erhält nur einen schnellen Pflichtstatus. Unvertrauenswürdige PRs bekommen keine Live-Geheimnisse.
-- POC-Standard seit 01.11.2026: normale Änderungen direkt nach main committen und pushen. Die Nutzerin muss weder Push noch Veröffentlichung erneut bestätigen. Bestehende Branchschutzregeln nicht ändern; falls sie einen PR erzwingen, übernimmt der Agent diesen Weg vollständig.
+- Veröffentlichung: normale Änderungen direkt nach main committen und pushen. Die Nutzerin muss weder Push noch Veröffentlichung erneut bestätigen. Bestehende Branchschutzregeln nicht ändern; falls sie einen PR erzwingen, übernimmt der Agent diesen Weg vollständig.
 - App-Push nach main: Build und einmal iPhone-WebKit, ausschließlich dist als Pages-Artefakt hochladen, main-Stand prüfen und veröffentlichen. Entwicklungsdokumentation löst keinen App-Deploy aus.
 - Vor Veröffentlichung fehlgeschlagene Prüfungen verändern die ausgelieferte Version nicht. GitHub Pages bietet keinen eigenen privaten Produktionskandidaten; deshalb Browser-Smoke-Tests am gebauten Artefakt vor dem Deploy und HTTP-/Commitprüfung nach dem Deploy.
 - Die nachgelagerte Liveprüfung erkennt fehlende Assets oder eine falsche Commit-Version. Ein erkannter Fehler nach dem Deploy erfordert eine Rücknahme; eine automatische Rücknahme ist in dieser Grundversion noch nicht implementiert und darf nicht behauptet werden.
@@ -52,8 +51,7 @@
 - Öffentliches GitHub-Repository und Standard-Actions für die Prüfstrecke. GitHub-Pages- und Kontingentbedingungen gelten; keine Zusage unbegrenzter Ressourcen.
 - Die App verwendet keine kostenpflichtige KI-API. Das ChatGPT-Kontingent der Entwicklerin ist getrennt vom App-Hosting.
 - Vollständiger Cloud-Auftrag und tatsächlicher iPhone-Test bleiben bis zur Prüfung offen.
-- Kein separates Supabase-Testprojekt: Migrationen auf main gehen über die GitHub-Integration ins Live-Projekt und laufen nicht durch „Check and publish“. Gemäß POC-Entscheidung vom 02.11.2026 prüft der Agent den betroffenen Speicherablauf per Smoke-Test; die Wegwerf-Datenbanktests aus supabase/README.md dienen gezielter Fehlerdiagnose und sind keine zusätzliche Routinepflicht. Bewusstes POC-Risiko: Eine fehlerhafte Migration trifft sofort die Live-Daten.
-- AGENTS.md bleibt kompakt; seltene Anleitungen werden nur bei tatsächlichem Bedarf gelesen. Alle Featurewünsche sind POC. Keine zusätzlichen Datenschutz-, Produktionshärtungs- oder Architekturrunden; vor einer Testaufforderung müssen App-Start und geänderter Kernablauf im Smoke-Test funktionieren.
+- Kein separates Supabase-Testprojekt: Migrationen auf main gehen über die GitHub-Integration ins Live-Projekt und laufen nicht durch „Check and publish“. Der Agent prüft den betroffenen Speicherablauf per Smoke-Test; die Wegwerf-Datenbanktests aus supabase/README.md dienen gezielter Fehlerdiagnose und sind keine zusätzliche Routinepflicht. Bewusstes POC-Risiko: Eine fehlerhafte Migration trifft sofort die Live-Daten.
 
 ## Quellen, 31.10.2026
 

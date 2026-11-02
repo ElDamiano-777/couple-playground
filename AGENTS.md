@@ -1,46 +1,31 @@
-# Arbeitsregeln: ausschließlich POC
+# Agentenregeln
 
-## Maßstab für jeden Auftrag
+## Arbeitsweise
 
-- Das gesamte Projekt und **jeder Featurewunsch** sind bis zu Damians ausdrücklicher Änderung ausschließlich ein POC für zwei Personen. Keine Einzelfallprüfung auf Produktionsreife.
-- Die kleinste vollständige, nutzbare Lösung mit bestehenden Bausteinen umsetzen. Keine Vorbereitung auf Skalierung, öffentlichen Produktstart oder hypothetische Folgefeatures. Keine generischen Frameworks, zusätzlichen Schichten oder unabhängigen Aufräumarbeiten.
-- **Entscheidender Nachweis: Die App startet und der geänderte Kernablauf funktioniert im Smoke-Test. Erst danach die Nutzerin zum Ausprobieren auffordern.** Keine allgemeine Fehlerfreiheit behaupten.
-- Datenschutz, Compliance, Produktionshärtung, vollständige Auth-Prüfungen, Architektur-Audits und Optimierungen sind keine zusätzlichen POC-Aufträge. Die bestehende Umsetzung nutzen; solche Arbeiten nur bei ausdrücklichem Auftrag oder wenn sie einen konkret beobachteten Fehler im gewünschten Ablauf beheben.
-- Wunsch umsetzen, passend prüfen, veröffentlichen, Ergebnis melden, stoppen. Keine zusätzlichen Review-, Test- oder Dokumentationsrunden auf Vorrat.
+- Dieses Projekt ist ein POC für zwei Personen. Jeden Wunsch als kleinste vollständige, nutzbare Lösung umsetzen; danach stoppen.
+- KISS und YAGNI: einfache Lösungen, keine vorsorglichen Features, Architektur oder Infrastruktur. Kein Overengineering und keine unabhängigen Umbauten.
+- DRY mit Augenmaß: echte wiederholte Logik bündeln; keine Abstraktion nur wegen ähnlich aussehender Stellen.
+- Klare Namen, überschaubare Funktionen und Komponenten, passende Typen und verständliche Fehlerbehandlung. Bestehende Muster und Abhängigkeiten bevorzugen.
+- Nur auftragsrelevanten Code lesen und ändern. Bekannte unveränderte Inhalte weiterverwenden. Kleine Wünsche direkt lösen; keine Routinepläne, Subagents, ADRs oder zusätzlichen Audit- und Optimierungsrunden.
+- Technische Entscheidungen und gewöhnliche Umsetzungsschritte selbst übernehmen. Nur wesentliche offene Produktfragen stellen; kleine reversible Unklarheiten selbst lösen. Bestehende Daten und funktionierende Abläufe erhalten.
 
-## Direkt und sparsam arbeiten
+## Sprache und Caveman
 
-- Im aktiven Modell direkt bearbeiten. Keine routinemäßige Modellrecherche, Routing-Abwägung oder Delegation. Subagents nur bei einem größeren klar abgegrenzten Teilauftrag mit erkennbarem Nutzen und vorhandener Autorisierung.
-- Nur relevante Dateien und Ausschnitte lesen. Unveränderte bekannte Inhalte weiterverwenden; keine pauschale Dokumentationslektüre. Tool-Ausgaben begrenzen, Fehlerlogs gezielt lesen.
-- Kleine zusammenhängende Wünsche brauchen normalerweise einen Commit und keinen formalen Plan. Nur tatsächlich unabhängig nutzbare Teile aufteilen; keine Veröffentlichung pro technischem Zwischenschritt.
-- Klare Namen, verständliche Fehler und vorhandene Muster genügen. Kein Umbau für abstrakte Codequalität. Tests prüfen sichtbares Verhalten statt die Implementierung nachzuschreiben.
-- Kein ADR, Architektur-Update oder Begleitprotokoll für gewöhnliche Umsetzung. Bestehende Entscheidungen nur bei einer konkreten Unklarheit nachlesen. Wichtige Arbeitsregeländerungen und sichtbare Features knapp im Changelog festhalten.
+- **Jede Session mit Caveman Full beginnen:** einmal [.agents/skills/caveman/SKILL.md](.agents/skills/caveman/SKILL.md) lesen und aktiv anwenden. Für die gesamte Session beibehalten, bis die Nutzerin einen anderen Modus verlangt. `.caveman.json` enthält den Standard `full`.
+- In der Sprache der aktuellen Nachricht antworten: Russisch, Englisch oder Deutsch. Kurz, direkt und leicht verständlich; Technik nur auf Nachfrage erklären. Die Nutzerin arbeitet ausschließlich am iPhone.
+- Code, Kommentare, Commits und Dokumentation normal und vollständig schreiben. Klarheit geht vor Kürze.
 
-## Mit der Nutzerin arbeiten
+## Prüfen und veröffentlichen
 
-- Sie entwickelt ihre erste App ausschließlich am iPhone. Antworte in der Sprache ihrer aktuellen Nachricht: Russisch, Englisch oder Deutsch; eine ausdrücklich gewünschte Sprache geht vor. Die App-Sprache bleibt davon unabhängig.
-- Warm, direkt, kurz und in natürlichen ganzen Sätzen schreiben. Keine Füllsätze, künstliches Lob oder Telegrammsprache. Über Wünsche, sichtbares Verhalten und Ergebnisse sprechen; Technik nur auf Nachfrage erklären.
-- Ein Featurewunsch autorisiert die gewöhnlichen Schritte bis zur Veröffentlichung: ändern, installieren, gezielt prüfen, committen, nach main pushen, nötigenfalls PR abwickeln und Deploy beobachten. Keine erneuten Freigaben oder technischen Aufgaben für sie. Plattformberechtigungen bleiben verbindlich.
-- Kleine reversible Unklarheiten selbst entscheiden. Nur bei einer wesentlichen offenen Produktfrage eine einfache Frage mit konkreten Beispielen stellen. Keine ungefragten Zusatzfeatures.
-- Technische Fehler selbst lösen. Bei einem echten Konto- oder Berechtigungsblocker kurz den Stand erklären und einen fertigen Weiterleitungstext für Damian geben. Nachrichten an ihn nur über einen ausdrücklich autorisierten Weg senden.
-- Kernaussage zuerst, dann nur nötige Details. Bei neuem Projektchat, abgeschlossenem Feature oder offener Produktentscheidung drei konkrete Folgeprompts als eine nummerierte Auswahl in ihrer Ich-Form anbieten. Höchstens einer schlägt etwas Neues vor. Status, Pflege und Bestätigungen brauchen kein Menü.
-- Eine Nummer führt die passende letzte Auswahl aus. Ausprobieren oder Nachdenken löst keinen Featurebau aus. Bei einer Produktfrage sind deren Antwortmöglichkeiten die Auswahl; kein zweites Menü.
-- Gelegentlich einen kurzen passenden Hinweis zum klein Anfangen, Ausprobieren oder konkreten Rückmelden geben, ohne Unterricht oder zusätzliche Verwaltungsarbeit. Abgelehnte Vorschläge und bereits bekannte Themen im [Begleitstand](docs/begleitung-stand.md) nur bei Bedarf nachsehen.
-- Bei einer bloßen Begrüßung im neuen Chat nur `goal.md` und `app.config.json` lesen, soweit noch nicht bekannt. Kurz tatsächlichen App-Stand, festen Link und drei passende nächste Wünsche nennen. Die Begrüßung startet keinen Featurebau.
-- Nach erfolgreicher Veröffentlichung kurz Änderung, festen klickbaren App-Link und Fundstelle nennen und zum Ausprobieren einladen. Nur nach erfolgreichem Smoke-Test und Veröffentlichung „fertig“ sagen. Solange etwas läuft oder blockiert ist, genau das melden. Keine Desktop-, Cache- oder Neuinstallationsanleitung als Standard.
+- Vor einer Testaufforderung App-Start und geänderten Kernablauf per Smoke-Test prüfen. Nur direkt betroffene Abläufe testen; passende grüne Ergebnisse nicht doppelt prüfen. Weitere Tests bei konkreten Fehlern statt auf Vorrat.
+- Gewöhnliche Featureaufträge bis Commit, main und Veröffentlichung abschließen. Bestehenden Branchschutz und CI erfüllen; nötige PRs selbst abwickeln, kein Force-Push.
+- Der PR baut; main prüft Build und iPhone-WebKit vor dem Pages-Deploy und anschließenden Livecheck. Zentrale erfolgreiche Ergebnisse übernehmen. Status höchstens etwa alle 45–60 Sekunden abfragen, Fehlerlogs gezielt lesen.
+- Reine Dokumentations- und Agentenregeländerungen brauchen nur Text-/Linkprüfung und Nachweis auf main; keinen App-Build, Smoke-Test oder Deploy. Ein älterer App-Commit in `version.json` ist dabei normal.
+- Erst nach erfolgreicher Prüfung und Veröffentlichung fertig melden und den festen App-Link nennen. Bei laufenden oder fehlgeschlagenen Schritten den tatsächlichen Stand nennen; technische Fehler selbst beheben.
 
-## Projekt und gezielte Anleitungen
+## Projekt
 
-- iPhone-PWA auf GitHub Pages: https://eldamiano-777.github.io/couple-playground/ . Verbindliche Adresse: `app.config.json`; Projektpfad `/couple-playground/` beibehalten. Vorhandenes Hosting und Supabase verwenden.
-- Lokal: Node.js 24, `npm ci`, `npm run dev`. Cloud-Einrichtung: `bash scripts/cloud-setup.sh`. `npm run verify` ist die optionale Vollprüfung.
-- Dieses Repository ist unabhängig von Hooka und SAFEKH. Keine fremden Release-, Jira-, Versions- oder Prüfprozesse übernehmen.
-- Vor einem Push: [Veröffentlichung](docs/agent-publishing.md). Nur bei neuen Datenmodellen oder geänderten Beziehungen: [Datenmodelle](docs/agent-data-linking.md).
-- Nur bei tatsächlich nötiger Delegation oder gewünschter Modellwahl: [Modelle](docs/agent-models.md). Nur bei einem konkreten Chatwechsel oder Skill-Vorschlag: [Chats und Skills](docs/agent-chats-and-skills.md). Keine Anleitung erneut vollständig lesen, wenn sie unverändert bekannt ist.
-
-## Smoke-Test und Veröffentlichung
-
-- Nur App-Start, geänderten Kernablauf und unmittelbar betroffene Nachbarn prüfen. Nach passendem grünen Ergebnis stoppen. Weitere Tests nur nach Änderungen, Fehlern oder einem konkret offenen Problem; vorhandene CI-Pflichtprüfungen nicht umgehen.
-- App-Code lokal nur gezielt prüfen, soweit nötig. Der PR baut; main prüft Build und iPhone-WebKit vor Veröffentlichung. Den erfolgreichen zentralen Deploy-/Livecheck übernehmen, nicht identisch manuell wiederholen.
-- Reine Entwicklungsdokumentation und Agent-Konfiguration: Text und Links nach Bedarf prüfen. Kein App-Build, Browser-/Datenbanktest oder App-Deploy; nachgewiesener Stand auf main genügt. Keine Testaufforderung an die Nutzerin für reine Regeln.
-- Migrationen folgen dem bestehenden POC-Weg: additiv nach main; kein separater Branch allein deshalb. Es gibt kein Supabase-Testprojekt, und „Check and publish“ prüft keine Migrationen. Nach dem Push den betroffenen Speicherablauf per Smoke-Test prüfen. Die Wegwerf-Datenbanktests aus `supabase/README.md` nur bei einem konkreten Fehler oder gezieltem Diagnosebedarf nutzen.
-- Keine halbfertige Funktion veröffentlichen. Bei Fehlern gezielt reparieren oder den vorhandenen Wiederherstellungsweg nutzen; nicht blind Daten zurücksetzen. Auf Wunsch Änderungen zurücknehmen und gespeicherte Inhalte erhalten.
+- App: https://eldamiano-777.github.io/couple-playground/ ; Konfiguration: `app.config.json`. iPhone-PWA, GitHub Pages und vorhandenes Supabase nutzen.
+- Node.js 24; `npm ci`, `npm run dev`, `npm run build`. Smoke-Tests gezielt mit Playwright; `npm run verify` ist die optionale Vollprüfung.
+- Migrationen additiv halten; main wird über die bestehende Supabase-Integration angewendet. Danach den betroffenen Speicherablauf prüfen.
+- Produktstand: `goal.md`. Technische Details nur bei Bedarf in `docs/architecture.md`, `docs/owner-setup.md` und `supabase/README.md` nachsehen; keine Pflichtlektüre bei jedem Auftrag.

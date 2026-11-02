@@ -1,9 +1,9 @@
 {
   "repository": "https://github.com/juliusbrussee/caveman",
-  "revision": "9b68f7ed12b05e7efaff18e65c5a3fc2849fd0a4",
+  "revision": "2e068f735253cce28256744804785f01887d9646",
   "skill_path": "skills/caveman/SKILL.md",
   "default_mode": "full",
-  "upstream_canonical_mode": "caveman",
+  "activation": "AGENTS.md",
   "sha256": {
     "SKILL.md": "415d43518f2b1a9498c15a445d4657117b129ee5e81b19454ce348439cc6672b",
     "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
