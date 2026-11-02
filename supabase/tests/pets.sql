@@ -66,3 +66,20 @@ select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000002
 select pg_temp.check_true((select package_size = '1.8 kg' and photo is not null from public.pet_food where pet_id = :'pet_id'));
 select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000003', false);
 select pg_temp.check_true((select count(*) = 0 from public.pet_food));
+reset role;
+\ir ../migrations/20261102040000_pet_food_preference_sections.sql
+set role authenticated;
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001', false);
+select pg_temp.check_true((select category = 'dislike' and ingredient = 'Turkey' and food_type = 'Wet' from public.pet_dislikes where pet_id = :'pet_id'));
+insert into public.pet_dislikes(pet_id, category, ingredient, food_type) values(:'pet_id', 'like', 'Fish', '');
+insert into public.pet_dislikes(pet_id, category, ingredient, food_type, notes) values(:'pet_id', 'note', 'Small portions', '', 'Serve slowly');
+do $$ begin
+  begin insert into public.pet_dislikes(pet_id, category, ingredient, food_type) values(current_setting('test.pet_id')::uuid, 'dislike', 'Chicken', ''); raise exception 'TEST FAILED'; exception when check_violation then null; end;
+end $$;
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000002', false);
+select pg_temp.check_true((select count(*) = 3 from public.pet_dislikes where pet_id = :'pet_id'));
+update public.pet_dislikes set ingredient = 'Salmon' where pet_id = :'pet_id' and category = 'like';
+delete from public.pet_dislikes where pet_id = :'pet_id' and category = 'note';
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000003', false);
+select pg_temp.check_true((select count(*) = 0 from public.pet_dislikes));
+with changed as (update public.pet_dislikes set notes = 'Forbidden' where pet_id = :'pet_id' returning 1) select pg_temp.check_true((select count(*) = 0 from changed));

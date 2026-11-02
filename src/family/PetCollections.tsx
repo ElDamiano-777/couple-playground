@@ -3,9 +3,10 @@ import { supabase } from '../shared/client';
 import { readPhoto } from './petPhoto';
 
 type Food = { id: string; pet_id: string; photo: string | null; brand: string; name: string; flavor: string; food_type: string; notes: string; package_size: string };
-type Dislike = { id: string; pet_id: string; ingredient: string; food_type: string; notes: string };
+type PreferenceKind = 'like' | 'dislike' | 'note';
+type Dislike = { id: string; pet_id: string; ingredient: string; food_type: string; notes: string; category: PreferenceKind };
 type FoodDraft = Omit<Food, 'id' | 'pet_id'>;
-type DislikeDraft = Omit<Dislike, 'id' | 'pet_id'>;
+type DislikeDraft = Omit<Dislike, 'id' | 'pet_id' | 'category'>;
 const emptyFood = (): FoodDraft => ({ photo: null, brand: '', name: '', flavor: '', food_type: '', notes: '', package_size: '' });
 const emptyDislike = (): DislikeDraft => ({ ingredient: '', food_type: '', notes: '' });
 const types = ['Wet', 'Dry', 'Treats', 'Other'];
@@ -26,6 +27,7 @@ export default function PetCollections({ petId, initialTab, onBack }: { petId: s
   const [dislike, setDislike] = useState<DislikeDraft>(emptyDislike);
   const [editingFood, setEditingFood] = useState<string | null>(null);
   const [editingDislike, setEditingDislike] = useState<string | null>(null);
+  const [preferenceKind, setPreferenceKind] = useState<PreferenceKind>('dislike');
   const [foodForm, setFoodForm] = useState(false);
   const [dislikeForm, setDislikeForm] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -78,7 +80,7 @@ export default function PetCollections({ petId, initialTab, onBack }: { petId: s
     const values = { ...dislike, ingredient: dislike.ingredient.trim() };
     const query = editingDislike
       ? supabase.from('pet_dislikes').update(values).eq('id', editingDislike).eq('pet_id', petId)
-      : supabase.from('pet_dislikes').insert({ ...values, pet_id: petId });
+      : supabase.from('pet_dislikes').insert({ ...values, category: preferenceKind, pet_id: petId });
     const result = await query.select().single();
     if (result.error) setError('Could not save this dislike. Your changes are still here.');
     else { setDislikes(rows => [...rows.filter(row => row.id !== result.data.id), result.data as Dislike]); setDislikeForm(false); setEditingDislike(null); setDislike(emptyDislike()); }
@@ -122,16 +124,23 @@ export default function PetCollections({ petId, initialTab, onBack }: { petId: s
       <label htmlFor="food-notes">Notes (optional)</label><textarea id="food-notes" rows={3} maxLength={4000} value={food.notes} onChange={event => setFood({ ...food, notes: event.target.value })} />
       <button className="primary" disabled={busy || photoLoading || !food.name.trim()}>Save food</button><button type="button" className="text-action" disabled={busy || photoLoading} onClick={() => setFoodForm(false)}>Close</button>
     </form>}</>}
-    {tab === 'dislikes' && <><h2>Dislikes</h2>{!loading && dislikes.length === 0 && <p>No food dislikes saved yet.</p>}
-    {dislikes.map(item => <article className="dashboard-card dislike-card" key={item.id}><h3>{item.ingredient}</h3><p>{item.food_type}{item.notes && ` · ${item.notes}`}</p>
-      <button className="text-action" disabled={busy} aria-label={`Edit ${item.ingredient}`} onClick={() => { setEditingDislike(item.id); setDislike({ ingredient: item.ingredient, food_type: item.food_type, notes: item.notes }); setDislikeForm(true); }}>Edit</button>
-      <button className="text-action" disabled={busy} aria-label={`Remove ${item.ingredient}`} onClick={() => void remove('pet_dislikes', item.id, item.ingredient)}>Remove</button></article>)}
-    {!dislikeForm && <button className="primary" disabled={loading} onClick={() => { setEditingDislike(null); setDislike(emptyDislike()); setDislikeForm(true); }}>+ Add Dislike</button>}
-    {dislikeForm && <form className="note-form" onSubmit={saveDislike}><h2>{editingDislike ? 'Edit Dislike' : 'Add Dislike'}</h2>
-      <label htmlFor="dislike-ingredient">Flavor or ingredient</label><input id="dislike-ingredient" required maxLength={150} value={dislike.ingredient} onChange={event => setDislike({ ...dislike, ingredient: event.target.value })} />
-      <FoodType required value={dislike.food_type} onChange={value => setDislike({ ...dislike, food_type: value })} />
-      <label htmlFor="dislike-notes">Notes (optional)</label><textarea id="dislike-notes" rows={3} maxLength={4000} value={dislike.notes} onChange={event => setDislike({ ...dislike, notes: event.target.value })} />
-      <button className="primary" disabled={busy || !dislike.ingredient.trim()}>Save dislike</button><button type="button" className="text-action" disabled={busy} onClick={() => setDislikeForm(false)}>Close</button>
-    </form>}</>}
+    {tab === 'dislikes' && <><h2>Food Preferences</h2>
+    {([['like', 'Likes', 'Add Like'], ['dislike', 'Dislikes', 'Add Dislike'], ['note', 'Important Notes', 'Add Note']] as const).map(([kind, title, addLabel]) => <section className="preference-section" key={kind}>
+      <h3>{title}</h3>
+      {!loading && dislikes.filter(item => (item.category || 'dislike') === kind).length === 0 && <p className="preference-empty">{kind === 'like' ? 'No favorites saved yet.' : kind === 'dislike' ? 'No food dislikes saved yet.' : 'No food notes saved yet.'}</p>}
+      <div className="preference-list">{dislikes.filter(item => (item.category || 'dislike') === kind).map(item => <article className="preference-card" key={item.id}>
+        <div><strong>{item.ingredient}</strong>{item.food_type && <span className="preference-type">{item.food_type === 'Wet' ? 'Wet food only' : item.food_type === 'Dry' ? 'Dry food only' : item.food_type}</span>}{item.notes && <p>{item.notes}</p>}</div>
+        <div className="preference-actions"><button className="text-action" disabled={busy} aria-label={`Edit ${item.ingredient}`} onClick={() => { setPreferenceKind(kind); setEditingDislike(item.id); setDislike({ ingredient: item.ingredient, food_type: item.food_type, notes: item.notes }); setDislikeForm(true); }}>Edit</button>
+        <button className="text-action" disabled={busy} aria-label={`Remove ${item.ingredient}`} onClick={() => void remove('pet_dislikes', item.id, item.ingredient)}>Remove</button></div></article>)}</div>
+      {!dislikeForm && <button className="preference-add" disabled={loading || busy} onClick={() => { setPreferenceKind(kind); setEditingDislike(null); setDislike(emptyDislike()); setDislikeForm(true); }}>+ {addLabel}</button>}
+      {dislikeForm && preferenceKind === kind && <form className="note-form" onSubmit={saveDislike}><h2>{editingDislike ? `Edit ${title === 'Important Notes' ? 'Note' : title === 'Likes' ? 'Like' : 'Dislike'}` : addLabel}</h2>
+        <label htmlFor="dislike-ingredient">{kind === 'like' ? 'Flavor or product' : kind === 'note' ? 'Note' : 'Flavor or ingredient'}</label><input id="dislike-ingredient" required maxLength={150} value={dislike.ingredient} onChange={event => setDislike({ ...dislike, ingredient: event.target.value })} />
+        {kind !== 'note' && <FoodType required={kind === 'dislike'} value={dislike.food_type} onChange={value => setDislike({ ...dislike, food_type: value })} />}
+        <label htmlFor="dislike-notes">{kind === 'note' ? 'More details (optional)' : 'Notes (optional)'}</label><textarea id="dislike-notes" rows={3} maxLength={4000} value={dislike.notes} onChange={event => setDislike({ ...dislike, notes: event.target.value })} />
+        <button className="primary" disabled={busy || !dislike.ingredient.trim()}>Save {kind === 'like' ? 'like' : kind === 'note' ? 'note' : 'dislike'}</button><button type="button" className="text-action" disabled={busy} onClick={() => setDislikeForm(false)}>Close</button>
+      </form>}
+    </section>)}
+    </>}
+
   </>;
 }
