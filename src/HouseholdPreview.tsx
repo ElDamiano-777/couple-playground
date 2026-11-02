@@ -31,6 +31,8 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     <div className="notification-note"><Symbol name="bell" /><p>Phone notifications aren’t connected yet. We’ll set them up after your shared space is ready.</p></div>
   </section>;
 
+  if (page === `folders`) return <section className="preview-page"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}<div className="dashboard-card"><h2>Shopping</h2>{shopping.household ? <p>{shopping.items.filter(item => !item.bought).length} items to buy</p> : <p>Sign in to see your shared list.</p>}<button className="text-action" onClick={() => navigate(`shopping`)}>Open shopping →</button></div><div className="dashboard-card"><h2>Saved together</h2><p>{collections.entries.filter(entry => entry.kind === `wish`).length} wishes · {collections.entries.filter(entry => entry.kind === `place`).length} places · {collections.entries.filter(entry => entry.kind === `recipe`).length} recipes</p></div></section>;
+
   return <div className="household-preview">
     {[`home`, `shopping`, `recipes`, `children`, `pets`].includes(page) && <HomeNavigation page={page} navigate={navigate} />}
     {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} />

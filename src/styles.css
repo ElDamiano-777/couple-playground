@@ -267,3 +267,14 @@
 @media (max-width: 760px) {
   .bottom-nav { bottom: 0; width: 100%; padding-bottom: calc(10px + env(safe-area-inset-bottom)); border-radius: 23px 23px 0 0; }
 }
+
+/* Compact mobile layout */
+.preview-page,.inner-page{margin-top:16px;min-height:0}
+.preview-page h1,.inner-page h1{font-size:32px;line-height:1.15;margin:4px 0 10px}
+.page-intro{margin:6px 0 12px;line-height:1.45}
+.dashboard-card{padding:16px;margin-bottom:12px}
+.notice{padding:10px 12px;font-size:13px;line-height:1.4;margin:8px 0}
+.account-line{padding:4px 0;margin-bottom:8px}
+.add-fab{position:fixed;z-index:20;right:20px;bottom:calc(88px + env(safe-area-inset-bottom));width:56px;height:56px;padding:0;border-radius:50%;background:#8040be;color:white;font-size:32px;box-shadow:0 4px 16px #53306655}
+.add-sheet{position:fixed;z-index:30;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(500px, calc(100% - 24px));max-height:70dvh;overflow:auto;box-shadow:0 5px 35px #38204466}
+@media(max-width:760px){.header{padding-top:env(safe-area-inset-top)}.home-navigation{margin-bottom:8px}.footer{padding-bottom:calc(90px + env(safe-area-inset-bottom))}}

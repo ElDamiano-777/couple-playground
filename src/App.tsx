@@ -38,6 +38,7 @@ export default function App() {
   const [profile, setProfile] = useState<Profile | null>(readProfile);
   const [profileSaved, setProfileSaved] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [addingNote, setAddingNote] = useState(false);
   const [draft, setDraft] = useState(``);
   const [message, setMessage] = useState(``);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -200,11 +201,13 @@ export default function App() {
         <h1>Thoughts for later<span>.</span></h1>
         <p className="intro">An idea for an evening, a few kind words, or something just for you.</p>
         <div className="local-label"><span />Only on this phone for now. Not shared with your partner yet.</div>
-        <form className="note-form" onSubmit={save}>
+        <button className="add-fab" aria-label="Add thought" onClick={() => setAddingNote(true)}>+</button>
+        {addingNote && <form className="note-form add-sheet" onSubmit={save}>
+          <button className="text-action" type="button" onClick={() => setAddingNote(false)}>Close</button>
           <label htmlFor="thought">What would you like to remember?</label>
           <textarea id="thought" value={draft} onChange={event => setDraft(event.target.value)} placeholder="Maybe watching the sunrise by the sea one day…" rows={4} />
           <button className="primary" disabled={!draft.trim() || loadFailed} type="submit">Save thought <Icon name="plus" /></button>
-        </form>
+        </form>}
         {message && <p className="feedback" role="status">{message}</p>}
         <div className="saved-heading"><h2>Your notes</h2><span>{notes.length}</span></div>
         {notes.length === 0 && !loadFailed && <div className="empty-state"><Icon name="note" /><p>Your first thought can be a tiny one.</p></div>}

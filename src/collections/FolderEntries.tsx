@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { FolderEntriesState } from './useFolderEntries';
 import './collections.css';
 
@@ -7,6 +8,7 @@ const labels = {
   place: { heading: `Places`, title: `Place name`, notes: `Address or note (optional)`, add: `Add place` },
 };
 export function FolderEntries({ state, onSignIn }: { state: FolderEntriesState; onSignIn: () => void }) {
+  const [adding, setAdding] = useState(false);
   const copy = labels[state.kind];
   const disabled = state.busy || !state.online;
   const draft = state.drafts[state.kind];
@@ -23,7 +25,7 @@ export function FolderEntries({ state, onSignIn }: { state: FolderEntriesState; 
         {!state.online && <p className="notice" role="status">You’re offline. Your text stays here. Connect to save it.</p>}
         {state.error && <p className="feedback error-message" role="alert">{state.error}</p>}
         {state.notice && <p className="feedback" role="status">{state.notice}</p>}
-        {state.loading ? <p role="status">Loading saved entries…</p> : state.entries.filter((entry) => entry.kind === state.kind).length === 0 && <section className="dashboard-card collection-empty"><h2>This folder is empty for now.</h2><p>Add your first entry below.</p></section>}
+        {state.loading ? <p role="status">Loading saved entries…</p> : state.entries.filter((entry) => entry.kind === state.kind).length === 0 && <section className="dashboard-card collection-empty"><h2>This folder is empty for now.</h2><p>Tap + to add your first entry.</p></section>}
         <div className="collection-list">
           {state.entries.filter((entry) => entry.kind === state.kind).map((entry) => <article key={entry.id} className="dashboard-card">
             {state.edit?.id === entry.id ? <form className="note-form" onSubmit={(event) => { event.preventDefault(); void state.saveEdit(); }}>
@@ -44,7 +46,9 @@ export function FolderEntries({ state, onSignIn }: { state: FolderEntriesState; 
             </>}
           </article>)}
         </div>
-        <form className="note-form" onSubmit={(event) => { event.preventDefault(); void state.add(); }}>
+        <button className="add-fab" aria-label={copy.add} onClick={() => setAdding(true)}>+</button>
+        {adding && <form className="note-form add-sheet" onSubmit={(event) => { event.preventDefault(); void state.add(); }}>
+          <button className="text-action" type="button" onClick={() => setAdding(false)}>Close</button>
           <h2>{copy.add}</h2>
           <label htmlFor="collection-add-title">{copy.title}</label>
           <input id="collection-add-title" required maxLength={150} disabled={state.busy} value={draft.title} onChange={(event) => state.setDraft(`title`, event.target.value)} />
@@ -52,7 +56,7 @@ export function FolderEntries({ state, onSignIn }: { state: FolderEntriesState; 
           <textarea id="collection-add-notes" rows={6} maxLength={20000} disabled={state.busy} value={draft.notes} onChange={(event) => state.setDraft(`notes`, event.target.value)} />
           <button className="primary" disabled={disabled || !draft.title.trim()} type="submit">{state.busy ? `Saving…` : copy.add}</button>
           <p className="small-print">This entry is saved online in your home’s shared folder.</p>
-        </form>
+        </form>}
       </>}
   </section>;
 }
