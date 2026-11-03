@@ -75,19 +75,21 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
     await expect(
       a.getByText(`Synthetic apples`, { exact: true }),
     ).toBeVisible();
+    await a.getByText(`Synthetic apples`, { exact: true }).click();
+    await expect(a.getByRole(`dialog`)).toContainText(`Category`);
+    await expect(a.getByRole(`checkbox`, { name: /Synthetic apples/ })).not.toBeChecked();
+    await a.getByRole(`button`, { name: `Close`, exact: true }).click();
     await closeAddForm(b);
     await b.getByRole(`button`, { name: `Refresh`, exact: true }).click();
     await expect(
       b.getByRole(`checkbox`, { name: /Synthetic apples/ }),
     ).toBeVisible();
     await b.getByRole(`checkbox`, { name: /Synthetic apples/ }).click();
-    await expect(
-      b.getByRole(`checkbox`, { name: /Synthetic apples/ }),
-    ).toBeChecked();
+    await b.getByText(`Purchased (1)`, { exact: true }).click();
+    await expect(b.getByRole(`checkbox`, { name: `Return Synthetic apples to active list` })).toBeChecked();
     await a.getByRole(`button`, { name: `Refresh`, exact: true }).click();
-    await expect(
-      a.getByRole(`checkbox`, { name: /Synthetic apples/ }),
-    ).toBeChecked();
+    await a.getByText(`Purchased (1)`, { exact: true }).click();
+    await expect(a.getByRole(`checkbox`, { name: `Return Synthetic apples to active list` })).toBeChecked();
     await b.getByRole(`button`, { name: `← Shopping` }).click();
     await openShoppingCategory(b, `Pets`);
     await b.getByRole(`button`, { name: `Add purchase`, exact: true }).click();

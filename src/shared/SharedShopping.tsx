@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
 import QuickAdd from "./QuickAdd";
 import { Symbol } from "../ui/Symbol";
 import PetFoodShopping from "./PetFoodShopping";
+import ShoppingItemDetail, { shoppingPhoto } from './ShoppingItemDetail';
 
 export default function SharedShopping({
   state,
@@ -18,6 +19,14 @@ export default function SharedShopping({
   const [quickOpen, setQuickOpen] = useState(false);
   const [filter, setFilter] = useState<ShoppingItem[`category`] | null>(initialCategory);
   const [copied, setCopied] = useState(false);
+  const [detail, setDetail] = useState<ShoppingItem | null>(null);
+  const [undoItem, setUndoItem] = useState<ShoppingItem | null>(null);
+  const [purchasedOpen, setPurchasedOpen] = useState(false);
+  useEffect(() => {
+    if (!undoItem) return;
+    const timer = window.setTimeout(() => setUndoItem(null), 5000);
+    return () => clearTimeout(timer);
+  }, [undoItem]);
   const feedback = (
     <>
       {state.error && (
@@ -365,11 +374,10 @@ export default function SharedShopping({
 
             <div className="grocery-list">
               {state.items
-                .filter((item) => filter === item.category)
-                .sort((a, b) => Number(a.bought) - Number(b.bought))
+                .filter((item) => filter === item.category && !item.bought)
                 .map((item) => (
                   <div
-                    className={`grocery-row ${item.bought ? `is-bought` : ``}`}
+                    className="grocery-row"
                     key={item.id}
                   >
                     {state.edit?.id === item.id ? <form className="shopping-edit" onSubmit={event => { event.preventDefault(); void state.saveEdit(); }}>
@@ -382,15 +390,16 @@ export default function SharedShopping({
                       <button className="primary" disabled={state.busy || !state.edit.name.trim() || !navigator.onLine}>Save item</button>
                       <button type="button" className="text-action" disabled={state.busy} onClick={state.cancelEdit}>Cancel</button>
                     </form> : <>
-                    <label className="shared-item-label">
-                      <input
+                    <input
+                        aria-label={`Mark ${item.name} as purchased`}
                         type="checkbox"
                         checked={item.bought}
                         disabled={state.busy || !navigator.onLine}
                         onChange={() => {
-                          void state.markBought(item);
+                          void state.markBought(item).then(success => { if (success) setUndoItem(item); });
                         }}
                       />
+                    <button type="button" className="shared-item-label shopping-item-open" onClick={() => setDetail(item)}>
                       <span className="shopping-thumb" aria-hidden="true">{item.pet_food_id && state.petFoodPhotos[item.pet_food_id] ? <img src={state.petFoodPhotos[item.pet_food_id]!} alt="" /> : item.favorite_id && state.favoritePhotos[item.favorite_id] ? <img src={state.favoritePhotos[item.favorite_id]!} alt="" /> : <Symbol name="shopping" />}</span>
                       <span className="grocery-copy">
                         <strong>{item.name}</strong>
@@ -399,7 +408,7 @@ export default function SharedShopping({
                           {item.bought ? `Bought · ` : ``}{item.created_by === state.session?.user.id ? `Added by you` : item.created_by ? `Added by your partner` : `Added by a former member`}
                         </small>
                       </span>
-                    </label>
+                    </button>
                     <span
                       className={`category-tag ${item.category.toLowerCase()}`}
                     >
@@ -425,6 +434,10 @@ export default function SharedShopping({
                   </div>
                 ))}
             </div>
+            {(() => {
+              const purchased = state.items.filter(item => filter === item.category && item.bought);
+              return purchased.length ? <details className="purchased-list" open={purchasedOpen} onToggle={event => setPurchasedOpen((event.currentTarget as HTMLDetailsElement).open)}><summary>Purchased ({purchased.length})</summary><div className="grocery-list">{purchased.map(item => <div className="grocery-row is-bought" key={item.id}><input aria-label={`Return ${item.name} to active list`} type="checkbox" checked disabled={state.busy || !navigator.onLine} onChange={() => { void state.markBought(item); }} /><button type="button" className="shared-item-label shopping-item-open" onClick={() => setDetail(item)}><span className="shopping-thumb" aria-hidden="true">{shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos) ? <img src={shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos)!} alt="" /> : <Symbol name="shopping" />}</span><span className="grocery-copy"><strong>{item.name}</strong><small>Purchased</small></span></button></div>)}</div></details> : null;
+            })()}
             <p className="preview-hint">
               {state.isPoc
                 ? `Both POC accounts share this test list. Don’t enter sensitive information.`
@@ -432,6 +445,8 @@ export default function SharedShopping({
               Saved online. You’ll need a connection to change this list.
             </p>
           </section>
+          {detail && <ShoppingItemDetail item={detail} photo={shoppingPhoto(detail, state.favoritePhotos, state.petFoodPhotos)} onClose={() => setDetail(null)} />}
+          {undoItem && <div className="purchase-toast" role="status">Marked as purchased.<button type="button" onClick={() => { void state.markBought(undoItem).then(success => { if (success) setUndoItem(null); }); }}>Undo</button></div>}
           </>}
           </>}
         </>

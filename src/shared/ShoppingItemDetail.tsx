@@ -1,0 +1,28 @@
+import type { ShoppingItem } from './useSharedShopping';
+import { Symbol } from '../ui/Symbol';
+
+export function shoppingPhoto(item: ShoppingItem, favoritePhotos: Record<string, string | null>, petFoodPhotos: Record<string, string | null>) {
+  return item.pet_food_id ? petFoodPhotos[item.pet_food_id] ?? null : item.favorite_id ? favoritePhotos[item.favorite_id] ?? null : null;
+}
+
+function field(notes: string, label: string) {
+  return notes.split(' · ').find(part => part.startsWith(`${label}: `))?.slice(label.length + 2) ?? '';
+}
+
+export default function ShoppingItemDetail({ item, photo, onClose }: { item: ShoppingItem; photo: string | null; onClose: () => void }) {
+  const brand = field(item.notes, 'Brand');
+  const quantity = field(item.notes, 'Quantity') || field(item.notes, 'Quantity or size') || field(item.notes, 'Size');
+  return <div className="shopping-detail-overlay" role="presentation" onMouseDown={onClose}>
+    <section className="shopping-detail-card" role="dialog" aria-modal="true" aria-labelledby="shopping-detail-title" onMouseDown={event => event.stopPropagation()}>
+      <button type="button" className="text-action shopping-detail-close" onClick={onClose}>Close</button>
+      <div className="shopping-detail-photo">{photo ? <img src={photo} alt="" /> : <Symbol name="shopping" />}</div>
+      <h2 id="shopping-detail-title">{item.name}</h2>
+      <dl>
+        {brand && <><dt>Brand</dt><dd>{brand}</dd></>}
+        {quantity && <><dt>Quantity</dt><dd>{quantity}</dd></>}
+        {item.notes && <><dt>Notes</dt><dd className="shopping-item-notes">{item.notes}</dd></>}
+        <dt>Category</dt><dd>{item.category}</dd>
+      </dl>
+    </section>
+  </div>;
+}

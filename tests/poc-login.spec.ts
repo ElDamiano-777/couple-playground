@@ -67,15 +67,13 @@ test(`named POC accounts require a password and share a ready-made list without 
       b.getByRole(`checkbox`, { name: /Synthetic POC shopping/ }),
     ).toBeVisible();
     await b.getByRole(`checkbox`, { name: /Synthetic POC shopping/ }).click();
-    await expect(
-      b.getByRole(`checkbox`, { name: /Synthetic POC shopping/ }),
-    ).toBeChecked();
+    await b.getByText(`Purchased (1)`, { exact: true }).click();
+    await expect(b.getByRole(`checkbox`, { name: `Return Synthetic POC shopping to active list` })).toBeChecked();
     await a.reload();
     await openShopping(a);
     await openShoppingCategory(a, `Home`);
-    await expect(
-      a.getByRole(`checkbox`, { name: /Synthetic POC shopping/ }),
-    ).toBeChecked();
+    await a.getByText(`Purchased (1)`, { exact: true }).click();
+    await expect(a.getByRole(`checkbox`, { name: `Return Synthetic POC shopping to active list` })).toBeChecked();
     await a
       .getByRole(`button`, { name: `Help and settings`, exact: true })
       .click();
