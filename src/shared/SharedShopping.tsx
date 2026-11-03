@@ -7,14 +7,16 @@ import PetFoodShopping from "./PetFoodShopping";
 export default function SharedShopping({
   state,
   hasOtherDraft = false,
+  initialCategory = null,
 }: {
   state: SharedShoppingState;
   hasOtherDraft?: boolean;
+  initialCategory?: ShoppingItem[`category`] | null;
 }) {
   const [mode, setMode] = useState<`poc` | `signin` | `signup`>(`poc`);
   const [adding, setAdding] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
-  const [filter, setFilter] = useState<ShoppingItem[`category`] | null>(null);
+  const [filter, setFilter] = useState<ShoppingItem[`category`] | null>(initialCategory);
   const [copied, setCopied] = useState(false);
   const feedback = (
     <>

@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import config from '../app.config.json';
 import HouseholdPreview, { Symbol, type HouseholdPage } from './HouseholdPreview';
 import { readNotes, saveNotes, type Note } from './storage';
-import { useSharedShopping } from './shared/useSharedShopping';
+import { useSharedShopping, type ShoppingItem } from './shared/useSharedShopping';
 import { useFamilyProfiles } from './family/useFamilyProfiles';
 import { useFolderEntries } from './collections/useFolderEntries';
 
@@ -35,6 +35,7 @@ export default function App() {
   const family = useFamilyProfiles({ userId: shopping.session?.user.id, household: shopping.household, authReady: shopping.authReady, contextLoading: shopping.loading, isPoc: shopping.isPoc });
   const collections = useFolderEntries({ userId: shopping.session?.user.id, household: shopping.household, authReady: shopping.authReady, contextLoading: shopping.loading, isPoc: shopping.isPoc });
   const [page, setPage] = useState<Page>(`folders`);
+  const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
   const [profileSaved, setProfileSaved] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -119,6 +120,7 @@ export default function App() {
   }
 
   function navigate(next: Page) {
+    if (next === `home` || next === `shopping`) setShoppingCategory(null);
     if (next === `children`) family.setKind(`child`);
     if (next === `pets`) family.setKind(`pet`);
     if (next === `recipes`) collections.setKind(`recipe`);
@@ -157,7 +159,7 @@ export default function App() {
         </div>
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
-      {([`folders`, `home`, `shopping`, `recipes`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} />}
+      {([`folders`, `home`, `shopping`, `recipes`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} shoppingCategory={shoppingCategory} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
       {page === `welcome` && <>
         <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">

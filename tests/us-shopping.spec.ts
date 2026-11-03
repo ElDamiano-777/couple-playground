@@ -1,0 +1,83 @@
+import { expect, test, type Page } from '@playwright/test';
+import { transport, pocPassword } from './helpers/sharedTransport';
+import { mainNavigation } from './navigation';
+
+test.use({ serviceWorkers: 'block' });
+async function login(page: Page, name: 'Masha' | 'Damian') {
+  await page.goto('./'); await page.getByRole('button', { name, exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+  await expect(page.getByRole('group', { name: 'Shopping categories' })).toBeVisible();
+}
+async function add(page: Page, name: string, category: string, details: string) {
+  await page.getByRole('button', { name: '+ Add shopping item' }).click();
+  await page.getByLabel('Item name', { exact: true }).fill(name);
+  await page.getByLabel('Details (optional)').fill(details);
+  await page.getByLabel('Category', { exact: true }).selectOption(category);
+  await page.getByRole('button', { name: 'Add item', exact: true }).click();
+  await expect(page.locator('.us-shopping-item').filter({ hasText: name })).toBeVisible();
+}
+
+test('the Us dashboard uses the shared list for all categories and keeps bought history', async ({ browser }) => {
+  test.setTimeout(120000);
+  const server = transport();
+  const a = await browser.newContext({ viewport: { width: 320, height: 844 }, serviceWorkers: 'block' });
+  const b = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  await server.attach(a); await server.attach(b);
+  const first = await a.newPage(), second = await b.newPage();
+  try {
+    await login(first, 'Masha'); await login(second, 'Damian');
+    await expect(first.getByText('All caught up! Your shopping list is empty.')).toBeVisible();
+    await add(first, 'Synthetic apples', 'Home', 'Organic');
+    await add(first, 'Synthetic pet food', 'Pets', 'For: First pet · Brand: Example');
+    await add(first, 'Synthetic wipes', 'Kids', 'Two packs');
+    const categories = first.getByRole('group', { name: 'Shopping categories' });
+    await expect(categories.getByRole('button', { name: /Home/ })).toContainText('1');
+    await expect(categories.getByRole('button', { name: /Pets/ })).toContainText('1');
+    await expect(categories.getByRole('button', { name: /Kids/ })).toContainText('1');
+    await expect(first.locator('.us-shopping-item').filter({ hasText: 'Synthetic pet food' })).toContainText('First pet');
+    expect(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(second.locator('.us-shopping-item')).toHaveCount(3);
+    await second.locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' }).getByRole('checkbox').click();
+    await expect(second.locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' })).toHaveCount(0);
+    await first.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(first.locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' })).toHaveCount(0);
+    await expect(categories.getByRole('button', { name: /Home/ })).toContainText('0');
+    await categories.getByRole('button', { name: /Home/ }).click();
+    await expect(first.getByRole('heading', { name: 'Home shopping' })).toBeVisible();
+    const purchased = first.getByRole('checkbox', { name: /Synthetic apples/ });
+    await expect(purchased).toBeChecked();
+    await purchased.click(); await expect(purchased).not.toBeChecked();
+    await mainNavigation(first).getByRole('button', { name: 'Us', exact: true }).click();
+    await expect(first.locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' })).toBeVisible();
+    await first.getByRole('group', { name: 'Shopping categories' }).getByRole('button', { name: /Pets/ }).click();
+    await expect(first.getByRole('heading', { name: 'Pets shopping' })).toBeVisible();
+    await expect(first.getByText('Synthetic pet food', { exact: true })).toBeVisible();
+    await mainNavigation(first).getByRole('button', { name: 'Us', exact: true }).click();
+    await first.getByRole('group', { name: 'Shopping categories' }).getByRole('button', { name: /Kids/ }).click();
+    await expect(first.getByRole('heading', { name: 'Kids shopping' })).toBeVisible();
+    await expect(first.getByText('Synthetic wipes', { exact: true })).toBeVisible();
+  } finally { await a.close(); await b.close(); }
+});
+
+test('an unsuccessful dashboard addition keeps its draft when navigating', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await login(page, 'Masha');
+  await page.getByRole('button', { name: '+ Add shopping item' }).click();
+  await page.getByLabel('Item name', { exact: true }).fill('Unfinished dashboard item');
+  await page.getByLabel('Details (optional)').fill('Keep these details');
+  await page.getByLabel('Category', { exact: true }).selectOption('Pets');
+  server.failNextSave();
+  await page.getByRole('button', { name: 'Add item', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('couldn’t complete');
+  await expect(page.getByText('All caught up! Your shopping list is empty.')).toHaveCount(0);
+  await expect(page.getByLabel('Item name', { exact: true })).toHaveValue('Unfinished dashboard item');
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+  await page.getByRole('button', { name: '+ Add shopping item' }).click();
+  await expect(page.getByLabel('Item name', { exact: true })).toHaveValue('Unfinished dashboard item');
+  await expect(page.getByLabel('Details (optional)')).toHaveValue('Keep these details');
+  await expect(page.getByLabel('Category', { exact: true })).toHaveValue('Pets');
+});

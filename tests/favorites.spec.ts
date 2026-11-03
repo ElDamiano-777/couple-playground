@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { transport, pocPassword } from './helpers/sharedTransport';
-import { openShopping, openShoppingCategory } from './navigation';
+import { mainNavigation, openShopping, openShoppingCategory } from './navigation';
 
 test.use({ serviceWorkers: 'block' });
 async function login(page: Page, name: 'Masha' | 'Damian') {
@@ -86,6 +86,11 @@ test('favorites and private photos persist, sync and stay independent of purchas
     await expect(first.getByText('Example, 1 box')).toBeVisible();
     await expect(first.locator('.grocery-row').filter({ hasText: 'Favorite tea' }).locator('.shopping-thumb img')).toHaveAttribute('src', originalPhoto!);
     await expect(first.getByText('Added by you', { exact: true })).toBeVisible();
+    await mainNavigation(first).getByRole('button', { name: 'Us', exact: true }).click();
+    const dashboardFavorite = first.locator('.us-shopping-item').filter({ hasText: 'Favorite tea' });
+    await expect(dashboardFavorite.locator('img')).toHaveAttribute('src', originalPhoto!);
+    await expect(dashboardFavorite).toContainText('Example, 1 box');
+    await first.getByRole('group', { name: 'Shopping categories' }).getByRole('button', { name: /Home/ }).click();
     await second.getByRole('button', { name: 'Close', exact: true }).click();
     await second.getByRole('button', { name: 'Refresh', exact: true }).click();
     const secondRow = second.locator('.grocery-row').filter({ hasText: 'Favorite tea' });

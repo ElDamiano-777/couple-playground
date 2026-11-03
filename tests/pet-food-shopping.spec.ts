@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { transport, pocPassword } from './helpers/sharedTransport';
-import { openPets, openShopping, openShoppingCategory } from './navigation';
+import { mainNavigation, openPets, openShopping, openShoppingCategory } from './navigation';
 
 test.use({ serviceWorkers: 'block' });
 async function login(page: Page, name: 'Masha' | 'Damian') {
@@ -60,6 +60,11 @@ test('pet food is shared, grouped by saved product and added without copying pho
     await expect(row.locator('img')).toHaveAttribute('src', photo!);
     await expect(row).toContainText('For: First pet & Second pet');
     await expect(row).toContainText('Brand: Example'); await expect(row).toContainText('Size: 1.8 kg'); await expect(row).toContainText('Store in a cool place');
+    await mainNavigation(first).getByRole('button', { name: 'Us', exact: true }).click();
+    const dashboardRow = first.locator('.us-shopping-item').filter({ hasText: 'Shared dinner' });
+    await expect(dashboardRow.locator('img')).toHaveAttribute('src', photo!);
+    await expect(dashboardRow).toContainText('Pets'); await expect(dashboardRow).toContainText('First pet & Second pet'); await expect(dashboardRow).toContainText('Brand: Example');
+    await openShopping(first); await openShoppingCategory(first, 'Pets');
     await openShopping(second); await openShoppingCategory(second, 'Pets');
     await second.getByRole('button', { name: 'Refresh', exact: true }).click();
     const partnerRow = second.locator('.grocery-row').filter({ hasText: 'Shared dinner' });
