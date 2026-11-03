@@ -24,10 +24,21 @@ test('favorites and private photos persist, sync and stay independent of purchas
     await first.getByLabel('Brand (optional)').fill('Example');
     await first.getByLabel('Quantity or size (optional)').fill('2 boxes');
     await first.getByLabel('Notes (optional)', { exact: true }).fill('Mint');
-    await first.getByLabel('Product photo (optional)').setInputFiles('public/icons/icon-192.png');
+    const tallPhoto = await first.evaluate(() => {
+      const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 1600;
+      const context = canvas.getContext('2d')!; context.fillStyle = '#865ca5'; context.fillRect(0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/png').split(',')[1];
+    });
+    await first.getByLabel('Product photo (optional)').setInputFiles({ name: 'product.png', mimeType: 'image/png', buffer: Buffer.from(tallPhoto, 'base64') });
     await expect(first.getByAltText('Product photo preview')).toBeVisible();
     await first.getByRole('button', { name: 'Save favorite' }).click();
     await expect(first.locator('.favorite-card img')).toBeVisible();
+    await expect(first.locator('.favorite-card img')).toHaveCSS('object-fit', 'contain');
+    expect(await first.locator('.favorite-thumb').evaluate(container => {
+      const outer = container.getBoundingClientRect(); const image = container.querySelector('img')!.getBoundingClientRect();
+      return image.left >= outer.left && image.right <= outer.right && image.top >= outer.top && image.bottom <= outer.bottom;
+    })).toBe(true);
+    expect(await first.locator('.quick-content').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
     await first.reload();
     await openShopping(first);
     await openShoppingCategory(first, 'Home');
