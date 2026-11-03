@@ -3,6 +3,7 @@ import { createWorker } from 'tesseract.js';
 import type { FavoriteDraft } from './useShoppingFavorites';
 
 type Recognized = Pick<FavoriteDraft, 'name' | 'brand' | 'flavor' | 'size' | 'quantity' | 'notes'>;
+export type ProductRecognition = { fields: Recognized; source: 'barcode' | 'text'; photo: string | null };
 const empty = (): Recognized => ({ name: '', brand: '', flavor: '', size: '', quantity: '', notes: '' });
 
 export function recognizeVisibleText(text: string): Recognized {
@@ -28,26 +29,37 @@ function fromProduct(product: Record<string, unknown>): Recognized {
   return fields;
 }
 
+function productPhoto(product: Record<string, unknown>) {
+  const candidate = typeof product.image_front_url === 'string' ? product.image_front_url : typeof product.image_url === 'string' ? product.image_url : '';
+  try {
+    const url = new URL(candidate);
+    return url.protocol === 'https:' && url.hostname.endsWith('openfoodfacts.org') ? url.href : null;
+  } catch { return null; }
+}
+
 async function barcodeFromImage(photo: string) {
   const reader = new BrowserMultiFormatReader();
   try { return (await reader.decodeFromImageUrl(photo)).getText(); } catch { return ''; }
 }
 
-async function lookupBarcode(code: string) {
-  if (!code) return empty();
-  const response = await fetch(`https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(code)}.json`, { headers: { Accept: 'application/json' } });
-  if (!response.ok) return empty();
+export async function recognizeBarcode(code: string): Promise<ProductRecognition> {
+  if (!code) return { fields: empty(), source: 'barcode', photo: null };
+  const fields = 'product_name,brands,quantity,image_front_url,image_url';
+  const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`, { headers: { Accept: 'application/json' } });
+  if (!response.ok) return { fields: empty(), source: 'barcode', photo: null };
   const body = await response.json() as { product?: Record<string, unknown>; status?: number };
-  return body.status === 1 && body.product ? fromProduct(body.product) : empty();
+  return body.status === 1 && body.product
+    ? { fields: fromProduct(body.product), source: 'barcode', photo: productPhoto(body.product) }
+    : { fields: empty(), source: 'barcode', photo: null };
 }
 
-export async function recognizeProduct(photo: string) {
+export async function recognizeProduct(photo: string): Promise<ProductRecognition> {
   const barcode = await barcodeFromImage(photo);
-  const barcodeFields = await lookupBarcode(barcode);
-  if (barcodeFields.name || barcodeFields.brand || barcodeFields.quantity) return { fields: barcodeFields, source: 'barcode' as const };
+  const barcodeResult = await recognizeBarcode(barcode);
+  if (barcodeResult.fields.name || barcodeResult.fields.brand || barcodeResult.fields.quantity) return barcodeResult;
   const worker = await createWorker('eng');
   try {
     const result = await worker.recognize(photo);
-    return { fields: recognizeVisibleText(result.data.text), source: 'text' as const };
+    return { fields: recognizeVisibleText(result.data.text), source: 'text', photo: null };
   } finally { await worker.terminate(); }
 }
