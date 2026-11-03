@@ -24,6 +24,15 @@ test('Quick Add shares selected and custom items with editable details', async (
     await expect(a.getByRole('button', { name: 'Cleaning', exact: true })).toHaveAttribute('aria-expanded', 'false');
     await a.getByRole('button', { name: 'Eggs', exact: true }).click();
     await a.getByRole('button', { name: 'Milk', exact: true }).click();
+    await a.getByRole('button', { name: 'Vegetables', exact: true }).click();
+    await expect(a.getByRole('button', { name: 'Carrots', exact: true })).toBeVisible();
+    await a.getByRole('button', { name: 'Carrots', exact: true }).click();
+    await expect(a.getByRole('button', { name: 'Carrots', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await a.getByRole('button', { name: 'Carrots', exact: true }).click();
+    await a.getByRole('button', { name: 'Cheese', exact: true }).click();
+    await expect(a.getByRole('button', { name: 'Gouda', exact: true })).toBeVisible();
+    await a.getByRole('button', { name: 'Gouda', exact: true }).click();
+    await a.getByRole('button', { name: 'Gouda', exact: true }).click();
     await a.getByRole('button', { name: 'Food', exact: true }).click();
     await expect(a.getByRole('button', { name: 'Food', exact: true })).toHaveAttribute('aria-expanded', 'false');
     await a.getByLabel('Search products').fill('sPoNg');
@@ -88,7 +97,7 @@ test('Quick Add shares selected and custom items with editable details', async (
     await expect(a.getByRole('button', { name: 'Cat litter' })).toBeVisible();
     await a.getByRole('button', { name: 'Cat litter' }).click();
     await a.getByRole('button', { name: 'Add 1 item' }).click();
-    await expect(a.getByText('Cat litter', { exact: true })).toBeVisible();
+    await expect(a.locator('.grocery-row').filter({ hasText: 'Cat litter' })).toBeVisible();
     await b.getByRole('button', { name: '← Shopping' }).click();
     await openShoppingCategory(b, 'Pets');
     await b.getByRole('button', { name: 'Refresh', exact: true }).click();

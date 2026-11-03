@@ -4,22 +4,25 @@ import ShoppingFavorites from './ShoppingFavorites';
 import { useShoppingFavorites, type Favorite } from './useShoppingFavorites';
 import { formatPetFoodDetails, usePetFoodShopping } from './usePetFoodShopping';
 
-const catalog: Record<ShoppingItem['category'], { title: string; items: string[] }[]> = {
+type CatalogItem = string | { title: string; items: string[] };
+type CatalogGroup = { title: string; items: CatalogItem[] };
+const catalog: Record<ShoppingItem['category'], CatalogGroup[]> = {
   Home: [
-    { title: 'Food', items: ['Eggs', 'Milk', 'Bread', 'Chicken', 'Meat', 'Vegetables', 'Fruit', 'Cheese', 'Rice', 'Pasta'] },
-    { title: 'Cleaning', items: ['Dish soap', 'Laundry detergent', 'All-purpose cleaner', 'Sponges', 'Trash bags'] },
-    { title: 'Bathroom & care', items: ['Toilet paper', 'Hand soap', 'Shampoo', 'Toothpaste', 'Deodorant'] },
-    { title: 'Everyday essentials', items: ['Paper towels', 'Batteries', 'Coffee', 'Tea'] },
+    { title: 'Food', items: ['Eggs', 'Milk', 'Bread', 'Chicken', 'Meat', { title: 'Vegetables', items: ['Carrots', 'Tomatoes', 'Cucumbers', 'Potatoes', 'Onions', 'Peppers', 'Salad'] }, { title: 'Fruit', items: ['Apples', 'Bananas', 'Oranges', 'Berries', 'Grapes'] }, { title: 'Cheese', items: ['Gouda', 'Emmental', 'Mozzarella', 'Cream cheese', 'Parmesan'] }, 'Rice', { title: 'Pasta', items: ['Spaghetti', 'Penne', 'Fusilli'] }] },
+    { title: 'Cleaning', items: [{ title: 'Dishwashing', items: ['Dish soap', 'Dishwasher tabs', 'Rinse aid'] }, { title: 'Laundry', items: ['Color detergent', 'Universal detergent', 'Fabric softener'] }, { title: 'Cleaners', items: ['All-purpose cleaner', 'Bathroom cleaner', 'Glass cleaner'] }, 'Sponges', 'Trash bags'] },
+    { title: 'Bathroom & care', items: ['Toilet paper', 'Hand soap', { title: 'Hair & body', items: ['Shampoo', 'Conditioner', 'Shower gel'] }, { title: 'Dental care', items: ['Toothpaste', 'Toothbrushes', 'Dental floss'] }, 'Deodorant'] },
+    { title: 'Everyday essentials', items: ['Paper towels', { title: 'Batteries', items: ['AA batteries', 'AAA batteries'] }, { title: 'Coffee', items: ['Ground coffee', 'Coffee beans', 'Coffee capsules'] }, { title: 'Tea', items: ['Black tea', 'Herbal tea', 'Green tea'] }] },
   ],
   Pets: [
     { title: 'Food & treats', items: ['Dry food', 'Wet food', 'Treats'] },
     { title: 'Care & supplies', items: ['Cat litter', 'Toys', 'Grooming supplies', 'Pet care products'] },
   ],
   Kids: [
-    { title: 'Essentials', items: ['Diapers', 'Wipes', 'Baby food', 'Clothes'] },
+    { title: 'Essentials', items: ['Diapers', 'Wipes', { title: 'Baby food', items: ['Fruit puree', 'Vegetable puree', 'Baby cereal'] }, 'Clothes'] },
     { title: 'Play & care', items: ['Toys', 'Shampoo', 'Hygiene products', 'Care products'] },
   ],
 };
+const isCatalogSubgroup = (item: CatalogItem): item is Exclude<CatalogItem, string> => typeof item !== 'string';
 
 export default function QuickAdd({ category: initialCategory, state, onClose, dashboard = false }: { category: ShoppingItem['category']; state: SharedShoppingState; onClose: () => void; dashboard?: boolean }) {
   const [category, setCategory] = useState(initialCategory);
@@ -27,10 +30,11 @@ export default function QuickAdd({ category: initialCategory, state, onClose, da
   const petFood = usePetFoodShopping(state.session?.user.id, state.household, dashboard && category === 'Pets');
   const [search, setSearch] = useState('');
   const [favoriteEditing, setFavoriteEditing] = useState(false);
+  const [expandedProducts, setExpandedProducts] = useState<string[]>([]);
   const favorites = useShoppingFavorites(state.session?.user.id, state.household, category);
   const [expanded, setExpanded] = useState<string[]>([catalog[category][0].title]);
   const query = search.trim().toLocaleLowerCase();
-  const groups = catalog[category].map(group => ({ ...group, items: group.items.filter(name => name.toLocaleLowerCase().includes(query)) })).filter(group => group.items.length > 0);
+  const groups = catalog[category].map(group => ({ ...group, items: group.items.filter(item => typeof item === 'string' ? item.toLocaleLowerCase().includes(query) : item.title.toLocaleLowerCase().includes(query) || item.items.some(name => name.toLocaleLowerCase().includes(query))) })).filter(group => group.items.length > 0);
   const selected = state.quickItems[category];
   const custom = state.quickCustom[category];
   const categories = ['Home', 'Pets', 'Kids'] as const;
@@ -56,7 +60,7 @@ export default function QuickAdd({ category: initialCategory, state, onClose, da
   }
   return <section className="quick-add" aria-label={`${category} Quick Add`}>
     <div className="quick-heading"><div><h2>Quick Add</h2><p>Choose items for {category}.</p></div><button className="quick-close" disabled={state.busy || favorites.busy} onClick={() => { if (!favoriteEditing || window.confirm('Discard your unfinished favorite?')) onClose(); }}>Close</button></div>
-    {dashboard && <div className="quick-category-tabs" role="group" aria-label="Quick Add categories">{categories.map(name => <button type="button" key={name} aria-pressed={category === name} disabled={state.busy || favorites.busy || favoriteEditing} onClick={() => { setCategory(name); setExpanded([catalog[name][0].title]); setShowCustom(false); setSearch(''); }}>{name}</button>)}</div>}
+    {dashboard && <div className="quick-category-tabs" role="group" aria-label="Quick Add categories">{categories.map(name => <button type="button" key={name} aria-pressed={category === name} disabled={state.busy || favorites.busy || favoriteEditing} onClick={() => { setCategory(name); setExpanded([catalog[name][0].title]); setExpandedProducts([]); setShowCustom(false); setSearch(''); }}>{name}</button>)}</div>}
     <div className="quick-content">
     <label className="quick-search-label" htmlFor="quick-search">Search products</label>
     <input id="quick-search" className="quick-search" type="search" placeholder="Search products" value={search} onChange={event => setSearch(event.target.value)} />
@@ -68,7 +72,12 @@ export default function QuickAdd({ category: initialCategory, state, onClose, da
     {query && groups.length === 0 && !(dashboard && category === 'Pets' && petFood.foods.some(food => `${food.name} ${food.brand} ${food.petNames.join(' ')}`.toLocaleLowerCase().includes(query))) && !favorites.favorites.some(item => item.category === category && `${item.name} ${item.brand}`.toLocaleLowerCase().includes(query)) && <p className="quick-no-results" role="status">No products found. You can add a custom product below.</p>}
     {groups.map(group => {
       const open = !!query || expanded.includes(group.title);
-      return <div className="quick-group" key={group.title}><h3><button type="button" className="quick-group-toggle" aria-expanded={open} onClick={() => setExpanded(previous => previous.includes(group.title) ? previous.filter(title => title !== group.title) : [...previous, group.title])}><span>{group.title}</span><span className={`quick-chevron ${open ? 'is-open' : ''}`} aria-hidden="true">⌄</span></button></h3>{open && <div className="quick-tiles">{group.items.map(name => <button key={name} type="button" className="quick-tile" aria-pressed={selected.some(item => item.id === `catalog:${name}`)} disabled={state.busy} onClick={() => toggle(name)}>{name}</button>)}</div>}</div>;
+      return <div className="quick-group" key={group.title}><h3><button type="button" className="quick-group-toggle" aria-expanded={open} onClick={() => setExpanded(previous => previous.includes(group.title) ? previous.filter(title => title !== group.title) : [...previous, group.title])}><span>{group.title}</span><span className={`quick-chevron ${open ? 'is-open' : ''}`} aria-hidden="true">⌄</span></button></h3>{open && <div className="quick-tiles">{group.items.map(item => {
+        if (!isCatalogSubgroup(item)) return <button key={item} type="button" className="quick-tile" aria-pressed={selected.some(selectedItem => selectedItem.id === `catalog:${item}`)} disabled={state.busy} onClick={() => toggle(item)}>{item}</button>;
+        const productOpen = !!query || expandedProducts.includes(item.title);
+        const products = query ? item.items.filter(name => name.toLocaleLowerCase().includes(query)) : item.items;
+        return <div className="quick-subgroup" key={item.title}><button type="button" className="quick-tile quick-subgroup-toggle" aria-expanded={productOpen} disabled={state.busy} onClick={() => setExpandedProducts(previous => previous.includes(item.title) ? previous.filter(title => title !== item.title) : [...previous, item.title])}>{item.title}<span className={`quick-chevron ${productOpen ? 'is-open' : ''}`} aria-hidden="true">⌄</span></button>{productOpen && <div className="quick-subtiles">{products.map(name => <button key={name} type="button" className="quick-tile" aria-pressed={selected.some(selectedItem => selectedItem.id === `catalog:${name}`)} disabled={state.busy} onClick={() => toggle(name)}>{name}</button>)}</div>}</div>;
+      })}</div>}</div>;
     })}
     {dashboard && !showCustom && !custom.trim() && <button type="button" className="favorite-custom quick-custom-toggle" onClick={() => setShowCustom(true)}>+ Custom item</button>}
     {(!dashboard || showCustom || !!custom.trim()) && <div className="quick-custom"><label htmlFor="quick-custom">Custom product</label><div><input id="quick-custom" maxLength={200} value={custom} disabled={state.busy} placeholder="Add something else" onChange={event => state.setQuickCustom(category, event.target.value)} /><button type="button" disabled={state.busy || !custom.trim()} onClick={addCustom}>Add</button></div></div>}
