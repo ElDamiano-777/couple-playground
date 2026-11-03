@@ -21,7 +21,7 @@ export default function SharedShopping({
   const [copied, setCopied] = useState(false);
   const [detail, setDetail] = useState<ShoppingItem | null>(null);
   const [undoItem, setUndoItem] = useState<ShoppingItem | null>(null);
-  const [purchasedOpen, setPurchasedOpen] = useState(false);
+  const [purchasedOpen, setPurchasedOpen] = useState(true);
   useEffect(() => {
     if (!undoItem) return;
     const timer = window.setTimeout(() => setUndoItem(null), 5000);
@@ -396,7 +396,7 @@ export default function SharedShopping({
                         checked={item.bought}
                         disabled={state.busy || !navigator.onLine}
                         onChange={() => {
-                          void state.markBought(item).then(success => { if (success) setUndoItem(item); });
+                          void state.markBought(item).then(success => { if (success) { setPurchasedOpen(true); setUndoItem(item); } });
                         }}
                       />
                     <button type="button" className="shared-item-label shopping-item-open" onClick={() => setDetail(item)}>
@@ -436,7 +436,7 @@ export default function SharedShopping({
             </div>
             {(() => {
               const purchased = state.items.filter(item => filter === item.category && item.bought);
-              return purchased.length ? <details className="purchased-list" open={purchasedOpen} onToggle={event => setPurchasedOpen((event.currentTarget as HTMLDetailsElement).open)}><summary>Purchased ({purchased.length})</summary><div className="grocery-list">{purchased.map(item => <div className="grocery-row is-bought" key={item.id}><input aria-label={`Return ${item.name} to active list`} type="checkbox" checked disabled={state.busy || !navigator.onLine} onChange={() => { void state.markBought(item); }} /><button type="button" className="shared-item-label shopping-item-open" onClick={() => setDetail(item)}><span className="shopping-thumb" aria-hidden="true">{shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos) ? <img src={shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos)!} alt="" /> : <Symbol name="shopping" />}</span><span className="grocery-copy"><strong>{item.name}</strong><small>Purchased</small></span></button></div>)}</div></details> : null;
+              return purchased.length ? <details className="purchased-list" open={purchasedOpen} onToggle={event => setPurchasedOpen((event.currentTarget as HTMLDetailsElement).open)}><summary>Purchased ({purchased.length})</summary><div className="grocery-list">{purchased.map(item => <div className="grocery-row is-bought" key={item.id}><input aria-label={`Return ${item.name} to active list`} type="checkbox" checked disabled={state.busy || !navigator.onLine} onChange={() => { void state.markBought(item); }} /><button type="button" className="shared-item-label shopping-item-open" onClick={() => setDetail(item)}><span className="shopping-thumb" aria-hidden="true">{shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos) ? <img src={shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos)!} alt="" /> : <Symbol name="shopping" />}</span><span className="grocery-copy"><strong>{item.name}</strong>{item.notes && <small className="shopping-item-notes">{item.notes}</small>}<small>Bought · {item.created_by === state.session?.user.id ? `Added by you` : item.created_by ? `Added by your partner` : `Added by a former member`}</small></span></button><span className={`category-tag ${item.category.toLowerCase()}`}>{item.category}</span><button className="text-action shopping-edit-button" disabled={state.busy || !!state.edit} aria-label={`Edit ${item.name}`} onClick={() => state.startEdit(item)}>Edit</button><button className="remove-purchase" aria-label={`Remove ${item.name}`} disabled={state.busy || !navigator.onLine} onClick={() => { if (window.confirm(`Remove “${item.name}” from your shared list?`)) void state.remove(item); }}>×</button></div>)}</div></details> : null;
             })()}
             <p className="preview-hint">
               {state.isPoc

@@ -50,7 +50,6 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
     await expect(categories.getByRole('button', { name: /Home/ })).toContainText('0');
     await categories.getByRole('button', { name: /Home/ }).click();
     await expect(first.getByRole('heading', { name: 'Home shopping' })).toBeVisible();
-    await first.getByText('Purchased (1)', { exact: true }).click();
     const purchased = first.getByRole('checkbox', { name: 'Return Synthetic apples to active list' });
     await expect(purchased).toBeChecked();
     await purchased.click(); await expect(first.getByRole('checkbox', { name: 'Mark Synthetic apples as purchased' })).not.toBeChecked();

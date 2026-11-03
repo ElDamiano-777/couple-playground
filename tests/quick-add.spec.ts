@@ -55,7 +55,7 @@ test('Quick Add shares selected and custom items with editable details', async (
     expect(await a.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(await a.locator('.quick-content').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
     await a.getByRole('button', { name: 'Add 3 items' }).click();
-    await expect(a.getByText('Eggs', { exact: true })).toBeVisible();
+    await expect(a.locator('.grocery-row').filter({ hasText: 'Eggs' })).toBeVisible();
     await expect(a.locator('.grocery-row').filter({ hasText: 'Eggs' }).locator('.shopping-thumb img')).toHaveCount(0);
     await expect(a.locator('.grocery-row').filter({ hasText: 'Eggs' }).locator('.shopping-thumb')).toBeVisible();
     await expect(a.getByText('12 large')).toBeVisible();

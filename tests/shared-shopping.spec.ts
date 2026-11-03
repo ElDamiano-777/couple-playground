@@ -85,10 +85,8 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
       b.getByRole(`checkbox`, { name: /Synthetic apples/ }),
     ).toBeVisible();
     await b.getByRole(`checkbox`, { name: /Synthetic apples/ }).click();
-    await b.getByText(`Purchased (1)`, { exact: true }).click();
     await expect(b.getByRole(`checkbox`, { name: `Return Synthetic apples to active list` })).toBeChecked();
     await a.getByRole(`button`, { name: `Refresh`, exact: true }).click();
-    await a.getByText(`Purchased (1)`, { exact: true }).click();
     await expect(a.getByRole(`checkbox`, { name: `Return Synthetic apples to active list` })).toBeChecked();
     await b.getByRole(`button`, { name: `← Shopping` }).click();
     await openShoppingCategory(b, `Pets`);
