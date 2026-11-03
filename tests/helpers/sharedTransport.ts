@@ -51,6 +51,9 @@ export function transport() {
       : user && members.includes(user)
         ? home
         : null;
+  function rowsForShoppingReference(id: string | undefined) {
+    rows.forEach(item => { if ((item as Row & { pet_food_id?: string | null }).pet_food_id === id) (item as Row & { pet_food_id?: string | null }).pet_food_id = null; });
+  }
   async function attach(context: BrowserContext) {
     await context.route(`${api}/**`, async (route) => {
       const request = route.request();
@@ -180,8 +183,12 @@ export function transport() {
         const details = url.pathname.endsWith(`pet_details`);
         const food = url.pathname.endsWith(`pet_food`);
         const rows = details ? petDetails : food ? petFoods : petDislikes;
-        const petFilter = url.searchParams.get(`pet_id`)?.replace(`eq.`, ``);
-        if (method === `GET`) return reply(rows.filter(row => visible(row) && (!petFilter || row.pet_id === petFilter)));
+        const rawPet = url.searchParams.get(`pet_id`);
+        const petFilter = rawPet?.startsWith(`eq.`) ? rawPet.slice(3) : null;
+        const petIds = rawPet?.startsWith(`in.(`) ? rawPet.slice(4, -1).split(`,`) : null;
+        const rawIds = url.searchParams.get(`id`);
+        const selectedIds = rawIds?.startsWith(`in.(`) ? rawIds.slice(4, -1).split(`,`) : null;
+        if (method === `GET`) return reply(rows.filter(row => visible(row) && (!petFilter || row.pet_id === petFilter) && (!petIds || petIds.includes(row.pet_id)) && (!selectedIds || selectedIds.includes(row.id))));
         if (method === `POST`) {
           if (!visible(data)) return reply({ message: `Forbidden` }, 403);
           const row = details ? data : { ...data, id: crypto.randomUUID(), created_at: new Date().toISOString() };
@@ -194,8 +201,10 @@ export function transport() {
         if (!row) return reply({ message: `Not found` }, 404);
         if (method === `PATCH`) { Object.assign(row, data); return reply(row); }
         if (method === `DELETE`) {
-          if (food) petFoods = petFoods.filter(item => item !== row);
-          else petDislikes = petDislikes.filter(item => item !== row);
+          if (food) {
+            petFoods = petFoods.filter(item => item !== row);
+            rowsForShoppingReference(id);
+          } else petDislikes = petDislikes.filter(item => item !== row);
           return reply({ id });
         }
       }

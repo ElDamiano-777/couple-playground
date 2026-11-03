@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
 import QuickAdd from "./QuickAdd";
 import { Symbol } from "../ui/Symbol";
+import PetFoodShopping from "./PetFoodShopping";
 
 export default function SharedShopping({
   state,
@@ -296,6 +297,7 @@ export default function SharedShopping({
           </div> : <>
           <button className="text-action shopping-back" disabled={state.busy} onClick={() => { setAdding(false); setQuickOpen(false); setFilter(null); }}>← Shopping</button>
           {quickOpen ? <QuickAdd category={filter} state={state} onClose={() => setQuickOpen(false)} /> : <>
+          {filter === `Pets` && <PetFoodShopping state={state} />}
           <button className="quick-open" onClick={() => setQuickOpen(true)}>✦ Quick Add</button>
           <button className="add-fab" aria-label="Add purchase" onClick={() => { if (!state.draft.trim() && !state.draftNotes.trim()) state.setCategory(filter); setAdding(true); }}>+</button>
           {adding && <form
@@ -372,7 +374,7 @@ export default function SharedShopping({
                       <label htmlFor={`edit-purchase-${item.id}`}>Item name</label>
                       <input id={`edit-purchase-${item.id}`} value={state.edit.name} maxLength={200} required onChange={event => state.setEditName(event.target.value)} />
                       <label htmlFor={`edit-notes-${item.id}`}>Details (optional)</label>
-                      <input id={`edit-notes-${item.id}`} maxLength={2000} value={state.edit.notes} onChange={event => state.setEditNotes(event.target.value)} />
+                      <textarea id={`edit-notes-${item.id}`} rows={3} maxLength={20000} value={state.edit.notes} onChange={event => state.setEditNotes(event.target.value)} />
                       <label htmlFor={`edit-category-${item.id}`}>Category</label>
                       <select id={`edit-category-${item.id}`} value={state.edit.category} onChange={event => state.setEditCategory(event.target.value as ShoppingItem[`category`])}><option>Home</option><option>Pets</option><option>Kids</option></select>
                       <button className="primary" disabled={state.busy || !state.edit.name.trim() || !navigator.onLine}>Save item</button>
@@ -387,7 +389,7 @@ export default function SharedShopping({
                           void state.markBought(item);
                         }}
                       />
-                      <span className="shopping-thumb" aria-hidden="true">{item.favorite_id && state.favoritePhotos[item.favorite_id] ? <img src={state.favoritePhotos[item.favorite_id]!} alt="" /> : <Symbol name="shopping" />}</span>
+                      <span className="shopping-thumb" aria-hidden="true">{item.pet_food_id && state.petFoodPhotos[item.pet_food_id] ? <img src={state.petFoodPhotos[item.pet_food_id]!} alt="" /> : item.favorite_id && state.favoritePhotos[item.favorite_id] ? <img src={state.favoritePhotos[item.favorite_id]!} alt="" /> : <Symbol name="shopping" />}</span>
                       <span className="grocery-copy">
                         <strong>{item.name}</strong>
                         {item.notes && <small className="shopping-item-notes">{item.notes}</small>}

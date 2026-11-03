@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import config from "../../app.config.json";
 import { supabase, pocAccounts, type PocUsername } from "./client";
+import type { PetFoodForShopping } from "./usePetFoodShopping";
 
 export type ShoppingItem = {
   id: string;
@@ -9,6 +10,7 @@ export type ShoppingItem = {
   name: string;
   notes: string;
   favorite_id: string | null;
+  pet_food_id: string | null;
   category: `Home` | `Kids` | `Pets`;
   bought: boolean;
   created_by: string | null;
@@ -31,6 +33,7 @@ function friendlyError(error: unknown): string {
     /Error sending confirmation email/i.test(text)
   )
     return `Your confirmation email couldn’t be sent. Please ask Damian to finish email delivery, then try again.`;
+  if (text === `Pet food details are too long`) return `This pet food has too many details to add. Please shorten its notes first.`;
   if (text === `Unknown POC username`)
     return `Use masha or damian as your username.`;
   if (/Invalid login credentials/i.test(text))
@@ -53,6 +56,7 @@ export function useSharedShopping() {
   const [household, setHousehold] = useState<string | null>(null);
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [favoritePhotos, setFavoritePhotos] = useState<Record<string, string | null>>({});
+  const [petFoodPhotos, setPetFoodPhotos] = useState<Record<string, string | null>>({});
   const [memberCount, setMemberCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -92,6 +96,7 @@ export function useSharedShopping() {
           setHousehold(null);
           setItems([]);
           setFavoritePhotos({});
+          setPetFoodPhotos({});
           setMemberCount(0);
           setInvite(``);
           setDraft(``);
@@ -129,6 +134,7 @@ export function useSharedShopping() {
     let nextItems: ShoppingItem[] = [];
     let nextCount = 0;
     let nextPhotos: Record<string, string | null> = {};
+    let nextPetFoodPhotos: Record<string, string | null> = {};
     let photosFailed = false;
     if (home) {
       const [shopping, members] = await Promise.all([
@@ -152,12 +158,19 @@ export function useSharedShopping() {
         if (photos.error) photosFailed = true;
         else nextPhotos = Object.fromEntries((photos.data as { id: string; photo: string | null }[]).map(item => [item.id, item.photo]));
       }
+      const petFoodIds = [...new Set(nextItems.map(item => item.pet_food_id).filter((id): id is string => !!id))];
+      if (petFoodIds.length) {
+        const photos = await supabase.from(`pet_food`).select(`id,photo`).in(`id`, petFoodIds);
+        if (photos.error) photosFailed = true;
+        else nextPetFoodPhotos = Object.fromEntries((photos.data as { id: string; photo: string | null }[]).map(item => [item.id, item.photo]));
+      }
     }
     if (currentUser.current !== userId || version !== requestVersion.current)
       return;
     setHousehold(home);
     setItems(nextItems);
     setFavoritePhotos(nextPhotos);
+    setPetFoodPhotos(nextPetFoodPhotos);
     setMemberCount(nextCount);
     setError(photosFailed ? `We couldn’t load some product photos. Please refresh the list.` : ``);
   }, [userId]);
@@ -166,6 +179,7 @@ export function useSharedShopping() {
     setHousehold(null);
     setItems([]);
     setFavoritePhotos({});
+    setPetFoodPhotos({});
     setMemberCount(0);
     setInvite(``);
     setError(``);
@@ -314,6 +328,20 @@ export function useSharedShopping() {
       setQuickItems(previous => ({ ...previous, [target]: [] }));
       setNotice(`${selected.length} ${selected.length === 1 ? `item` : `items`} added to your shared list.`);
     });
+  const addPetFood = (food: PetFoodForShopping) =>
+    perform(async () => {
+      if (!household || !navigator.onLine) throw new Error(`Offline`);
+      const type = food.food_type === `Dry` ? `Dry Food` : food.food_type === `Wet` ? `Wet Food` : food.food_type;
+      const details = [`For: ${food.petNames.join(` & `)}`, food.brand && `Brand: ${food.brand}`, food.flavor && `Flavor: ${food.flavor}`, type && `Type: ${type}`, food.package_size && `Size: ${food.package_size}`, food.notes && `Notes: ${food.notes}`].filter(Boolean).join(` · `);
+      if (details.length > 20000) throw new Error(`Pet food details are too long`);
+      const result = await supabase.from(`shopping_items`).insert({ household_id: household, category: `Pets`, name: food.name, notes: details, pet_food_id: food.id }).select().single();
+      if (result.error || !result.data) throw result.error ?? new Error(`No saved item`);
+      if (currentUser.current !== userId) return;
+      ++requestVersion.current;
+      setItems(previous => [result.data as ShoppingItem, ...previous]);
+      setPetFoodPhotos(previous => ({ ...previous, [food.id]: food.photo }));
+      setNotice(`Added to your shared Pets list.`);
+    });
   const saveEdit = () =>
     perform(async () => {
       if (!edit || !edit.name.trim() || !navigator.onLine) throw new Error(`Offline`);
@@ -369,6 +397,7 @@ export function useSharedShopping() {
       setHousehold(null);
       setItems([]);
       setFavoritePhotos({});
+      setPetFoodPhotos({});
       setDraft(``);
       setDraftNotes(``);
       setEdit(null);
@@ -386,6 +415,7 @@ export function useSharedShopping() {
       setHousehold(null);
       setItems([]);
       setFavoritePhotos({});
+      setPetFoodPhotos({});
       setDraft(``);
       setDraftNotes(``);
       setEdit(null);
@@ -407,6 +437,7 @@ export function useSharedShopping() {
     household,
     items,
     favoritePhotos,
+    petFoodPhotos,
     memberCount,
     loading,
     busy,
@@ -431,6 +462,7 @@ export function useSharedShopping() {
     setQuickItems: (target: ShoppingCategory, items: QuickItem[]) => setQuickItems(previous => ({ ...previous, [target]: items })),
     setQuickCustom: (target: ShoppingCategory, value: string) => setQuickCustom(previous => ({ ...previous, [target]: value })),
     addQuick,
+    addPetFood,
     edit,
     startEdit: (item: ShoppingItem) => setEdit({ id: item.id, name: item.name, notes: item.notes ?? ``, category: item.category }),
     setEditName: (name: string) => setEdit(previous => previous && ({ ...previous, name })),

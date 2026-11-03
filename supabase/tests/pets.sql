@@ -83,3 +83,27 @@ delete from public.pet_dislikes where pet_id = :'pet_id' and category = 'note';
 select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000003', false);
 select pg_temp.check_true((select count(*) = 0 from public.pet_dislikes));
 with changed as (update public.pet_dislikes set notes = 'Forbidden' where pet_id = :'pet_id' returning 1) select pg_temp.check_true((select count(*) = 0 from changed));
+reset role;
+\ir ../migrations/20261102050000_shopping_item_edit.sql
+\ir ../migrations/20261102060000_shopping_item_details.sql
+\ir ../migrations/20261103040000_shopping_pet_food_reference.sql
+set role authenticated;
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001', false);
+select id as saved_food from public.pet_food where pet_id = :'pet_id' and name = 'Dinner' \gset
+select set_config('test.saved_food', :'saved_food', false);
+insert into public.shopping_items(household_id, category, name, notes, pet_food_id)
+values(public.current_household(), 'Pets', 'Dinner', 'For Pet · Size: 1.8 kg', :'saved_food') returning id as shopping_id \gset
+select set_config('test.shopping_id', :'shopping_id', false);
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000002', false);
+do $$ begin
+  if not exists(select 1 from public.shopping_items s join public.pet_food f on f.id = s.pet_food_id where s.id = current_setting('test.shopping_id')::uuid and f.photo is not null and f.package_size = '1.8 kg') then raise exception 'Partner cannot read linked pet food'; end if;
+end $$;
+update public.shopping_items set bought = true, name = 'Renamed dinner' where id = :'shopping_id';
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000003', false);
+do $$ begin
+  begin insert into public.shopping_items(household_id, category, name, pet_food_id) values(public.current_household(), 'Pets', 'Forbidden', current_setting('test.saved_food')::uuid); raise exception 'TEST FAILED'; exception when check_violation then null; end;
+end $$;
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001', false);
+select pg_temp.check_true((select name = 'Renamed dinner' and bought and pet_food_id = :'saved_food' from public.shopping_items where id = :'shopping_id'));
+delete from public.pet_food where id = :'saved_food';
+select pg_temp.check_true((select name = 'Renamed dinner' and pet_food_id is null and notes = 'For Pet · Size: 1.8 kg' from public.shopping_items where id = :'shopping_id'));
