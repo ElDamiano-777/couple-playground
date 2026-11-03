@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
 import QuickAdd from "./QuickAdd";
+import { Symbol } from "../ui/Symbol";
 
 export default function SharedShopping({
   state,
@@ -386,15 +387,12 @@ export default function SharedShopping({
                           void state.markBought(item);
                         }}
                       />
+                      <span className="shopping-thumb" aria-hidden="true">{item.favorite_id && state.favoritePhotos[item.favorite_id] ? <img src={state.favoritePhotos[item.favorite_id]!} alt="" /> : <Symbol name="shopping" />}</span>
                       <span className="grocery-copy">
                         <strong>{item.name}</strong>
                         {item.notes && <small className="shopping-item-notes">{item.notes}</small>}
                         <small>
-                          {item.bought
-                            ? `Bought`
-                            : item.created_by === state.session?.user.id
-                              ? `Added by you`
-                              : `Added by your partner`}
+                          {item.bought ? `Bought · ` : ``}{item.created_by === state.session?.user.id ? `Added by you` : item.created_by ? `Added by your partner` : `Added by a former member`}
                         </small>
                       </span>
                     </label>

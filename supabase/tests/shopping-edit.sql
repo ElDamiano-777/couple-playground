@@ -114,3 +114,23 @@ do $$ begin
   if not exists(select 1 from public.shopping_favorites where name = 'Tea' and flavor = 'Mint' and size = 'Large') then raise exception 'Partner cannot read options'; end if;
   begin insert into public.shopping_favorites(household_id, category, name, brand, flavor, size) values(public.current_household(), 'Home', 'tea', 'example', 'mint', 'large'); raise exception 'TEST FAILED'; exception when unique_violation then null; end;
 end $$;
+reset role;
+\ir ../migrations/20261103030000_shopping_favorite_photo_reference.sql
+set role authenticated;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000001', false);
+insert into public.shopping_items(household_id, name, category, favorite_id) values(public.current_household(), 'Linked tea', 'Home', :'favorite') returning id as linked_item \gset
+select set_config('test.linked_item', :'linked_item', false);
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000002', false);
+update public.shopping_items set bought = true, name = 'Renamed tea' where id = :'linked_item';
+do $$ begin
+  if not exists(select 1 from public.shopping_items s join public.shopping_favorites f on f.id = s.favorite_id where s.id = current_setting('test.linked_item')::uuid and s.bought and f.photo is not null) then raise exception 'Partner cannot access linked photo'; end if;
+end $$;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000003', false);
+do $$ begin
+  begin insert into public.shopping_items(household_id, name, category, favorite_id) values(public.current_household(), 'Forbidden link', 'Home', current_setting('test.favorite')::uuid); raise exception 'TEST FAILED'; exception when check_violation then null; end;
+end $$;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000001', false);
+delete from public.shopping_favorites where id = :'favorite';
+do $$ begin
+  if not exists(select 1 from public.shopping_items where id = current_setting('test.linked_item')::uuid and favorite_id is null and name = 'Renamed tea') then raise exception 'Favorite deletion changed shopping item'; end if;
+end $$;

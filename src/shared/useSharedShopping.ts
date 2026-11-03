@@ -8,13 +8,14 @@ export type ShoppingItem = {
   household_id: string;
   name: string;
   notes: string;
+  favorite_id: string | null;
   category: `Home` | `Kids` | `Pets`;
   bought: boolean;
   created_by: string | null;
   created_at: string;
 };
 
-export type QuickItem = { id: string; name: string; notes: string };
+export type QuickItem = { id: string; name: string; notes: string; favoriteId?: string; favoritePhoto?: string | null };
 type ShoppingCategory = ShoppingItem[`category`];
 const emptyQuick = (): Record<ShoppingCategory, QuickItem[]> => ({ Home: [], Pets: [], Kids: [] });
 const emptyCustom = (): Record<ShoppingCategory, string> => ({ Home: ``, Pets: ``, Kids: `` });
@@ -51,6 +52,7 @@ export function useSharedShopping() {
   const [authReady, setAuthReady] = useState(false);
   const [household, setHousehold] = useState<string | null>(null);
   const [items, setItems] = useState<ShoppingItem[]>([]);
+  const [favoritePhotos, setFavoritePhotos] = useState<Record<string, string | null>>({});
   const [memberCount, setMemberCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -89,6 +91,7 @@ export function useSharedShopping() {
           ++requestVersion.current;
           setHousehold(null);
           setItems([]);
+          setFavoritePhotos({});
           setMemberCount(0);
           setInvite(``);
           setDraft(``);
@@ -125,6 +128,8 @@ export function useSharedShopping() {
     if (homeError) throw homeError;
     let nextItems: ShoppingItem[] = [];
     let nextCount = 0;
+    let nextPhotos: Record<string, string | null> = {};
+    let photosFailed = false;
     if (home) {
       const [shopping, members] = await Promise.all([
         supabase
@@ -141,18 +146,26 @@ export function useSharedShopping() {
       if (members.error) throw members.error;
       nextItems = shopping.data as ShoppingItem[];
       nextCount = members.data.length;
+      const ids = [...new Set(nextItems.map(item => item.favorite_id).filter((id): id is string => !!id))];
+      if (ids.length) {
+        const photos = await supabase.from(`shopping_favorites`).select(`id,photo`).eq(`household_id`, home).in(`id`, ids);
+        if (photos.error) photosFailed = true;
+        else nextPhotos = Object.fromEntries((photos.data as { id: string; photo: string | null }[]).map(item => [item.id, item.photo]));
+      }
     }
     if (currentUser.current !== userId || version !== requestVersion.current)
       return;
     setHousehold(home);
     setItems(nextItems);
+    setFavoritePhotos(nextPhotos);
     setMemberCount(nextCount);
-    setError(``);
+    setError(photosFailed ? `We couldn’t load some product photos. Please refresh the list.` : ``);
   }, [userId]);
 
   useEffect(() => {
     setHousehold(null);
     setItems([]);
+    setFavoritePhotos({});
     setMemberCount(0);
     setInvite(``);
     setError(``);
@@ -291,12 +304,13 @@ export function useSharedShopping() {
       const selected = quickItems[target];
       if (!household || !selected.length || !navigator.onLine) throw new Error(`Offline`);
       const result = await supabase.from(`shopping_items`).insert(selected.map(item => ({
-        household_id: household, category: target, name: item.name.trim(), notes: item.notes.trim(),
+        household_id: household, category: target, name: item.name.trim(), notes: item.notes.trim(), favorite_id: item.favoriteId ?? null,
       }))).select();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved items`);
       if (currentUser.current !== userId) return;
       ++requestVersion.current;
       setItems(previous => [...result.data as ShoppingItem[], ...previous]);
+      setFavoritePhotos(previous => ({ ...previous, ...Object.fromEntries(selected.filter(item => item.favoriteId).map(item => [item.favoriteId!, item.favoritePhoto ?? null])) }));
       setQuickItems(previous => ({ ...previous, [target]: [] }));
       setNotice(`${selected.length} ${selected.length === 1 ? `item` : `items`} added to your shared list.`);
     });
@@ -354,6 +368,7 @@ export function useSharedShopping() {
       setSession(null);
       setHousehold(null);
       setItems([]);
+      setFavoritePhotos({});
       setDraft(``);
       setDraftNotes(``);
       setEdit(null);
@@ -370,6 +385,7 @@ export function useSharedShopping() {
       setSession(null);
       setHousehold(null);
       setItems([]);
+      setFavoritePhotos({});
       setDraft(``);
       setDraftNotes(``);
       setEdit(null);
@@ -390,6 +406,7 @@ export function useSharedShopping() {
     authReady,
     household,
     items,
+    favoritePhotos,
     memberCount,
     loading,
     busy,

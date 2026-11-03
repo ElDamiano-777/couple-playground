@@ -39,7 +39,7 @@ export default function QuickAdd({ category, state, onClose }: { category: Shopp
     const id = `favorite:${item.id}`;
     const existing = selected.find(row => row.id === id);
     const notes = [item.brand && `Brand: ${item.brand}`, item.flavor && `Flavor: ${item.flavor}`, item.size && `Size: ${item.size}`, item.quantity && `Quantity or size: ${item.quantity}`, item.notes].filter(Boolean).join(' · ');
-    setSelected(existing ? selected.filter(row => row.id !== id) : [...selected, { id, name: item.name, notes }]);
+    setSelected(existing ? selected.filter(row => row.id !== id) : [...selected, { id, name: item.name, notes, favoriteId: item.id, favoritePhoto: item.photo }]);
   }
   function addCustom() {
     const name = custom.trim();

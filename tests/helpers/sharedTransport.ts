@@ -203,7 +203,11 @@ export function transport() {
         const household = homeFor(user);
         if (!household) return reply({ message: `Forbidden` }, 403);
         const selectedCategory = url.searchParams.get(`category`)?.replace(`eq.`, ``);
-        if (method === `GET`) return reply(favorites.filter(row => row.household_id === household && (!selectedCategory || row.category === selectedCategory)));
+        if (method === `GET`) {
+          const ids = url.searchParams.get(`id`);
+          const selectedIds = ids?.startsWith(`in.(`) ? ids.slice(4, -1).split(`,`) : null;
+          return reply(favorites.filter(row => row.household_id === household && (!selectedCategory || row.category === selectedCategory) && (!selectedIds || selectedIds.includes(row.id))));
+        }
         const key = (item: any) => [item.category, item.name, item.brand, item.flavor, item.size].map(value => String(value ?? '').trim().toLowerCase()).join('|');
         if (method === `POST`) {
           if (data.household_id !== household) return reply({ message: `Forbidden` }, 403);
@@ -219,7 +223,7 @@ export function transport() {
           if (key(next) !== key(row) && favorites.some(item => item.id !== id && item.household_id === household && key(item) === key(next))) return reply({ code: `23505`, message: `Duplicate` }, 409);
           Object.assign(row, data); return reply(row);
         }
-        if (method === `DELETE`) { favorites = favorites.filter(item => item !== row); return reply({ id }); }
+        if (method === `DELETE`) { favorites = favorites.filter(item => item !== row); rows.forEach(item => { if ((item as Row & { favorite_id?: string | null }).favorite_id === id) (item as Row & { favorite_id?: string | null }).favorite_id = null; }); return reply({ id }); }
       }
       if (url.pathname === `/rest/v1/family_profiles`) {
         ++familyRequests;
