@@ -170,7 +170,7 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
   for (const name of [`Recipes`, `Children`, `Pets`, `Shopping`]) {
     await sections.getByRole(`button`, { name, exact: true }).click();
-    await expect(page.getByRole(`heading`, { name: `${name}.`, exact: true })).toBeVisible();
+    await expect(page.getByRole(`heading`, { name: name === `Recipes` ? `Our Recipes.` : `${name}.`, exact: true })).toBeVisible();
     await expect(sections.getByRole(`button`, { name, exact: true })).toHaveAttribute(`aria-current`, `page`);
     await expect(nav.getByRole(`button`, { name: `Home`, exact: true })).toHaveAttribute(`aria-current`, `page`);
     await noOverflow();

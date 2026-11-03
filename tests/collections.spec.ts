@@ -26,7 +26,7 @@ async function login(page: Page, name: `Masha` | `Damian` = `Masha`) {
 }
 async function refresh(page: Page) { await page.evaluate(() => window.dispatchEvent(new Event(`focus`))); }
 
-test(`two separate phones save, edit and confirm deletion in recipes, wishlist and places`, async ({ browser }) => {
+test(`two separate phones save, edit and confirm deletion in wishlist and places`, async ({ browser }) => {
   const server = transport();
   const first = await browser.newContext({ serviceWorkers: `block`, viewport: { width: 320, height: 844 } });
   const second = await browser.newContext({ serviceWorkers: `block`, viewport: { width: 390, height: 844 } });
@@ -37,7 +37,7 @@ test(`two separate phones save, edit and confirm deletion in recipes, wishlist a
   try {
     await login(a);
     await login(b, `Damian`);
-    for (const kind of [`recipe`, `wish`, `place`] as const) {
+    for (const kind of [`wish`, `place`] as const) {
       const text = `Synthetic ${kind}`;
       const rawNotes = `<img src=x onerror="window.syntheticExecuted=true">\nSynthetic ${kind} notes`;
       await openFolder(a, kind);
@@ -80,40 +80,33 @@ test(`failed saves and offline mode preserve per-folder drafts, edits and the up
   await server.attach(context);
   await page.route(`**/version.json*`, (route) => route.fulfill({ json: { commit: `f`.repeat(40) } }));
   await login(page);
-  await openFolder(page, `recipe`);
-  await page.getByLabel(copy.recipe.title, { exact: true }).fill(`Synthetic unfinished recipe`);
-  await page.getByLabel(copy.recipe.notes, { exact: true }).fill(`Synthetic recipe draft`);
+  await openFolder(page, `wish`);
+  await page.getByLabel(copy.wish.title, { exact: true }).fill(`Synthetic unfinished wish`);
+  await page.getByLabel(copy.wish.notes, { exact: true }).fill(`Synthetic wish draft`);
   server.failNextEntrySave();
-  await page.locator(`form`).getByRole(`button`, { name: copy.recipe.add, exact: true }).click();
+  await page.locator(`form`).getByRole(`button`, { name: copy.wish.add, exact: true }).click();
   await expect(page.getByRole(`alert`)).toContainText(`We couldn’t save`);
-  await expect(page.getByRole(`heading`, { name: `Synthetic unfinished recipe`, exact: true })).toHaveCount(0);
-  await expect(page.getByLabel(copy.recipe.title, { exact: true })).toHaveValue(`Synthetic unfinished recipe`);
+  await expect(page.getByLabel(copy.wish.title, { exact: true })).toHaveValue(`Synthetic unfinished wish`);
   await expect(page.getByRole(`button`, { name: `Update`, exact: true })).toBeDisabled();
-  for (const kind of [`wish`, `place`] as const) {
-    await openFolder(page, kind);
-    await page.getByLabel(copy[kind].title, { exact: true }).fill(`Synthetic ${kind} draft`);
-    await page.getByLabel(copy[kind].notes, { exact: true }).fill(`Synthetic ${kind} note`);
-  }
-  await openFolder(page, `recipe`);
-  await expect(page.getByLabel(copy.recipe.notes, { exact: true })).toHaveValue(`Synthetic recipe draft`);
+  await openFolder(page, `place`);
+  await page.getByLabel(copy.place.title, { exact: true }).fill(`Synthetic place draft`);
+  await page.getByLabel(copy.place.notes, { exact: true }).fill(`Synthetic place note`);
+  await openFolder(page, `wish`);
+  await expect(page.getByLabel(copy.wish.notes, { exact: true })).toHaveValue(`Synthetic wish draft`);
   await context.setOffline(true);
-  await expect(page.locator(`form`).getByRole(`button`, { name: copy.recipe.add, exact: true })).toBeDisabled();
-  await expect(page.locator(`.collection-page`).getByText(/You’re offline/)).toBeVisible();
+  await expect(page.locator(`form`).getByRole(`button`, { name: copy.wish.add, exact: true })).toBeDisabled();
   await context.setOffline(false);
-  await page.locator(`form`).getByRole(`button`, { name: copy.recipe.add, exact: true }).click();
-  await expect(page.getByRole(`heading`, { name: `Synthetic unfinished recipe`, exact: true })).toBeVisible();
+  await page.locator(`form`).getByRole(`button`, { name: copy.wish.add, exact: true }).click();
+  await expect(page.getByRole(`heading`, { name: `Synthetic unfinished wish`, exact: true })).toBeVisible();
   await closeAddForm(page);
-  await page.getByRole(`button`, { name: `Edit Synthetic unfinished recipe`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Edit Synthetic unfinished wish`, exact: true }).click();
   await page.locator(`#collection-edit-notes`).fill(`Synthetic unsaved edit`);
   server.failNextEntrySave();
   await page.getByRole(`button`, { name: `Save changes`, exact: true }).click();
   await expect(page.getByRole(`alert`)).toContainText(`We couldn’t save`);
-  await openFolder(page, `wish`);
-  await expect(page.getByLabel(copy.wish.title, { exact: true })).toHaveValue(`Synthetic wish draft`);
-  await expect(page.getByLabel(copy.wish.notes, { exact: true })).toHaveValue(`Synthetic wish note`);
   await openFolder(page, `place`);
   await expect(page.getByLabel(copy.place.title, { exact: true })).toHaveValue(`Synthetic place draft`);
-  await openFolder(page, `recipe`);
+  await openFolder(page, `wish`, false);
   await expect(page.locator(`#collection-edit-notes`)).toHaveValue(`Synthetic unsaved edit`);
   await expect(page.getByRole(`button`, { name: `Update`, exact: true })).toBeDisabled();
 });

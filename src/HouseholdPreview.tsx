@@ -7,6 +7,7 @@ import type { ShoppingItem, SharedShoppingState } from './shared/useSharedShoppi
 import FolderPages, { HomeNavigation, type FolderPage } from './folders/FolderPages';
 import { Symbol } from './ui/Symbol';
 import FolderEntries from './collections/FolderEntries';
+import Recipes from './collections/Recipes';
 import type { FolderEntriesState } from './collections/useFolderEntries';
 
 export { Symbol } from './ui/Symbol';
@@ -42,7 +43,8 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} initialCategory={shoppingCategory} />
       : page === `pets` ? <Pets key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
       : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
-      : page === `recipes` || page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
+      : page === `recipes` ? <Recipes key={`${collections.userId}:${collections.household}`} state={collections} onSignIn={() => navigate(`shopping`)} />
+      : page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
       : <FolderPages page={page} navigate={navigate} />}
   </div>;
 }

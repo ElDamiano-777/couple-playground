@@ -168,8 +168,7 @@ export function transport() {
         const row = entryRows.find((row) => row.id === id && row.household_id === household);
         if (!row) return reply({ message: `Not found` }, 404);
         if (method === `PATCH`) {
-          row.title = data.title;
-          row.notes = data.notes;
+          Object.assign(row, data);
           return reply(row);
         }
         if (method === `DELETE`) {
@@ -315,6 +314,7 @@ export function transport() {
   }
   return {
     attach,
+    seedLegacyRecipe: (title: string, notes: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes, created_by: pocMasha, created_at: new Date().toISOString() }); },
     failNextEntrySave: () => { failEntrySave = true; },
     delayEntryWrites: () => { delayedEntryWrite = new Promise<void>((resolve) => { releaseEntryWrite = resolve; }); },
     releaseEntryWrites: () => { releaseEntryWrite?.(); delayedEntryWrite = null; releaseEntryWrite = null; },
