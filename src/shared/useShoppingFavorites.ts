@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from './client';
 import type { ShoppingItem } from './useSharedShopping';
 
-export type Favorite = { id: string; household_id: string; category: ShoppingItem['category']; name: string; brand: string; quantity: string; notes: string; photo: string | null };
-export type FavoriteDraft = Pick<Favorite, 'category' | 'name' | 'brand' | 'quantity' | 'notes' | 'photo'>;
+export type Favorite = { id: string; household_id: string; category: ShoppingItem['category']; name: string; brand: string; flavor: string; size: string; quantity: string; notes: string; photo: string | null };
+export type FavoriteDraft = Pick<Favorite, 'category' | 'name' | 'brand' | 'flavor' | 'size' | 'quantity' | 'notes' | 'photo'>;
 
 export function useShoppingFavorites(userId: string | undefined, household: string | null, category: ShoppingItem['category']) {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
@@ -37,12 +37,12 @@ export function useShoppingFavorites(userId: string | undefined, household: stri
   async function save(draft: FavoriteDraft, id: string | null) {
     if (!household || !userId || busy || !navigator.onLine) { setError('Connect to save your favorite.'); return false; }
     ++version.current; setBusy(true); setError('');
-    const values = { ...draft, name: draft.name.trim(), brand: draft.brand.trim(), quantity: draft.quantity.trim(), notes: draft.notes.trim() };
+    const values = { ...draft, name: draft.name.trim(), brand: draft.brand.trim(), flavor: draft.flavor.trim(), size: draft.size.trim(), quantity: draft.quantity.trim(), notes: draft.notes.trim() };
     const query = id ? supabase.from('shopping_favorites').update(values).eq('id', id).eq('household_id', household)
       : supabase.from('shopping_favorites').insert({ ...values, household_id: household });
     const result = await query.select().single();
     if (current.current !== scope) return false;
-    if (result.error || !result.data) { setError('Could not save your favorite. Your changes are still here.'); setBusy(false); return false; }
+    if (result.error || !result.data) { setError(result.error?.code === '23505' ? 'This product is already in favorites. Your changes are still here.' : 'Could not save your favorite. Your changes are still here.'); setBusy(false); return false; }
     ++version.current;
     setFavorites(previous => [...previous.filter(row => row.id !== result.data.id), result.data as Favorite]);
     setBusy(false); return true;

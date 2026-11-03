@@ -204,15 +204,21 @@ export function transport() {
         if (!household) return reply({ message: `Forbidden` }, 403);
         const selectedCategory = url.searchParams.get(`category`)?.replace(`eq.`, ``);
         if (method === `GET`) return reply(favorites.filter(row => row.household_id === household && (!selectedCategory || row.category === selectedCategory)));
+        const key = (item: any) => [item.category, item.name, item.brand, item.flavor, item.size].map(value => String(value ?? '').trim().toLowerCase()).join('|');
         if (method === `POST`) {
           if (data.household_id !== household) return reply({ message: `Forbidden` }, 403);
-          const row = { ...data, id: crypto.randomUUID(), created_at: new Date().toISOString(), created_by: user };
+          if (favorites.some(item => item.household_id === household && key(item) === key(data))) return reply({ code: `23505`, message: `Duplicate` }, 409);
+          const row = { flavor: '', size: '', ...data, id: crypto.randomUUID(), created_at: new Date().toISOString(), created_by: user };
           favorites.push(row); return reply(row, 201);
         }
         const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
         const row = favorites.find(item => item.id === id && item.household_id === household);
         if (!row) return reply({ message: `Not found` }, 404);
-        if (method === `PATCH`) { Object.assign(row, data); return reply(row); }
+        if (method === `PATCH`) {
+          const next = { ...row, ...data };
+          if (key(next) !== key(row) && favorites.some(item => item.id !== id && item.household_id === household && key(item) === key(next))) return reply({ code: `23505`, message: `Duplicate` }, 409);
+          Object.assign(row, data); return reply(row);
+        }
         if (method === `DELETE`) { favorites = favorites.filter(item => item !== row); return reply({ id }); }
       }
       if (url.pathname === `/rest/v1/family_profiles`) {

@@ -93,3 +93,24 @@ set role anon;
 do $$ begin
   begin perform * from public.shopping_favorites; raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
 end $$;
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000001', false);
+-- A pre-existing duplicate must not be removed or prevent unrelated edits.
+insert into public.shopping_favorites(household_id, category, name, brand) values(public.current_household(), 'Home', 'Tea', 'Example');
+reset role;
+\ir ../migrations/20261103020000_favorite_product_picker.sql
+set role authenticated;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000001', false);
+do $$ begin
+  if (select count(*) from public.shopping_favorites where name = 'Tea' and brand = 'Example') <> 2 then raise exception 'Existing favorites changed'; end if;
+  if not exists(select 1 from public.shopping_favorites where id = current_setting('test.favorite')::uuid and photo is not null and flavor = '' and size = '') then raise exception 'Favorite photo or options changed'; end if;
+  begin insert into public.shopping_favorites(household_id, category, name, brand) values(public.current_household(), 'Home', ' tea ', 'EXAMPLE'); raise exception 'TEST FAILED'; exception when unique_violation then null; end;
+end $$;
+update public.shopping_favorites set notes = 'Preserved edit' where id = :'favorite';
+insert into public.shopping_favorites(household_id, category, name, brand, flavor, size) values(public.current_household(), 'Home', 'Tea', 'Example', 'Mint', 'Large');
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000002', false);
+do $$ begin
+  if not exists(select 1 from public.shopping_favorites where name = 'Tea' and flavor = 'Mint' and size = 'Large') then raise exception 'Partner cannot read options'; end if;
+  begin insert into public.shopping_favorites(household_id, category, name, brand, flavor, size) values(public.current_household(), 'Home', 'tea', 'example', 'mint', 'large'); raise exception 'TEST FAILED'; exception when unique_violation then null; end;
+end $$;

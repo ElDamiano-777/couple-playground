@@ -20,9 +20,10 @@ test('favorites and private photos persist, sync and stay independent of purchas
   try {
     await login(first, 'Masha'); await login(second, 'Damian');
     await first.getByRole('button', { name: '+ Add favorite' }).click();
+    await first.getByRole('button', { name: '+ Enter a custom product' }).click();
     await first.getByLabel('Product name').fill('Favorite tea');
     await first.getByLabel('Brand (optional)').fill('Example');
-    await first.getByLabel('Quantity or size (optional)').fill('2 boxes');
+    await first.getByLabel('Quantity (optional)').fill('2 boxes');
     await first.getByLabel('Notes (optional)', { exact: true }).fill('Mint');
     const tallPhoto = await first.evaluate(() => {
       const canvas = document.createElement('canvas'); canvas.width = 400; canvas.height = 1600;
@@ -49,6 +50,7 @@ test('favorites and private photos persist, sync and stay independent of purchas
     await expect(second.locator('.favorite-select').filter({ hasText: 'Favorite tea' })).toBeVisible();
     await expect(second.locator('.favorite-card img')).toBeVisible();
     await second.getByRole('button', { name: '+ Add favorite' }).click();
+    await second.getByRole('button', { name: '+ Enter a custom product' }).click();
     await second.getByLabel('Product name').fill('Pet treats');
     await second.getByLabel('Shopping category').selectOption('Pets');
     await second.getByRole('button', { name: 'Save favorite' }).click();
@@ -66,7 +68,7 @@ test('favorites and private photos persist, sync and stay independent of purchas
     await expect(second.locator('.favorite-select').filter({ hasText: 'Favorite tea' })).toBeVisible();
     await second.getByLabel('Actions for favorite Favorite tea').click();
     await second.getByRole('button', { name: 'Edit', exact: true }).click();
-    await second.getByLabel('Quantity or size (optional)').fill('3 boxes');
+    await second.getByLabel('Quantity (optional)').fill('3 boxes');
     await second.getByRole('button', { name: 'Save favorite' }).click();
     await expect(second.getByText('Example · 3 boxes')).toBeVisible();
     await first.evaluate(() => window.dispatchEvent(new Event('focus')));
@@ -104,6 +106,7 @@ test('a failed favorite save keeps the unfinished details', async ({ page, conte
     route.request().method() === 'POST' ? route.fulfill({ status: 503, json: { message: 'Synthetic failure' } }) : route.fallback());
   await login(page, 'Masha');
   await page.getByRole('button', { name: '+ Add favorite' }).click();
+  await page.getByRole('button', { name: '+ Enter a custom product' }).click();
   await page.getByLabel('Product name').fill('Unfinished favorite');
   await page.getByLabel('Notes (optional)', { exact: true }).fill('Keep this note');
   await page.getByRole('button', { name: 'Save favorite' }).click();

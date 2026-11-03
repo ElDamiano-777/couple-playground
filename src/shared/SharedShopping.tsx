@@ -318,7 +318,7 @@ export default function SharedShopping({
               placeholder="Milk, bread, pet food…"
             />
             <label htmlFor="purchase-notes">Details (optional)</label>
-            <input id="purchase-notes" maxLength={1000} disabled={state.busy} value={state.draftNotes} placeholder="Brand, flavor, quantity, size or notes" onChange={event => state.setDraftNotes(event.target.value)} />
+            <input id="purchase-notes" maxLength={2000} disabled={state.busy} value={state.draftNotes} placeholder="Brand, flavor, quantity, size or notes" onChange={event => state.setDraftNotes(event.target.value)} />
             <label htmlFor="purchase-category">For whom?</label>
             <select
               id="purchase-category"
@@ -371,7 +371,7 @@ export default function SharedShopping({
                       <label htmlFor={`edit-purchase-${item.id}`}>Item name</label>
                       <input id={`edit-purchase-${item.id}`} value={state.edit.name} maxLength={200} required onChange={event => state.setEditName(event.target.value)} />
                       <label htmlFor={`edit-notes-${item.id}`}>Details (optional)</label>
-                      <input id={`edit-notes-${item.id}`} maxLength={1000} value={state.edit.notes} onChange={event => state.setEditNotes(event.target.value)} />
+                      <input id={`edit-notes-${item.id}`} maxLength={2000} value={state.edit.notes} onChange={event => state.setEditNotes(event.target.value)} />
                       <label htmlFor={`edit-category-${item.id}`}>Category</label>
                       <select id={`edit-category-${item.id}`} value={state.edit.category} onChange={event => state.setEditCategory(event.target.value as ShoppingItem[`category`])}><option>Home</option><option>Pets</option><option>Kids</option></select>
                       <button className="primary" disabled={state.busy || !state.edit.name.trim() || !navigator.onLine}>Save item</button>

@@ -38,7 +38,7 @@ export default function QuickAdd({ category, state, onClose }: { category: Shopp
   function toggleFavorite(item: Favorite) {
     const id = `favorite:${item.id}`;
     const existing = selected.find(row => row.id === id);
-    const notes = [item.brand && `Brand: ${item.brand}`, item.quantity && `Quantity or size: ${item.quantity}`, item.notes].filter(Boolean).join(' · ');
+    const notes = [item.brand && `Brand: ${item.brand}`, item.flavor && `Flavor: ${item.flavor}`, item.size && `Size: ${item.size}`, item.quantity && `Quantity or size: ${item.quantity}`, item.notes].filter(Boolean).join(' · ');
     setSelected(existing ? selected.filter(row => row.id !== id) : [...selected, { id, name: item.name, notes }]);
   }
   function addCustom() {
@@ -60,7 +60,7 @@ export default function QuickAdd({ category, state, onClose }: { category: Shopp
     })}
     <div className="quick-custom"><label htmlFor="quick-custom">Custom product</label><div><input id="quick-custom" maxLength={200} value={custom} disabled={state.busy} placeholder="Add something else" onChange={event => state.setQuickCustom(category, event.target.value)} /><button type="button" disabled={state.busy || !custom.trim()} onClick={addCustom}>Add</button></div></div>
     {custom.trim() && <p className="quick-custom-hint">Tap Add to include your custom product.</p>}
-    {selected.length > 0 && <div className="quick-selected"><h3>Selected ({selected.length})</h3>{selected.map((item, index) => <div className="quick-selection" key={item.id}><div><strong>{item.name}</strong><button type="button" disabled={state.busy} aria-label={`Remove ${item.name} from selection`} onClick={() => setSelected(selected.filter(row => row.id !== item.id))}>×</button></div><label htmlFor={`quick-note-${index}`}>Details (optional)</label><input id={`quick-note-${index}`} maxLength={1000} value={item.notes} disabled={state.busy} placeholder="Brand, flavor, quantity, size or notes" onChange={event => setSelected(selected.map(row => row.id === item.id ? { ...row, notes: event.target.value } : row))} /></div>)}</div>}
+    {selected.length > 0 && <div className="quick-selected"><h3>Selected ({selected.length})</h3>{selected.map((item, index) => <div className="quick-selection" key={item.id}><div><strong>{item.name}</strong><button type="button" disabled={state.busy} aria-label={`Remove ${item.name} from selection`} onClick={() => setSelected(selected.filter(row => row.id !== item.id))}>×</button></div><label htmlFor={`quick-note-${index}`}>Details (optional)</label><input id={`quick-note-${index}`} maxLength={2000} value={item.notes} disabled={state.busy} placeholder="Brand, flavor, quantity, size or notes" onChange={event => setSelected(selected.map(row => row.id === item.id ? { ...row, notes: event.target.value } : row))} /></div>)}</div>}
     {state.error && <p className="feedback error-message" role="alert">{state.error}</p>}
     </div>
     <div className="quick-footer"><button className="primary quick-save" disabled={state.busy || favorites.busy || favoriteEditing || !selected.length || !!custom.trim() || !navigator.onLine} onClick={() => { void state.addQuick(category).then(success => { if (success) onClose(); }); }}>{state.busy ? 'Adding…' : `Add ${selected.length} ${selected.length === 1 ? 'item' : 'items'}`}</button></div>
