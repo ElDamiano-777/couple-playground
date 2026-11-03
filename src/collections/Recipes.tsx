@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { readPhoto } from '../family/petPhoto';
 import { Symbol } from '../ui/Symbol';
 import type { Draft, FolderEntriesState, FolderEntry } from './useFolderEntries';
-import { extractSharedUrl, importRecipe, publicUrl } from './recipeImport';
+import { extractSharedUrl, importRecipe, publicUrl, recipeSourceUrl } from './recipeImport';
 import RecipeDetail from './RecipeDetail';
+import { importedSocialPhoto } from './importedPhoto';
 import type { SharedShoppingState } from '../shared/useSharedShopping';
 import './collections.css';
 import './recipes.css';
@@ -34,9 +35,9 @@ function RecipeForm({ draft, setField, busy, online, onSave, onClose, editing, l
     <label htmlFor="recipe-name">Recipe name</label>
     <input id="recipe-name" required maxLength={150} value={draft.title} disabled={busy} onChange={event => setField('title', event.target.value)} />
     <label htmlFor="recipe-category">Category</label>
-    <select id="recipe-category" required={!editing && !imported} value={draft.recipe_category} disabled={busy} onChange={event => setField('recipe_category', event.target.value)}><option value="">Choose a category</option>{categories.map(category => <option key={category}>{category}</option>)}</select>
+    <select id="recipe-category" value={draft.recipe_category} disabled={busy} onChange={event => setField('recipe_category', event.target.value)}><option value="">Choose a category</option>{categories.map(category => <option key={category}>{category}</option>)}</select>
     <label htmlFor="recipe-time">Preparation time (minutes)</label>
-    <input id="recipe-time" type="number" inputMode="numeric" min="1" max="10080" step="1" required={!editing && !imported} value={draft.preparation_minutes} disabled={busy} onChange={event => setField('preparation_minutes', event.target.value)} />
+    <input id="recipe-time" type="number" inputMode="numeric" min="1" max="10080" step="1" value={draft.preparation_minutes} disabled={busy} onChange={event => setField('preparation_minutes', event.target.value)} />
     <label htmlFor="recipe-servings">Servings or yield (optional)</label>
     <input id="recipe-servings" maxLength={150} value={draft.recipe_servings} disabled={busy} onChange={event => setField('recipe_servings', event.target.value)} />
     <label htmlFor="recipe-photo">Recipe photo (optional)</label>
@@ -45,7 +46,8 @@ function RecipeForm({ draft, setField, busy, online, onSave, onClose, editing, l
     {photoError && <p className="error-message" role="alert">{photoError}</p>}
     {(imported || !!draft.recipe_source_url || !!draft.recipe_caption || !!draft.recipe_ingredients || !!draft.recipe_instructions) && <>
       <label htmlFor="recipe-source">Original link</label><input id="recipe-source" type="url" maxLength={4096} value={draft.recipe_source_url} disabled={busy} onChange={event => setField('recipe_source_url', event.target.value)} />
-      <label htmlFor="recipe-image-link">Photo link (optional)</label><p className="small-print">Imported photos stay on their original website.</p><input id="recipe-image-link" type="url" maxLength={4096} value={draft.recipe_image_url} disabled={busy} onChange={event => setField('recipe_image_url', event.target.value)} />
+      {!!draft.recipe_source_url && !recipeSourceUrl(draft.recipe_source_url) && <p className="error-message" role="alert">Use a link to the original post, not its photo.</p>}
+      <label htmlFor="recipe-image-link">Photo link (optional)</label><p className="small-print">{draft.recipe_photo ? 'A copy will be saved with your recipe.' : 'The imported photo stays on its original website.'}</p><input id="recipe-image-link" type="url" maxLength={4096} value={draft.recipe_image_url} disabled={busy} onChange={event => setField('recipe_image_url', event.target.value)} />
       {!draft.recipe_photo && publicUrl(draft.recipe_image_url) && <img className="recipe-photo-preview" src={publicUrl(draft.recipe_image_url)!} referrerPolicy="no-referrer" alt="Imported recipe photo preview" />}
       <label htmlFor="recipe-ingredients">Ingredients</label><textarea id="recipe-ingredients" rows={5} maxLength={20000} value={draft.recipe_ingredients} disabled={busy} placeholder="One ingredient per line" onChange={event => setField('recipe_ingredients', event.target.value)} />
       <label htmlFor="recipe-caption">Original caption (optional)</label><textarea id="recipe-caption" rows={4} maxLength={20000} value={draft.recipe_caption} disabled={busy} onChange={event => setField('recipe_caption', event.target.value)} />
@@ -54,7 +56,7 @@ function RecipeForm({ draft, setField, busy, online, onSave, onClose, editing, l
     </>}
     {editing && legacyNotes && !draft.recipe_source_url && !draft.recipe_caption && !draft.recipe_ingredients && !draft.recipe_instructions && <><label htmlFor="recipe-saved-notes">Previously saved notes</label><textarea id="recipe-saved-notes" rows={4} maxLength={20000} value={draft.notes} disabled={busy} onChange={event => setField('notes', event.target.value)} /></>}
     {error && <p className="feedback error-message" role="alert">{error}</p>}
-    <button className="primary" type="submit" disabled={busy || photoBusy || !online || !draft.title.trim() || (!editing && !imported && (!draft.recipe_category || !draft.preparation_minutes)) || (!!draft.recipe_source_url && !publicUrl(draft.recipe_source_url)) || (!!draft.recipe_image_url && !publicUrl(draft.recipe_image_url))}>{busy ? 'Saving…' : editing ? 'Save changes' : 'Save recipe'}</button>
+    <button className="primary" type="submit" disabled={busy || photoBusy || !online || !draft.title.trim() || (!!draft.recipe_source_url && !recipeSourceUrl(draft.recipe_source_url)) || (!!draft.recipe_image_url && !publicUrl(draft.recipe_image_url))}>{busy ? 'Saving…' : editing ? 'Save changes' : 'Save recipe'}</button>
   </form>;
 }
 
@@ -77,14 +79,15 @@ export default function Recipes({ state, shopping, sharedRecipe, onClearSharedRe
   async function previewImport(event: FormEvent) {
     event.preventDefault();
     const url = extractSharedUrl(source);
-    if (!url) { setImportMessage('Enter a public http or https link.'); return; }
+    if (!url) { setImportMessage('Enter a public recipe or post link, not a photo link.'); return; }
     const previous = state.drafts.recipe;
     if ((previous.title || previous.notes || previous.recipe_photo || previous.recipe_category || previous.preparation_minutes || previous.recipe_image_url || previous.recipe_servings || previous.recipe_caption || previous.recipe_source_url || previous.recipe_ingredients || previous.recipe_instructions) && !window.confirm('Replace your unfinished recipe draft?')) return;
     setImportBusy(true); setImportMessage('');
     let result = null;
     try { result = await importRecipe(url); } catch { /* A link-only recipe is still useful. */ }
+    const photo = result?.image ? await importedSocialPhoto(result.image) : null;
     if (!mounted.current) return;
-    const values: Partial<Draft> = { title: result?.title || `Recipe from ${new URL(url).hostname.replace(/^www\./, '')}`, notes: result?.notes || '', recipe_caption: result?.caption || '', recipe_servings: result?.servings || '', recipe_category: result?.category || '', preparation_minutes: result?.minutes || '', recipe_photo: '', recipe_source_url: url, recipe_image_url: result?.image || '', recipe_ingredients: result?.ingredients || '', recipe_instructions: result?.instructions || '' };
+    const values: Partial<Draft> = { title: result?.title || `Recipe from ${new URL(url).hostname.replace(/^www\./, '')}`, notes: result?.notes || '', recipe_caption: result?.caption || '', recipe_servings: result?.servings || '', recipe_category: result?.category || '', preparation_minutes: result?.minutes || '', recipe_photo: photo || '', recipe_source_url: url, recipe_image_url: result?.image || '', recipe_ingredients: result?.ingredients || '', recipe_instructions: result?.instructions || '' };
     for (const [field, value] of Object.entries(values)) state.setDraft(field as keyof Draft, value);
     setImportBusy(false); setImporting(false); setImported(true); setAdding(true);
     if (sharedRecipe) onClearSharedRecipe();

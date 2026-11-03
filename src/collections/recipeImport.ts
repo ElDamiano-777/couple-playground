@@ -1,3 +1,5 @@
+import { captionSections } from './captionRecipe';
+
 export type ImportedRecipe = { title: string; category: string; minutes: string; image: string; servings: string; notes: string; caption: string; ingredients: string; instructions: string };
 
 export function publicUrl(value: string): string | null {
@@ -9,12 +11,28 @@ export function publicUrl(value: string): string | null {
   } catch { return null; }
 }
 
+// A temporary image is never a link to the original TikTok post.
+export function recipeSourceUrl(value: string, depth = 0): string | null {
+  if (depth > 2) return null;
+  const url = publicUrl(value);
+  if (!url) return null;
+  const parsed = new URL(url);
+  const host = parsed.hostname.toLowerCase();
+  if (/(^|\.)(?:tiktokcdn(?:-[a-z0-9]+)?\.com(?:\.cn)?|ibytedtos\.com|ibyteimg\.com|byteimg\.com|muscdn\.com)$/i.test(host)) return null;
+  if (/(^|\.)tiktokv\.com$/i.test(host) && /(?:\.(?:jpe?g|png|webp|image)|\/tos-)/i.test(parsed.pathname)) return null;
+  if (/(^|\.)google\.[a-z.]+$/i.test(host)) {
+    const redirected = parsed.searchParams.get('url') || parsed.searchParams.get('q');
+    if (redirected && publicUrl(redirected) && !recipeSourceUrl(redirected, depth + 1)) return null;
+  }
+  return url;
+}
+
 function sourceToFetch(source: string, depth = 0): string | null {
   if (depth > 2) return null;
   const url = new URL(source);
   if (/(^|\.)google\.[a-z.]+$/.test(url.hostname)) {
     const target = url.searchParams.get('url') || url.searchParams.get('q');
-    const redirected = target && publicUrl(target);
+    const redirected = target && recipeSourceUrl(target);
     return redirected ? sourceToFetch(redirected, depth + 1) : null;
   }
   return source;
@@ -84,32 +102,15 @@ export function parseRecipe(html: string, source: string): ImportedRecipe | null
 }
 
 export function extractSharedUrl(value: string): string | null {
-  const direct = !/\s/.test(value.trim()) ? publicUrl(value) : null;
+  const direct = !/\s/.test(value.trim()) ? recipeSourceUrl(value) : null;
   if (direct) return direct;
   for (const match of value.matchAll(/https?:\/\/[^\s<>"']+/gi)) {
-    const url = publicUrl(match[0].replace(/[),.!?\]}]+$/, ''));
+    const url = recipeSourceUrl(match[0].replace(/[),.!?\]}]+$/, ''));
     if (url) return url;
   }
   return null;
 }
 
-function captionSections(caption: string): { ingredients: string; instructions: string } {
-  const ingredients: string[] = [], instructions: string[] = [];
-  let section: 'ingredients' | 'instructions' | null = null;
-  const separated = caption.replace(/[＊*]\s*(材料|作り方)\s*[＊*]/g, '\n$1:\n').replace(/(?:^|\s)(ingredients?|zutaten|ingredientes|ингредиенты|instructions?|directions?|method|zubereitung|приготовление)\s*:/giu, '\n$1:\n');
-  for (const line of separated.split(/\r?\n/)) {
-    const text = line.trim();
-    if (!text) continue;
-    const header = text.replace(/^[^\p{L}\p{N}]*/u, '').replace(/[*＊]/g, '');
-    const start = /^(ingredients?|zutaten|ingredientes|ингредиенты|材料|instructions?|directions?|method|steps?|zubereitung|preparaci[oó]n|приготовление|作り方)\s*(?::|$)\s*(.*)$/iu.exec(header);
-    if (start) {
-      section = /^(ingredients?|zutaten|ingredientes|ингредиенты|材料)$/iu.test(start[1]) ? 'ingredients' : 'instructions';
-      if (start[2]) (section === 'ingredients' ? ingredients : instructions).push(start[2]);
-    } else if (/^(?:notes?|tips?|hashtags?|hinweise|notas)\s*:/i.test(header) || /^#/.test(text)) section = null;
-    else if (section) (section === 'ingredients' ? ingredients : instructions).push(text);
-  }
-  return { ingredients: ingredients.join('\n').slice(0, 20000), instructions: instructions.join('\n').slice(0, 20000) };
-}
 
 function pageMetadata(html: string, source: string): ImportedRecipe | null {
   const meta = new Map<string, string>();
@@ -125,8 +126,8 @@ function pageMetadata(html: string, source: string): ImportedRecipe | null {
   if (!title && !caption && !image) return null;
   const generic = /^(?:instagram|tiktok(?: - make your day)?|log in|sign in)$/i;
   if ((!title || generic.test(title)) && (!caption || /^(?:log in|sign in|watch|explore|discover)\b/i.test(caption))) return null;
-  const sections = captionSections(caption);
-  return { title: generic.test(title) ? '' : title, category: '', minutes: '', image, servings: '', notes: '', caption, ...sections };
+  const { ingredients, instructions } = captionSections(caption);
+  return { title: generic.test(title) ? '' : title, category: '', minutes: '', image, servings: '', notes: '', caption, ingredients, instructions };
 }
 
 function readerMarkdown(body: string, source: string): { recipe: ImportedRecipe | null; canonical: string | null } {
@@ -139,11 +140,17 @@ function readerMarkdown(body: string, source: string): { recipe: ImportedRecipe 
   const content = body.split(/\nMarkdown Content:\s*\n/i)[1] || '';
   const image = /!\[Image\s+\d+:\s*([\s\S]*?)\]\((https?:\/\/[^\s)]+)\)/i.exec(content);
   if (!image) return { recipe: null, canonical };
-  const caption = limit(clean(image[1]), 20000);
+  const alt = limit(clean(image[1]), 20000);
+  const afterImage = content.slice(image.index! + image[0].length);
+  const authorCaption = /^\[[^\]\n]+\]\(https?:\/\/(?:www\.)?tiktok\.com\/@[^)\s]+\)(?:\s*·[^\n]*)?\s*\n([\s\S]*?)(?=\n(?:more|see translation)\s*\n)/im.exec(afterImage)?.[1];
+  const expanded = authorCaption ? clean(authorCaption.replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/g, '$1')) : '';
+  const normalized = (value: string) => value.replace(/\s+/g, ' ').trim();
+  const caption = limit(expanded && normalized(expanded).startsWith(normalized(alt).slice(0, 40)) ? expanded : alt, 20000);
   const photo = imageUrl(image[2], source);
   if (!caption && !photo) return { recipe: null, canonical };
   const title = limit(caption.split('\n').find(line => line.trim())?.trim() || '', 150);
-  return { recipe: { title, category: '', minutes: '', image: photo, servings: '', notes: '', caption, ...captionSections(caption) }, canonical };
+  const { ingredients, instructions } = captionSections(caption);
+  return { recipe: { title, category: '', minutes: '', image: photo, servings: '', notes: '', caption, ingredients, instructions }, canonical };
 }
 
 async function readerPage(target: string, markdown: boolean): Promise<{ recipe: ImportedRecipe | null; canonical: string | null }> {
@@ -184,11 +191,13 @@ async function tiktokMetadata(target: string): Promise<ImportedRecipe | null> {
     const caption = limit(clean(data.title), 20000);
     const image = imageUrl(data.thumbnail_url, target);
     if (!caption && !image) return null;
-    return { title: limit(caption.split('\n')[0], 150), category: '', minutes: '', image, servings: '', notes: '', caption, ...captionSections(caption) };
+    const { ingredients, instructions } = captionSections(caption);
+    return { title: limit(caption.split('\n')[0], 150), category: '', minutes: '', image, servings: '', notes: '', caption, ingredients, instructions };
   } finally { clearTimeout(timeout); }
 }
 
 export async function importRecipe(source: string): Promise<ImportedRecipe | null> {
+  if (!recipeSourceUrl(source)) return null;
   const target = sourceToFetch(source);
   if (!target) return null;
   const isTikTok = /(^|\.)tiktok\.com$/i.test(new URL(target).hostname);

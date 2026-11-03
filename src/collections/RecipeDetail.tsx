@@ -2,7 +2,8 @@ import { useState } from 'react';
 import type { FolderEntry } from './useFolderEntries';
 import type { SharedShoppingState } from '../shared/useSharedShopping';
 import { Symbol } from '../ui/Symbol';
-import { publicUrl } from './recipeImport';
+import { publicUrl, recipeSourceUrl } from './recipeImport';
+import { captionSections } from './captionRecipe';
 import { ingredientDetails, instructionSteps, shoppingIngredient, type Ingredient } from './recipeDetails';
 
 export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelete, busy, online }: {
@@ -11,8 +12,11 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
   const parsed = ingredientDetails(recipe.recipe_ingredients || '');
   const ingredients = parsed.ingredients.filter(item => !item.heading);
   const steps = instructionSteps(recipe.recipe_instructions || '');
-  const notes = [recipe.notes?.trim(), ...parsed.notes].filter(Boolean);
-  const source = recipe.recipe_source_url && publicUrl(recipe.recipe_source_url);
+  const caption = recipe.recipe_caption ? captionSections(recipe.recipe_caption) : null;
+  const comparable = (value: string) => value.replace(/\s+/g, ' ').trim();
+  const represented = !!(caption?.ingredients && caption.instructions && comparable(caption.ingredients) === comparable(recipe.recipe_ingredients || '') && comparable(caption.instructions) === comparable(recipe.recipe_instructions || ''));
+  const notes = [recipe.notes?.trim(), ...parsed.notes, represented ? caption?.remainder : ''].filter(Boolean);
+  const source = recipe.recipe_source_url && recipeSourceUrl(recipe.recipe_source_url);
   const social = source && /(^|\.)(instagram\.com|instagr\.am|tiktok\.com)$/i.test(new URL(source).hostname);
   const photo = recipe.recipe_photo || (recipe.recipe_image_url && publicUrl(recipe.recipe_image_url));
   const linkOnly = !!source && !ingredients.length && !steps.length;
@@ -42,8 +46,9 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
           {message && <p className="feedback" role="status">{message}</p>}
         </section>}
         {steps.length > 0 && <section className="recipe-details-section"><h2>Instructions</h2><ol className="recipe-steps">{steps.map((step, index) => <li key={index}><span>{index + 1}</span><p>{step}</p></li>)}</ol></section>}
-        {recipe.recipe_caption && <details className="recipe-caption"><summary>Original caption or description</summary><p>{recipe.recipe_caption}</p></details>}
+        {recipe.recipe_caption && !represented && <details className="recipe-caption"><summary>Original caption or description</summary><p>{recipe.recipe_caption}</p></details>}
         {notes.length > 0 && <section className="recipe-details-section recipe-notes"><h2>Notes</h2>{notes.map((note, index) => <p className="collection-notes" key={index}>{note}</p>)}</section>}
+        {recipe.recipe_source_url && !source && <p className="small-print">Original post link unavailable. Edit this recipe to add it.</p>}
         {source && !linkOnly && <a className="recipe-original" href={source} target={social ? undefined : "_blank"} rel="noopener noreferrer">Open Original Recipe ↗</a>}
         <div className="collection-actions"><button className="text-action" disabled={busy} aria-label={`Edit ${recipe.title}`} onClick={onEdit}>Edit</button><button className="text-action" disabled={busy || !online} aria-label={`Delete ${recipe.title}`} onClick={onDelete}>Delete</button></div>
       </div>

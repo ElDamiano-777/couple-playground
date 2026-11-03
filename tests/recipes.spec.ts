@@ -256,14 +256,15 @@ test('public Instagram metadata and captions are saved without inventing details
   await expect(page.getByLabel('Instructions')).toHaveValue('Toast the bread.\nAdd berries.');
   await page.getByRole('button', { name: 'Save recipe' }).click();
   await page.locator('.recipe-card').filter({ hasText: 'Berry toast' }).click();
-  await page.getByText('Original caption or description').click();
-  await expect(page.locator('.recipe-caption')).toContainText('Breakfast ideas');
+  await expect(page.locator('.recipe-caption')).toHaveCount(0);
+  await expect(page.locator('.recipe-notes')).toContainText('Breakfast ideas');
   const link = page.getByRole('link', { name: /Open Original/ });
   await expect(link).toHaveAttribute('href', 'https://www.instagram.com/reel/Example123/?igsh=abc');
   await expect(link).not.toHaveAttribute('target', '_blank');
   await page.reload(); await recipes(page); await page.locator('.recipe-card').filter({ hasText: 'Berry toast' }).click();
-  await page.getByText('Original caption or description').click();
-  await expect(page.locator('.recipe-caption')).toContainText('1 cup berries');
+  await expect(page.locator('.recipe-caption')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Edit Berry toast' }).click();
+  await expect(page.getByLabel('Original caption (optional)')).toHaveValue(/1 cup berries/);
 });
 
 test('TikTok metadata and shortened links work when public details are available', async ({ page, context }) => {
@@ -348,4 +349,157 @@ test('the paste button accepts a copied message containing a recipe link', async
   await page.evaluate(() => { Object.defineProperty(navigator, 'clipboard', { value: { readText: async () => { throw new Error('Permission denied'); } }, configurable: true }); });
   await page.getByRole('button', { name: 'Paste copied link' }).click();
   await expect(page.getByRole('alert')).toContainText('Touch and hold');
+});
+
+test('a social caption becomes a shared recipe without repeated description or required optional fields', async ({ browser }) => {
+  test.setTimeout(120000);
+  const server = transport();
+  const a = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 320, height: 844 } });
+  const b = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 } });
+  await server.attach(a); await server.attach(b);
+  const first = await a.newPage(), second = await b.newPage();
+  const caption = 'Домашние оладьи&#10;Ингредиенты:&#10;200 г муки&#10;2 яйца&#10;100 мл молока&#10;Способ приготовления:&#10;1. Смешайте продукты.&#10;2. Обжарьте до готовности.&#10;Советы: Подавайте тёплыми.';
+  await a.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<meta property="og:title" content="Домашние оладьи"><meta property="og:image" content="https://images.example.com/pancakes.jpg"><meta property="og:description" content="${caption}">` }));
+  try {
+    await login(first, 'Masha'); await login(second, 'Damian'); await recipes(first);
+    await first.getByRole('button', { name: 'Import from Link' }).click();
+    await first.getByLabel('Recipe link').fill('https://www.threads.net/@cook/post/Example');
+    await first.getByRole('button', { name: 'Preview recipe' }).click();
+    await expect(first.getByLabel('Recipe name')).toHaveValue('Домашние оладьи');
+    await expect(first.getByLabel('Ingredients')).toHaveValue('200 г муки\n2 яйца\n100 мл молока');
+    await expect(first.getByLabel('Instructions')).toHaveValue('1. Смешайте продукты.\n2. Обжарьте до готовности.');
+    await expect(first.getByLabel('Category', { exact: true })).toHaveValue('');
+    await expect(first.getByLabel('Preparation time (minutes)')).toHaveValue('');
+    await expect(first.getByRole('button', { name: 'Save recipe' })).toBeEnabled();
+    await first.getByRole('button', { name: 'Save recipe' }).click();
+    await first.locator('.recipe-card').filter({ hasText: 'Домашние оладьи' }).click();
+    await expect(first.locator('.recipe-ingredient')).toHaveCount(3);
+    await expect(first.locator('.recipe-ingredient').first()).toContainText('200 г');
+    await expect(first.locator('.recipe-steps li')).toHaveCount(2);
+    await expect(first.locator('.recipe-caption')).toHaveCount(0);
+    await expect(first.locator('.recipe-notes')).toContainText('Подавайте тёплыми.');
+    await expect(first.getByRole('link', { name: /Open Original/ })).toHaveAttribute('href', 'https://www.threads.net/@cook/post/Example');
+    await recipes(second); await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await second.locator('.recipe-card').filter({ hasText: 'Домашние оладьи' }).click();
+    await expect(second.locator('.recipe-ingredient')).toHaveCount(3);
+    await expect(second.locator('.recipe-steps li')).toHaveCount(2);
+    await second.getByRole('button', { name: 'Edit Домашние оладьи' }).click();
+    await expect(second.getByLabel('Original caption (optional)')).toHaveValue(/Ингредиенты:/);
+  } finally { await a.close(); await b.close(); }
+});
+
+test('an ambiguous social caption stays available without invented ingredients', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  const caption = 'Fruit bowl&#10;Ingredients:&#10;2 apples and 3 pears&#10;Method:&#10;Slice the fruit.';
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<meta property="og:title" content="Fruit bowl"><meta property="og:description" content="${caption}">` }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://www.instagram.com/p/example/');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Ingredients')).toHaveValue('');
+  await expect(page.getByLabel('Original caption (optional)')).toHaveValue(/2 apples and 3 pears/);
+  await page.getByRole('button', { name: 'Save recipe' }).click();
+  await page.locator('.recipe-card').filter({ hasText: 'Fruit bowl' }).click();
+  await expect(page.locator('.recipe-ingredient')).toHaveCount(0);
+  await page.getByText('Original caption or description').click();
+  await expect(page.locator('.recipe-caption')).toContainText('2 apples and 3 pears');
+  await expect(page.getByRole('link', { name: /Open Original/ })).toHaveAttribute('href', 'https://www.instagram.com/p/example/');
+});
+
+test('TikTok image links cannot be saved as the original post', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 503, body: 'Unavailable' }));
+  await context.route('https://www.tiktok.com/oembed**', route => route.fulfill({ status: 400, json: { message: 'Unavailable' } }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  const image = 'https://p19-common-sign.tiktokcdn-us.com/path/photo.image?x-expires=123';
+  await page.getByLabel('Recipe link').fill(image);
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByRole('alert')).toContainText('not a photo link');
+  await page.getByLabel('Recipe link').fill(`${image} Recipe: https://vt.tiktok.com/post123/`);
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Original link')).toHaveValue('https://vt.tiktok.com/post123/');
+  await page.getByRole('button', { name: 'Save recipe' }).click();
+  await page.locator('.recipe-card').first().click();
+  await expect(page.getByRole('link', { name: /Open Original/ })).toHaveAttribute('href', 'https://vt.tiktok.com/post123/');
+});
+
+test('a public TikTok photo is kept in the shared recipe and is never used as the original link', async ({ browser }) => {
+  test.setTimeout(120000);
+  const server = transport();
+  const a = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 320, height: 844 } });
+  const b = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 } });
+  await server.attach(a); await server.attach(b);
+  const first = await a.newPage(), second = await b.newPage();
+  const original = 'https://vt.tiktok.com/real-post/';
+  const image = 'https://p19-common-sign.tiktokcdn-us.com/path/food.image?x-expires=123';
+  const body = `Title: TikTok\nURL Source: ${original}\nFinal URL: https://www.tiktok.com/@cook/video/123\n\nMarkdown Content:\n![Image 1: Quick soup Ingredients: 1 carrot Method: Cook gently.](${image})\n\n[Video 1](blob:https://www.tiktok.com/123)\n\n[Cook](https://www.tiktok.com/@cook) · 2026-01-01\n\nQuick soup  \n  \nIngredients:  \n1 carrot  \n  \nMethod:  \n1. Cook gently.\n\nmore\n\nSee translation`;
+  await a.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/plain', headers: { 'Access-Control-Allow-Origin': '*' }, body }));
+  await a.route('https://www.tiktok.com/oembed**', route => route.fulfill({ status: 400, json: { message: 'Unavailable' } }));
+  await a.route('https://p19-common-sign.tiktokcdn-us.com/**', route => route.fulfill({ status: 200, path: 'public/icons/icon-192.png', contentType: 'image/png', headers: { 'Access-Control-Allow-Origin': '*' } }));
+  try {
+    await login(first, 'Masha'); await login(second, 'Damian'); await recipes(first);
+    await first.getByRole('button', { name: 'Import from Link' }).click();
+    await first.getByLabel('Recipe link').fill(original);
+    await first.getByRole('button', { name: 'Preview recipe' }).click();
+    await expect(first.getByLabel('Ingredients')).toHaveValue('1 carrot');
+    await expect(first.getByLabel('Instructions')).toHaveValue('1. Cook gently.');
+    await expect(first.getByAltText('Recipe photo preview')).toBeVisible();
+    const source = await first.getByAltText('Recipe photo preview').getAttribute('src');
+    expect(source).toMatch(/^data:image\/jpeg;base64,/);
+    await first.getByRole('button', { name: 'Save recipe' }).click();
+    await recipes(second); await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    const card = second.locator('.recipe-card').filter({ hasText: 'Quick soup' });
+    await expect(card.locator('img')).toHaveAttribute('src', source!);
+    await card.click();
+    await expect(second.getByRole('link', { name: /Open Original/ })).toHaveAttribute('href', original);
+    await second.reload(); await recipes(second);
+    await expect(second.locator('.recipe-card').filter({ hasText: 'Quick soup' }).locator('img')).toHaveAttribute('src', source!);
+  } finally { await a.close(); await b.close(); }
+});
+
+test('an existing TikTok image URL is retained but not presented as an original post', async ({ page, context }) => {
+  const server = transport();
+  const image = 'https://p19-common-sign.tiktokcdn-us.com/path/old.image?x-expires=123';
+  server.seedLegacyRecipe('Older recipe', 'Keep this note', image);
+  await server.attach(context); await login(page, 'Masha'); await recipes(page);
+  await page.locator('.recipe-card').filter({ hasText: 'Older recipe' }).click();
+  await expect(page.getByRole('link', { name: /Open Original/ })).toHaveCount(0);
+  await expect(page.getByText('Original post link unavailable. Edit this recipe to add it.')).toBeVisible();
+  await expect(page.locator('.recipe-notes')).toContainText('Keep this note');
+  await page.getByRole('button', { name: 'Edit Older recipe' }).click();
+  await expect(page.getByLabel('Original link')).toHaveValue(image);
+});
+
+test('an unavailable social photo does not block saving the recipe', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  const image = 'https://scontent.cdninstagram.com/expired.jpg';
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<meta property="og:title" content="Easy soup"><meta property="og:image" content="${image}"><meta property="og:description" content="A warming soup.">` }));
+  await context.route('https://scontent.cdninstagram.com/**', route => route.fulfill({ status: 403, headers: { 'Access-Control-Allow-Origin': '*' } }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://www.instagram.com/p/soup/');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('Easy soup');
+  await expect(page.getByLabel('Photo link (optional)')).toHaveValue(image);
+  await expect(page.getByAltText('Recipe photo preview', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Save recipe' }).click();
+  await expect(page.locator('.recipe-card').filter({ hasText: 'Easy soup' })).toBeVisible();
+});
+
+test('a flattened caption with clear quantities and numbered steps is separated', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  const caption = 'Оладьи Ингредиенты: 2 яйца 200 г муки 100 мл молока Приготовление: 1. Смешайте продукты. 2. Обжарьте оладьи.';
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<meta property="og:title" content="Оладьи"><meta property="og:description" content="${caption}">` }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://www.threads.net/@cook/post/flattened');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Ingredients')).toHaveValue('2 яйца\n200 г муки\n100 мл молока');
+  await expect(page.getByLabel('Instructions')).toHaveValue('1. Смешайте продукты.\n2. Обжарьте оладьи.');
+  await page.getByRole('button', { name: 'Save recipe' }).click();
+  await page.locator('.recipe-card').filter({ hasText: 'Оладьи' }).click();
+  await expect(page.locator('.recipe-ingredient')).toHaveCount(3);
+  await expect(page.locator('.recipe-steps li')).toHaveCount(2);
+  await expect(page.locator('.recipe-caption')).toHaveCount(0);
 });
