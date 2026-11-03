@@ -14,7 +14,7 @@ export default function ShoppingItemDetail({ item, photo, onClose }: { item: Sho
   const quantity = field(item.notes, 'Quantity') || field(item.notes, 'Quantity or size') || field(item.notes, 'Size');
   return <div className="shopping-detail-overlay" role="presentation" onMouseDown={onClose}>
     <section className="shopping-detail-card" role="dialog" aria-modal="true" aria-labelledby="shopping-detail-title" onMouseDown={event => event.stopPropagation()}>
-      <button type="button" className="text-action shopping-detail-close" onClick={onClose}>Close</button>
+      <div className="shopping-detail-header"><button type="button" className="text-action shopping-detail-close" onClick={onClose}>Close</button></div>
       <div className="shopping-detail-photo">{photo ? <img src={photo} alt="" /> : <Symbol name="shopping" />}</div>
       <h2 id="shopping-detail-title">{item.name}</h2>
       <dl>
