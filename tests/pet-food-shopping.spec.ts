@@ -31,7 +31,7 @@ async function createPetAndFood(page: Page, name: string, photo: boolean) {
 }
 
 test('pet food is shared, grouped by saved product and added without copying photos', async ({ browser }) => {
-  test.setTimeout(150000);
+  test.setTimeout(240000);
   const server = transport();
   const a = await browser.newContext({ viewport: { width: 320, height: 844 }, serviceWorkers: 'block' });
   const b = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });

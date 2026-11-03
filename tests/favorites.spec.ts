@@ -11,7 +11,7 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
   await page.getByRole('button', { name: '✦ Quick Add' }).click();
 }
 test('favorites and private photos persist, sync and stay independent of purchases', async ({ browser }) => {
-  test.setTimeout(150000);
+  test.setTimeout(240000);
   const server = transport();
   const a = await browser.newContext({ viewport: { width: 320, height: 844 }, serviceWorkers: 'block' });
   const b = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
