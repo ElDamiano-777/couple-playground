@@ -14,6 +14,13 @@ export function recognizeVisibleText(text: string): Recognized {
   if (flavor) fields.flavor = flavor[1].toLocaleLowerCase().replace(/\b\w/g, character => character.toUpperCase());
   const size = clean.match(/\b\d+(?:[.,]\d+)?\s?(?:kg|g|ml|cl|l)\b/i);
   if (size) fields.quantity = size[0].trim().replace(/\s+/, ' ');
+  if (!fields.name) {
+    const food = text.split(/\r?\n/).map(line => line.replace(/\s+/g, ' ').trim()).find(line =>
+      line.length >= 3 && line.length <= 80 && /\p{L}{3}/u.test(line) &&
+      /(?:wurst|käse|joghurt|milch|butter|brot|kaffee|tee|saft|wasser|nudeln|reis|suppe|salat|schinken|puten|huhn|fleisch|pizza|müsli|schokolade)/i.test(line) &&
+      !/\b(?:zutaten|ingredients|nährwert|mindestens haltbar|netto)\b/i.test(line));
+    if (food) fields.name = food.replace(/\b\p{L}/gu, character => character.toLocaleUpperCase()).replace(/\B\p{Lu}+/gu, word => word.toLocaleLowerCase());
+  }
   return fields;
 }
 
@@ -56,8 +63,8 @@ export async function recognizeBarcode(code: string): Promise<ProductRecognition
 export async function recognizeProduct(photo: string): Promise<ProductRecognition> {
   const barcode = await barcodeFromImage(photo);
   const barcodeResult = await recognizeBarcode(barcode);
-  if (barcodeResult.fields.name || barcodeResult.fields.brand || barcodeResult.fields.quantity) return barcodeResult;
-  const worker = await createWorker('eng');
+  if (barcode) return barcodeResult;
+  const worker = await createWorker('eng+deu');
   try {
     const result = await worker.recognize(photo);
     return { fields: recognizeVisibleText(result.data.text), source: 'text', photo: null };
