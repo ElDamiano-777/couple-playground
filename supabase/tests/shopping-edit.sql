@@ -61,3 +61,35 @@ do $$ begin
   exception when check_violation then null; end;
   if exists(select 1 from public.shopping_items where name = 'Should not be added') then raise exception 'Partial batch was saved'; end if;
 end $$;
+reset role;
+\ir ../migrations/20261103010000_shopping_favorites.sql
+set role authenticated;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000001', false);
+select set_config('test.shopping_home', public.current_household()::text, false);
+insert into public.shopping_favorites(household_id, category, name, brand, quantity, notes, photo)
+values(public.current_household(), 'Home', 'Tea', 'Example', '2 boxes', 'Mint', 'data:image/jpeg;base64,YQ==') returning id as favorite \gset
+select set_config('test.favorite', :'favorite', false);
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000002', false);
+do $$ begin
+  if not exists(select 1 from public.shopping_favorites where id = current_setting('test.favorite')::uuid and photo is not null and name = 'Tea') then raise exception 'Partner cannot read favorite'; end if;
+end $$;
+update public.shopping_favorites set quantity = '3 boxes' where id = :'favorite';
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000003', false);
+do $$ declare changed integer; begin
+  if exists(select 1 from public.shopping_favorites where id = current_setting('test.favorite')::uuid) then raise exception 'Foreign read succeeded'; end if;
+  update public.shopping_favorites set name = 'Forbidden' where id = current_setting('test.favorite')::uuid;
+  get diagnostics changed = row_count;
+  if changed <> 0 then raise exception 'Foreign edit succeeded'; end if;
+  begin insert into public.shopping_favorites(household_id, category, name) values(current_setting('test.shopping_home')::uuid, 'Home', 'Forbidden'); raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
+end $$;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000001', false);
+do $$ begin
+  if not exists(select 1 from public.shopping_favorites where id = current_setting('test.favorite')::uuid and quantity = '3 boxes' and photo is not null) then raise exception 'Favorite changed unexpectedly'; end if;
+  begin update public.shopping_favorites set household_id = public.current_household(); raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
+  begin update public.shopping_favorites set photo = repeat('a',1400001); raise exception 'TEST FAILED'; exception when check_violation then null; end;
+end $$;
+reset role;
+set role anon;
+do $$ begin
+  begin perform * from public.shopping_favorites; raise exception 'TEST FAILED'; exception when insufficient_privilege then null; end;
+end $$;

@@ -34,6 +34,7 @@ export function transport() {
   let petDetails: any[] = [];
   let petFoods: any[] = [];
   let petDislikes: any[] = [];
+  let favorites: any[] = [];
   let failFamilySave = false;
   let familyRequests = 0;
   let delayedFamilyRead: Promise<void> | null = null;
@@ -197,6 +198,22 @@ export function transport() {
           else petDislikes = petDislikes.filter(item => item !== row);
           return reply({ id });
         }
+      }
+      if (url.pathname === `/rest/v1/shopping_favorites`) {
+        const household = homeFor(user);
+        if (!household) return reply({ message: `Forbidden` }, 403);
+        const selectedCategory = url.searchParams.get(`category`)?.replace(`eq.`, ``);
+        if (method === `GET`) return reply(favorites.filter(row => row.household_id === household && (!selectedCategory || row.category === selectedCategory)));
+        if (method === `POST`) {
+          if (data.household_id !== household) return reply({ message: `Forbidden` }, 403);
+          const row = { ...data, id: crypto.randomUUID(), created_at: new Date().toISOString(), created_by: user };
+          favorites.push(row); return reply(row, 201);
+        }
+        const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
+        const row = favorites.find(item => item.id === id && item.household_id === household);
+        if (!row) return reply({ message: `Not found` }, 404);
+        if (method === `PATCH`) { Object.assign(row, data); return reply(row); }
+        if (method === `DELETE`) { favorites = favorites.filter(item => item !== row); return reply({ id }); }
       }
       if (url.pathname === `/rest/v1/family_profiles`) {
         ++familyRequests;
