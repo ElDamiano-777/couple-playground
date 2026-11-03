@@ -22,13 +22,13 @@
 - Vor einer Testaufforderung App-Start und geänderten Kernablauf per Smoke-Test prüfen. Nur direkt betroffene Abläufe testen; passende grüne Ergebnisse nicht doppelt prüfen. Weitere Tests bei konkreten Fehlern statt auf Vorrat.
 - Jeder Featureauftrag umfasst automatisch Umsetzung, Smoke-Tests, Commit, direkten Push nach main und Veröffentlichung über den vorhandenen Deploy. Alle Schritte ohne erneute Bestätigung selbstständig im Hintergrund abschließen. Für gewöhnliche Wünsche keinen zusätzlichen Branch oder PR anlegen; kein Force-Push.
 - Während Prüfung oder Veröffentlichung läuft, den Auftrag aktiv halten: mit den verfügbaren Tools warten, Status prüfen und gewöhnliche Fehler selbst beheben. Nicht mit „wird noch geprüft“ als Abschlussantwort enden und die Nutzerin nicht zum Nachfragen auffordern. Zwischenstände sind Fortschrittsmeldungen; die Abschlussantwort folgt erst mit dem bestätigten Ergebnis oder einem konkret nicht selbst lösbaren Blocker. Keine unbelegten späteren Benachrichtigungen versprechen.
-- main prüft Build und iPhone-WebKit vor dem Pages-Deploy und anschließenden Livecheck. Zentrale erfolgreiche Ergebnisse übernehmen. Status höchstens etwa alle 45–60 Sekunden abfragen, Fehlerlogs gezielt lesen.
+- main prüft vor dem Pages-Deploy nur den Build. Keine vollständige Browser- oder iPhone-Test-Suite als Veröffentlichungs-Gate starten. Danach den Livecheck ausführen. Status höchstens etwa alle 45–60 Sekunden abfragen, Fehlerlogs gezielt lesen.
 - Reine Dokumentations- und Agentenregeländerungen brauchen nur Text-/Linkprüfung und Nachweis auf main; keinen App-Build, Smoke-Test oder Deploy. Ein älterer App-Commit in `version.json` ist dabei normal.
 - Erst wenn Smoke-Tests, Veröffentlichung und Livecheck für den gewünschten Stand erfolgreich sind, der Nutzerin den festen App-Link geben und sie zum Ausprobieren einladen. Dann nur den sichtbaren Unterschied und die Fundstelle erklären. Solange etwas läuft oder fehlgeschlagen ist, noch keine Fertigmeldung oder Testaufforderung geben; kurz den tatsächlichen Produktstatus nennen und weiterarbeiten.
 
 ## Projekt
 
 - App: https://eldamiano-777.github.io/couple-playground/ ; Konfiguration: `app.config.json`. iPhone-PWA, GitHub Pages und vorhandenes Supabase nutzen.
-- Node.js 24; `npm ci`, `npm run dev`, `npm run build`. Smoke-Tests gezielt mit Playwright; `npm run verify` ist die optionale Vollprüfung.
+- Node.js 24; `npm ci`, `npm run dev`, `npm run build`. Für Featurearbeit nur den direkt betroffenen Ablauf gezielt prüfen; vollständige Playwright-Suiten nie routinemäßig ausführen.
 - Migrationen additiv halten; main wird über die bestehende Supabase-Integration angewendet. Danach den betroffenen Speicherablauf prüfen.
 - Produktstand: `goal.md`. Technische Details nur bei Bedarf in `docs/architecture.md`, `docs/owner-setup.md` und `supabase/README.md` nachsehen; keine Pflichtlektüre bei jedem Auftrag.

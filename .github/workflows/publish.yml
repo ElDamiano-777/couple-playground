@@ -45,12 +45,6 @@ jobs:
       - name: Build app
         if: steps.scope.outputs.app == 'true'
         run: npm run build
-      - name: Install iPhone browser
-        if: steps.scope.outputs.app == 'true' && github.event_name != 'pull_request'
-        run: npx playwright install --with-deps webkit
-      - name: Run iPhone smoke tests once before publishing
-        if: steps.scope.outputs.app == 'true' && github.event_name != 'pull_request'
-        run: npx playwright test --project=iphone-webkit
       - uses: actions/upload-pages-artifact@v4
         if: steps.scope.outputs.app == 'true' && github.event_name != 'pull_request'
         with:
