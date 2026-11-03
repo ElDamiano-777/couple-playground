@@ -3,6 +3,8 @@ import { readPhoto } from '../family/petPhoto';
 import { Symbol } from '../ui/Symbol';
 import type { Draft, FolderEntriesState, FolderEntry } from './useFolderEntries';
 import { importRecipe, publicUrl } from './recipeImport';
+import RecipeDetail from './RecipeDetail';
+import type { SharedShoppingState } from '../shared/useSharedShopping';
 import './collections.css';
 import './recipes.css';
 
@@ -35,6 +37,8 @@ function RecipeForm({ draft, setField, busy, online, onSave, onClose, editing, l
     <select id="recipe-category" required={!editing && !imported} value={draft.recipe_category} disabled={busy} onChange={event => setField('recipe_category', event.target.value)}><option value="">Choose a category</option>{categories.map(category => <option key={category}>{category}</option>)}</select>
     <label htmlFor="recipe-time">Preparation time (minutes)</label>
     <input id="recipe-time" type="number" inputMode="numeric" min="1" max="10080" step="1" required={!editing && !imported} value={draft.preparation_minutes} disabled={busy} onChange={event => setField('preparation_minutes', event.target.value)} />
+    <label htmlFor="recipe-servings">Servings or yield (optional)</label>
+    <input id="recipe-servings" maxLength={150} value={draft.recipe_servings} disabled={busy} onChange={event => setField('recipe_servings', event.target.value)} />
     <label htmlFor="recipe-photo">Recipe photo (optional)</label>
     <input id="recipe-photo" type="file" accept="image/*" disabled={busy || photoBusy} onChange={event => void choosePhoto(event.target.files?.[0])} />
     {draft.recipe_photo && <><img className="recipe-photo-preview" src={draft.recipe_photo} alt="Recipe photo preview" /><button className="text-action" type="button" onClick={() => setField('recipe_photo', '')}>Remove photo</button></>}
@@ -45,8 +49,9 @@ function RecipeForm({ draft, setField, busy, online, onSave, onClose, editing, l
       {!draft.recipe_photo && publicUrl(draft.recipe_image_url) && <img className="recipe-photo-preview" src={publicUrl(draft.recipe_image_url)!} referrerPolicy="no-referrer" alt="Imported recipe photo preview" />}
       <label htmlFor="recipe-ingredients">Ingredients</label><textarea id="recipe-ingredients" rows={5} maxLength={20000} value={draft.recipe_ingredients} disabled={busy} placeholder="One ingredient per line" onChange={event => setField('recipe_ingredients', event.target.value)} />
       <label htmlFor="recipe-instructions">Instructions</label><textarea id="recipe-instructions" rows={5} maxLength={20000} value={draft.recipe_instructions} disabled={busy} onChange={event => setField('recipe_instructions', event.target.value)} />
+      <label htmlFor="recipe-import-notes">Notes (optional)</label><textarea id="recipe-import-notes" rows={3} maxLength={20000} value={draft.notes} disabled={busy} onChange={event => setField('notes', event.target.value)} />
     </>}
-    {editing && legacyNotes && <><label htmlFor="recipe-saved-notes">Previously saved notes</label><textarea id="recipe-saved-notes" rows={4} maxLength={20000} value={draft.notes} disabled={busy} onChange={event => setField('notes', event.target.value)} /></>}
+    {editing && legacyNotes && !draft.recipe_source_url && !draft.recipe_ingredients && !draft.recipe_instructions && <><label htmlFor="recipe-saved-notes">Previously saved notes</label><textarea id="recipe-saved-notes" rows={4} maxLength={20000} value={draft.notes} disabled={busy} onChange={event => setField('notes', event.target.value)} /></>}
     {error && <p className="feedback error-message" role="alert">{error}</p>}
     <button className="primary" type="submit" disabled={busy || photoBusy || !online || !draft.title.trim() || (!editing && !imported && (!draft.recipe_category || !draft.preparation_minutes)) || (!!draft.recipe_source_url && !publicUrl(draft.recipe_source_url)) || (!!draft.recipe_image_url && !publicUrl(draft.recipe_image_url))}>{busy ? 'Saving…' : editing ? 'Save changes' : 'Save recipe'}</button>
   </form>;
@@ -57,7 +62,7 @@ function RecipeImage({ recipe }: { recipe: FolderEntry }) {
   return <span className="recipe-image">{photo ? <img src={photo} referrerPolicy="no-referrer" alt="" /> : <span aria-hidden="true"><Symbol name="recipe" /></span>}</span>;
 }
 
-export default function Recipes({ state, onSignIn }: { state: FolderEntriesState; onSignIn: () => void }) {
+export default function Recipes({ state, shopping, onSignIn }: { state: FolderEntriesState; shopping: SharedShoppingState; onSignIn: () => void }) {
   const [filter, setFilter] = useState('All');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -73,12 +78,12 @@ export default function Recipes({ state, onSignIn }: { state: FolderEntriesState
     const url = publicUrl(source);
     if (!url) { setImportMessage('Enter a public http or https link.'); return; }
     const previous = state.drafts.recipe;
-    if ((previous.title || previous.notes || previous.recipe_photo || previous.recipe_category || previous.preparation_minutes || previous.recipe_image_url || previous.recipe_source_url || previous.recipe_ingredients || previous.recipe_instructions) && !window.confirm('Replace your unfinished recipe draft?')) return;
+    if ((previous.title || previous.notes || previous.recipe_photo || previous.recipe_category || previous.preparation_minutes || previous.recipe_image_url || previous.recipe_servings || previous.recipe_source_url || previous.recipe_ingredients || previous.recipe_instructions) && !window.confirm('Replace your unfinished recipe draft?')) return;
     setImportBusy(true); setImportMessage('');
     let result = null;
     try { result = await importRecipe(url); } catch { /* A link-only recipe is still useful. */ }
     if (!mounted.current) return;
-    const values: Partial<Draft> = { title: result?.title || `Recipe from ${new URL(url).hostname.replace(/^www\./, '')}`, notes: '', recipe_category: result?.category || '', preparation_minutes: result?.minutes || '', recipe_photo: '', recipe_source_url: url, recipe_image_url: result?.image || '', recipe_ingredients: result?.ingredients || '', recipe_instructions: result?.instructions || '' };
+    const values: Partial<Draft> = { title: result?.title || `Recipe from ${new URL(url).hostname.replace(/^www\./, '')}`, notes: result?.notes || '', recipe_servings: result?.servings || '', recipe_category: result?.category || '', preparation_minutes: result?.minutes || '', recipe_photo: '', recipe_source_url: url, recipe_image_url: result?.image || '', recipe_ingredients: result?.ingredients || '', recipe_instructions: result?.instructions || '' };
     for (const [field, value] of Object.entries(values)) state.setDraft(field as keyof Draft, value);
     setImportBusy(false); setImporting(false); setImported(true); setAdding(true);
     setImportMessage(result ? 'Check the imported details before saving.' : 'Details could not be imported. You can save the link and add details yourself.');
@@ -89,9 +94,7 @@ export default function Recipes({ state, onSignIn }: { state: FolderEntriesState
   const isEditing = !!state.edit && state.edit.id === selectedId;
   return <section className="preview-page collection-page recipes-page" lang="en">
     {selected ? <>
-      <button className="text-action recipe-back" onClick={() => setSelectedId(null)}>← Our Recipes</button>
-      <div className="recipe-detail"><RecipeImage recipe={selected} /><div className="recipe-detail-copy"><p className="recipe-category">{selected.recipe_category || 'Uncategorized'}</p><h1>{selected.title}</h1><p>{selected.preparation_minutes ? `${selected.preparation_minutes} min` : 'Preparation time not set'}</p>{selected.notes && <p className="collection-notes">{selected.notes}</p>}{selected.recipe_ingredients && <section className="recipe-details-section"><h2>Ingredients</h2><p>{selected.recipe_ingredients}</p></section>}{selected.recipe_instructions && <section className="recipe-details-section"><h2>Instructions</h2><p>{selected.recipe_instructions}</p></section>}{selected.recipe_source_url && publicUrl(selected.recipe_source_url) && <a className="recipe-original" href={publicUrl(selected.recipe_source_url)!} target="_blank" rel="noopener noreferrer">Open Original Recipe ↗</a>}
-      <div className="collection-actions"><button className="text-action" disabled={state.busy} aria-label={`Edit ${selected.title}`} onClick={() => state.startEdit(selected)}>Edit</button><button className="text-action" disabled={state.busy || !state.online} aria-label={`Delete ${selected.title}`} onClick={() => { if (window.confirm(`Remove “${selected.title}” from your shared recipes?`)) void state.remove(selected)?.then(success => { if (success) setSelectedId(null); }); }}>Delete</button></div></div></div>
+      <RecipeDetail key={selected.id} recipe={selected} shopping={shopping} busy={state.busy} online={state.online} onBack={() => setSelectedId(null)} onEdit={() => state.startEdit(selected)} onDelete={() => { if (window.confirm(`Remove “${selected.title}” from your shared recipes?`)) void state.remove(selected)?.then(success => { if (success) setSelectedId(null); }); }} />
       {isEditing && state.edit && <RecipeForm draft={state.edit} setField={state.setEditField} busy={state.busy} online={state.online} editing legacyNotes={!!selected.notes} error={state.error} onClose={state.cancelEdit} onSave={() => { void state.saveEdit(); }} />}
     </> : <>
       <div className="recipe-heading"><div><p className="eyebrow">SAVED TOGETHER</p><h1>Our Recipes<span>.</span></h1></div>{state.userId && state.household && <div className="recipe-heading-actions"><button className="primary recipe-add" onClick={() => { setSource(''); setImportMessage(''); setImporting(true); }}>Import from Link</button><button className="text-action recipe-manual" onClick={() => { setImported(!!state.drafts.recipe.recipe_source_url); setAdding(true); }}>+ Add Recipe manually</button></div>}</div>

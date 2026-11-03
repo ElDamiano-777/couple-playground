@@ -43,7 +43,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} initialCategory={shoppingCategory} />
       : page === `pets` ? <Pets key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
       : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
-      : page === `recipes` ? <Recipes key={`${collections.userId}:${collections.household}`} state={collections} onSignIn={() => navigate(`shopping`)} />
+      : page === `recipes` ? <Recipes key={`${collections.userId}:${collections.household}`} state={collections} shopping={shopping} onSignIn={() => navigate(`shopping`)} />
       : page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
       : <FolderPages page={page} navigate={navigate} />}
   </div>;

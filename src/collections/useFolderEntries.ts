@@ -13,14 +13,15 @@ export type FolderEntry = {
   recipe_photo: string | null;
   recipe_source_url: string | null;
   recipe_image_url: string | null;
+  recipe_servings: string | null;
   recipe_ingredients: string;
   recipe_instructions: string;
   created_by: string | null;
   created_at: string;
 };
-export type Draft = { title: string; notes: string; recipe_category: string; preparation_minutes: string; recipe_photo: string; recipe_source_url: string; recipe_image_url: string; recipe_ingredients: string; recipe_instructions: string };
+export type Draft = { title: string; notes: string; recipe_category: string; preparation_minutes: string; recipe_photo: string; recipe_source_url: string; recipe_image_url: string; recipe_servings: string; recipe_ingredients: string; recipe_instructions: string };
 type Edit = Draft & { id: string; kind: FolderKind };
-const emptyDraft = (): Draft => ({ title: ``, notes: ``, recipe_category: ``, preparation_minutes: ``, recipe_photo: ``, recipe_source_url: ``, recipe_image_url: ``, recipe_ingredients: ``, recipe_instructions: `` });
+const emptyDraft = (): Draft => ({ title: ``, notes: ``, recipe_category: ``, preparation_minutes: ``, recipe_photo: ``, recipe_source_url: ``, recipe_image_url: ``, recipe_servings: ``, recipe_ingredients: ``, recipe_instructions: `` });
 const emptyDrafts = () => ({ recipe: emptyDraft(), wish: emptyDraft(), place: emptyDraft() });
 const emptyEdits = (): Record<FolderKind, Edit | null> => ({ recipe: null, wish: null, place: null });
 const failure = `We couldn’t save this change. Check your connection and try again. Your text is still here.`;
@@ -141,7 +142,7 @@ export function useFolderEntries({
     return perform(async () => {
       const result = await supabase.from(`folder_entries`).insert({
         household_id: household, kind, title: draft.title.trim(), notes: draft.notes,
-        ...(kind === `recipe` ? { recipe_category: draft.recipe_category || null, preparation_minutes: draft.preparation_minutes ? Number(draft.preparation_minutes) : null, recipe_photo: draft.recipe_photo || null, recipe_source_url: draft.recipe_source_url || null, recipe_image_url: draft.recipe_image_url || null, recipe_ingredients: draft.recipe_ingredients, recipe_instructions: draft.recipe_instructions } : {}),
+        ...(kind === `recipe` ? { recipe_category: draft.recipe_category || null, preparation_minutes: draft.preparation_minutes ? Number(draft.preparation_minutes) : null, recipe_photo: draft.recipe_photo || null, recipe_source_url: draft.recipe_source_url || null, recipe_image_url: draft.recipe_image_url || null, recipe_servings: draft.recipe_servings || null, recipe_ingredients: draft.recipe_ingredients, recipe_instructions: draft.recipe_instructions } : {}),
       }).select().single();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved entry`);
       if (!isCurrent()) return;
@@ -156,7 +157,7 @@ export function useFolderEntries({
     return perform(async () => {
       const result = await supabase.from(`folder_entries`).update({
         title: edit.title.trim(), notes: edit.notes,
-        ...(edit.kind === `recipe` ? { recipe_category: edit.recipe_category || null, preparation_minutes: edit.preparation_minutes ? Number(edit.preparation_minutes) : null, recipe_photo: edit.recipe_photo || null, recipe_source_url: edit.recipe_source_url || null, recipe_image_url: edit.recipe_image_url || null, recipe_ingredients: edit.recipe_ingredients, recipe_instructions: edit.recipe_instructions } : {}),
+        ...(edit.kind === `recipe` ? { recipe_category: edit.recipe_category || null, preparation_minutes: edit.preparation_minutes ? Number(edit.preparation_minutes) : null, recipe_photo: edit.recipe_photo || null, recipe_source_url: edit.recipe_source_url || null, recipe_image_url: edit.recipe_image_url || null, recipe_servings: edit.recipe_servings || null, recipe_ingredients: edit.recipe_ingredients, recipe_instructions: edit.recipe_instructions } : {}),
       }).eq(`id`, edit.id).eq(`household_id`, household).select().single();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved entry`);
       if (!isCurrent()) return;
@@ -180,13 +181,13 @@ export function useFolderEntries({
     userId, household, authReady, contextLoading, isPoc, kind, setKind,
     entries: sameScope ? entries : [],
     drafts: sameScope ? drafts : emptyDrafts(), edit: sameScope ? edit : null,
-    dirty: sameScope && (Object.values(edits).some(Boolean) || Object.values(drafts).some((draft) => !!(draft.title || draft.notes || draft.recipe_category || draft.preparation_minutes || draft.recipe_photo || draft.recipe_source_url || draft.recipe_image_url || draft.recipe_ingredients || draft.recipe_instructions))),
+    dirty: sameScope && (Object.values(edits).some(Boolean) || Object.values(drafts).some((draft) => !!(draft.title || draft.notes || draft.recipe_category || draft.preparation_minutes || draft.recipe_photo || draft.recipe_source_url || draft.recipe_image_url || draft.recipe_servings || draft.recipe_ingredients || draft.recipe_instructions))),
     busy: sameScope && busy, loading: !sameScope || loading, online,
     error: sameScope ? error : ``, notice: sameScope ? notice : ``,
     setDraft: (field: keyof Draft, value: string) => setDrafts((previous) => ({ ...previous, [kind]: { ...previous[kind], [field]: value } })),
     startEdit: (entry: FolderEntry) => {
       if (edits[entry.kind] && !window.confirm(`Replace unfinished changes in this folder?`)) return;
-      setEdits((previous) => ({ ...previous, [entry.kind]: { id: entry.id, kind: entry.kind, title: entry.title, notes: entry.notes, recipe_category: entry.recipe_category ?? ``, preparation_minutes: entry.preparation_minutes?.toString() ?? ``, recipe_photo: entry.recipe_photo ?? ``, recipe_source_url: entry.recipe_source_url ?? ``, recipe_image_url: entry.recipe_image_url ?? ``, recipe_ingredients: entry.recipe_ingredients ?? ``, recipe_instructions: entry.recipe_instructions ?? `` } }));
+      setEdits((previous) => ({ ...previous, [entry.kind]: { id: entry.id, kind: entry.kind, title: entry.title, notes: entry.notes, recipe_category: entry.recipe_category ?? ``, preparation_minutes: entry.preparation_minutes?.toString() ?? ``, recipe_photo: entry.recipe_photo ?? ``, recipe_source_url: entry.recipe_source_url ?? ``, recipe_image_url: entry.recipe_image_url ?? ``, recipe_servings: entry.recipe_servings ?? ``, recipe_ingredients: entry.recipe_ingredients ?? ``, recipe_instructions: entry.recipe_instructions ?? `` } }));
       setNotice(``);
     },
     setEditField: (field: keyof Draft, value: string) => setEdits((previous) => ({ ...previous, [kind]: previous[kind] && { ...previous[kind], [field]: value } })),

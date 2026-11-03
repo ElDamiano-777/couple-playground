@@ -132,7 +132,7 @@ test('imported recipes are reviewed, saved and shared, with a link-only fallback
     await first.getByLabel('Recipe name').fill('Saved reel');
     await first.getByRole('button', { name: 'Save recipe' }).click();
     await first.locator('.recipe-card').filter({ hasText: 'Saved reel' }).click();
-    await expect(first.getByRole('link', { name: /Open Original Recipe/ })).toHaveAttribute('href', 'https://www.instagram.com/p/example/');
+    await expect(first.getByRole('link', { name: /Open Original/ })).toHaveAttribute('href', 'https://www.instagram.com/p/example/');
     await expect(first.locator('.recipe-details-section')).toHaveCount(0);
     expect(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   } finally { await a.close(); await b.close(); }
@@ -172,4 +172,72 @@ test('Google result links use the linked recipe and private network URLs are rej
   expect(fetched).toContain('https://r.jina.ai/https://example.com/recipe');
   await expect(page.getByLabel('Original link')).toHaveValue(google);
   await expect(page.getByLabel('Ingredients')).toHaveValue('1 pear');
+});
+
+test('recipe details separate ingredients, notes and steps and add chosen items to shared shopping', async ({ browser }) => {
+  test.setTimeout(120000);
+  const server = transport();
+  const a = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 320, height: 740 } });
+  const b = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 } });
+  await server.attach(a); await server.attach(b);
+  const first = await a.newPage(), second = await b.newPage();
+  const json = { '@type': 'Recipe', name: 'Berry bake', recipeCategory: 'Dessert', prepTime: 'PT15M', recipeYield: '4 servings', recipeNotes: 'Serve warm.', recipeIngredient: ['• 1½ cups flour', '2 tbsp butter (or olive oil)', 'Notes: Use fresh berries.'], recipeInstructions: [{ text: '1. Mix ingredients.' }, { text: 'Step 2: Bake until golden.' }] };
+  await a.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<script type="application/ld+json">${JSON.stringify(json)}</script>` }));
+  try {
+    await login(first, 'Masha'); await login(second, 'Damian'); await recipes(first);
+    await first.getByRole('button', { name: 'Import from Link' }).click();
+    await first.getByLabel('Recipe link').fill('https://example.com/berry-bake');
+    await first.getByRole('button', { name: 'Preview recipe' }).click();
+    await expect(first.getByLabel('Servings or yield (optional)')).toHaveValue('4 servings');
+    await expect(first.getByLabel('Notes (optional)')).toHaveValue('Serve warm.');
+    await first.getByRole('button', { name: 'Save recipe' }).click();
+    await first.locator('.recipe-card').filter({ hasText: 'Berry bake' }).click();
+    const detail = first.locator('.recipe-detail');
+    await expect(detail).toContainText('Yield: 4 servings');
+    await expect(detail.locator('.recipe-ingredient')).toHaveCount(2);
+    await expect(detail.locator('.recipe-ingredient').nth(0)).toContainText('1½ cups');
+    await expect(detail.locator('.recipe-ingredient').nth(0)).toContainText('flour');
+    await expect(detail.locator('.recipe-ingredient').nth(1)).toContainText('2 tbsp');
+    await expect(detail.locator('.recipe-notes')).toContainText('Serve warm.');
+    await expect(detail.locator('.recipe-notes')).toContainText('butter: or olive oil');
+    await expect(detail.locator('.recipe-notes')).toContainText('Use fresh berries.');
+    await expect(detail.locator('.recipe-steps li')).toHaveCount(2);
+    await expect(detail.locator('.recipe-steps li').nth(0)).toContainText('Mix ingredients.');
+    await expect(detail.locator('.recipe-steps li').nth(1)).toContainText('Bake until golden.');
+    const cooking = detail.locator('.recipe-ingredient').first().getByRole('checkbox');
+    await cooking.check(); await expect(cooking).toBeChecked();
+    await detail.getByRole('button', { name: '+ Add ingredients to Shopping' }).click();
+    const sheet = first.getByRole('dialog', { name: 'Add to Shopping' });
+    await expect(sheet.getByRole('checkbox')).toHaveCount(2);
+    await sheet.locator('.recipe-ingredient').filter({ hasText: 'flour' }).getByRole('checkbox').uncheck();
+    const failShopping = '**/rest/v1/shopping_items*';
+    await a.route(failShopping, route => route.request().method() === 'POST' ? route.fulfill({ status: 503, json: { message: 'Synthetic failure' } }) : route.fallback());
+    await sheet.getByRole('button', { name: 'Add 1 item' }).click();
+    await expect(sheet.getByRole('alert')).toContainText('couldn’t complete');
+    await expect(sheet.locator('.recipe-ingredient').filter({ hasText: 'butter' }).getByRole('checkbox')).toBeChecked();
+    await a.unroute(failShopping);
+    await sheet.getByRole('button', { name: 'Add 1 item' }).click();
+    await expect(sheet).toHaveCount(0);
+    await expect(detail.getByRole('status')).toContainText('1 ingredient added');
+    await expect(cooking).toBeChecked();
+    await detail.getByRole('link', { name: /Open Original/ }).scrollIntoViewIfNeeded();
+    const geometry = await first.evaluate(() => {
+      const link = document.querySelector('.recipe-original')!.getBoundingClientRect();
+      const nav = document.querySelector('.bottom-nav')!.getBoundingClientRect();
+      return { bottom: link.bottom, navTop: nav.top, overflow: document.documentElement.scrollWidth > innerWidth };
+    });
+    expect(geometry.overflow).toBe(false);
+    expect(geometry.bottom).toBeLessThanOrEqual(geometry.navTop);
+    await mainNavigation(second).getByRole('button', { name: 'Us', exact: true }).click();
+    await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    const row = second.locator('.us-shopping-item').filter({ hasText: 'butter' });
+    await expect(row).toContainText('Home');
+    await expect(row).toContainText('2 tbsp');
+    await expect(row).toContainText('or olive oil');
+    await expect(second.locator('.us-shopping-item').filter({ hasText: 'flour' })).toHaveCount(0);
+    await second.reload(); await recipes(second);
+    await second.locator('.recipe-card').filter({ hasText: 'Berry bake' }).click();
+    await expect(second.locator('.recipe-detail')).toContainText('4 servings');
+    await expect(second.locator('.recipe-notes')).toContainText('Serve warm.');
+  } finally { await a.close(); await b.close(); }
 });

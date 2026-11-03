@@ -335,6 +335,18 @@ export function useSharedShopping() {
     });
   const addQuick = (target: ShoppingCategory) => addQuickCategories([target]);
   const addQuickAll = () => addQuickCategories([`Home`, `Pets`, `Kids`]);
+  const addRecipeIngredients = (ingredients: { name: string; notes: string }[]) =>
+    perform(async () => {
+      if (!household || !ingredients.length || !navigator.onLine) throw new Error(`Offline`);
+      const result = await supabase.from(`shopping_items`).insert(ingredients.map(item => ({
+        household_id: household, category: `Home`, name: item.name, notes: item.notes,
+      }))).select();
+      if (result.error || !result.data) throw result.error ?? new Error(`No saved items`);
+      if (currentUser.current !== userId) return;
+      ++requestVersion.current;
+      setItems(previous => [...result.data as ShoppingItem[], ...previous]);
+      setNotice(`${ingredients.length} ${ingredients.length === 1 ? `item` : `items`} added to your shared list.`);
+    });
   const addPetFood = (food: PetFoodForShopping) =>
     perform(async () => {
       if (!household || !navigator.onLine) throw new Error(`Offline`);
@@ -469,6 +481,7 @@ export function useSharedShopping() {
     setQuickCustom: (target: ShoppingCategory, value: string) => setQuickCustom(previous => ({ ...previous, [target]: value })),
     addQuick,
     addQuickAll,
+    addRecipeIngredients,
     addPetFood,
     edit,
     startEdit: (item: ShoppingItem) => setEdit({ id: item.id, name: item.name, notes: item.notes ?? ``, category: item.category }),

@@ -1,4 +1,4 @@
-export type ImportedRecipe = { title: string; category: string; minutes: string; image: string; ingredients: string; instructions: string };
+export type ImportedRecipe = { title: string; category: string; minutes: string; image: string; servings: string; notes: string; ingredients: string; instructions: string };
 
 export function publicUrl(value: string): string | null {
   try {
@@ -72,6 +72,8 @@ export function parseRecipe(html: string, source: string): ImportedRecipe | null
       title: clean(recipe.name).slice(0, 150), category,
       minutes: minutes(recipe.prepTime),
       image: imageUrl(recipe.image, source),
+      servings: (Array.isArray(recipe.recipeYield) ? recipe.recipeYield.map(value => clean(String(value))).filter(Boolean).join(' · ') : recipe.recipeYield != null ? clean(String(recipe.recipeYield)) : '').slice(0, 150),
+      notes: (Array.isArray(recipe.recipeNotes) ? recipe.recipeNotes.map(clean).filter(Boolean).join('\n') : clean(recipe.recipeNotes ?? recipe.notes)).slice(0, 20000),
       ingredients: (Array.isArray(recipe.recipeIngredient) ? recipe.recipeIngredient.map(clean).filter(Boolean).join('\n') : '').slice(0, 20000),
       instructions: instructionText(recipe.recipeInstructions).join('\n').slice(0, 20000),
     };
