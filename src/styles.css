@@ -334,6 +334,7 @@
 .favorite-thumb img{display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;object-fit:contain}.favorite-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px;overflow-wrap:anywhere}.favorite-copy strong{font-size:14px}.favorite-copy small{font-size:12px;color:#6c5c75}
 .favorite-menu{margin-right:8px}.favorite-menu summary{margin:0}.favorite-form{display:grid;gap:7px;margin-top:14px;padding:14px;border-radius:15px;background:#fffaf3}.favorite-form h3{margin:0 0 4px;font-size:16px}
 .favorite-form label{font-size:13px;color:#62516e}.shared-shopping .favorite-form input,.shared-shopping .favorite-form select,.shared-shopping .favorite-form textarea{min-height:44px;min-width:0;width:100%;padding:9px 11px;border:1px solid #cfabe4;border-radius:12px;background:#fffcf6;color:#33283c;font:inherit;font-size:16px}
+.favorite-photo-action{display:block;min-height:44px;padding:10px 0;color:#733c91;font-weight:700;cursor:pointer}.favorite-photo-action+input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .favorite-photo-preview{max-width:100%;max-height:140px;object-fit:contain}.favorite-form .text-action{min-height:44px}
 .favorite-picker{margin-top:12px;padding:14px;border-radius:15px;background:#fffaf3}
 .favorite-picker h3{margin:0;font-size:16px;color:#50315f}.favorite-picker p{margin:6px 0 12px;font-size:13px;color:#6c5c75}
