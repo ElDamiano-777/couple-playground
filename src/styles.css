@@ -355,3 +355,12 @@
 .us-shopping-shortcuts button{display:flex;align-items:center;justify-content:space-between;gap:5px;flex:1;min-width:0;min-height:44px;padding:8px 10px;border-radius:13px;background:#f1e4f8;color:#633583;font-size:13px;font-weight:700}.us-shopping-shortcuts strong{display:grid;place-items:center;min-width:23px;height:23px;padding:0 4px;border-radius:50%;background:#fffaf3;color:#733c91}
 .us-shopping-add{width:100%;min-height:48px;padding:12px 14px}.us-shopping-form{margin:12px 0;align-items:stretch}.us-shopping-form h3{margin:0}.us-shopping-form label{font-size:14px;font-weight:700}.us-shopping-form input,.us-shopping-form select{width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #cfabe4;border-radius:12px;background:#fffcf6;color:#33283c;font:inherit;font-size:16px}
 .us-shopping-empty{margin:16px 0 2px}.us-shopping-list{margin-top:10px}.us-shopping-item{display:flex;align-items:center;gap:9px;min-width:0;padding:10px 0;border-bottom:1px solid #efdeec}.us-shopping-item:last-child{border:0}.us-shopping-item>input{width:23px;height:23px;flex:none;margin:0;accent-color:#8040be}.us-shopping-copy{display:flex;flex-direction:column;gap:3px;min-width:0;overflow-wrap:anywhere}.us-shopping-copy strong{font-size:15px}.us-shopping-copy small{font-size:12px;line-height:1.4;color:#765c83}.us-shopping-details{white-space:pre-wrap}
+.quick-category-tabs{display:flex;gap:8px;padding:0 18px 12px}
+.quick-category-tabs button{flex:1;min-width:0;min-height:44px;border-radius:14px;background:#f3e8f9;color:#633583;font-weight:700}
+.quick-category-tabs button[aria-pressed=true]{background:#8040be;color:white}
+.quick-custom-toggle{margin-top:18px}
+.quick-pet-food{margin:18px 0}
+.quick-pet-food h3{font-size:15px;margin:0 0 8px}
+.quick-pet-food-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px;margin:6px 0;text-align:left;border:1px solid #ead9ef;border-radius:14px;background:#fff}
+.quick-pet-food-item[aria-pressed=true]{border-color:#8040be;background:#f3e8f9}
+.quick-pet-food-item .favorite-copy{flex:1;min-width:0}

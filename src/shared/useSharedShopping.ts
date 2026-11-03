@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import config from "../../app.config.json";
 import { supabase, pocAccounts, type PocUsername } from "./client";
-import type { PetFoodForShopping } from "./usePetFoodShopping";
+import { formatPetFoodDetails, type PetFoodForShopping } from "./usePetFoodShopping";
 
 export type ShoppingItem = {
   id: string;
@@ -17,7 +17,7 @@ export type ShoppingItem = {
   created_at: string;
 };
 
-export type QuickItem = { id: string; name: string; notes: string; favoriteId?: string; favoritePhoto?: string | null };
+export type QuickItem = { id: string; name: string; notes: string; favoriteId?: string; favoritePhoto?: string | null; petFoodId?: string; petFoodPhoto?: string | null };
 type ShoppingCategory = ShoppingItem[`category`];
 const emptyQuick = (): Record<ShoppingCategory, QuickItem[]> => ({ Home: [], Pets: [], Kids: [] });
 const emptyCustom = (): Record<ShoppingCategory, string> => ({ Home: ``, Pets: ``, Kids: `` });
@@ -84,6 +84,7 @@ export function useSharedShopping() {
   const currentUser = useRef(userId);
   currentUser.current = userId;
   const requestVersion = useRef(0);
+  const mutationPending = useRef(false);
   const dirty = !!(draft.trim() || draftNotes.trim() || code.trim() || email.trim() || password || edit || Object.values(quickItems).some(items => items.length) || Object.values(quickCustom).some(value => value.trim()));
 
   useEffect(() => {
@@ -222,7 +223,8 @@ export function useSharedShopping() {
   }, [userId, refresh]);
 
   async function perform(action: () => Promise<void>) {
-    if (busy) return;
+    if (mutationPending.current) return false;
+    mutationPending.current = true;
     ++requestVersion.current;
     setBusy(true);
     setError(``);
@@ -234,6 +236,7 @@ export function useSharedShopping() {
       setError(friendlyError(error));
       return false;
     } finally {
+      mutationPending.current = false;
       setBusy(false);
     }
   }
@@ -313,26 +316,29 @@ export function useSharedShopping() {
       setDraftNotes(``);
       setNotice(`Added to your shared list.`);
     });
-  const addQuick = (target: ShoppingCategory) =>
+  const addQuickCategories = (targets: ShoppingCategory[]) =>
     perform(async () => {
-      const selected = quickItems[target];
+      const selected = targets.flatMap(category => quickItems[category].map(item => ({ ...item, category })));
       if (!household || !selected.length || !navigator.onLine) throw new Error(`Offline`);
+      if (selected.some(item => item.notes.length > 20000)) throw new Error(`Pet food details are too long`);
       const result = await supabase.from(`shopping_items`).insert(selected.map(item => ({
-        household_id: household, category: target, name: item.name.trim(), notes: item.notes.trim(), favorite_id: item.favoriteId ?? null,
+        household_id: household, category: item.category, name: item.name.trim(), notes: item.notes.trim(), favorite_id: item.favoriteId ?? null, pet_food_id: item.petFoodId ?? null,
       }))).select();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved items`);
       if (currentUser.current !== userId) return;
       ++requestVersion.current;
       setItems(previous => [...result.data as ShoppingItem[], ...previous]);
       setFavoritePhotos(previous => ({ ...previous, ...Object.fromEntries(selected.filter(item => item.favoriteId).map(item => [item.favoriteId!, item.favoritePhoto ?? null])) }));
-      setQuickItems(previous => ({ ...previous, [target]: [] }));
+      setPetFoodPhotos(previous => ({ ...previous, ...Object.fromEntries(selected.filter(item => item.petFoodId).map(item => [item.petFoodId!, item.petFoodPhoto ?? null])) }));
+      setQuickItems(previous => ({ ...previous, ...Object.fromEntries(targets.map(target => [target, []])) }));
       setNotice(`${selected.length} ${selected.length === 1 ? `item` : `items`} added to your shared list.`);
     });
+  const addQuick = (target: ShoppingCategory) => addQuickCategories([target]);
+  const addQuickAll = () => addQuickCategories([`Home`, `Pets`, `Kids`]);
   const addPetFood = (food: PetFoodForShopping) =>
     perform(async () => {
       if (!household || !navigator.onLine) throw new Error(`Offline`);
-      const type = food.food_type === `Dry` ? `Dry Food` : food.food_type === `Wet` ? `Wet Food` : food.food_type;
-      const details = [`For: ${food.petNames.join(` & `)}`, food.brand && `Brand: ${food.brand}`, food.flavor && `Flavor: ${food.flavor}`, type && `Type: ${type}`, food.package_size && `Size: ${food.package_size}`, food.notes && `Notes: ${food.notes}`].filter(Boolean).join(` · `);
+      const details = formatPetFoodDetails(food);
       if (details.length > 20000) throw new Error(`Pet food details are too long`);
       const result = await supabase.from(`shopping_items`).insert({ household_id: household, category: `Pets`, name: food.name, notes: details, pet_food_id: food.id }).select().single();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved item`);
@@ -462,6 +468,7 @@ export function useSharedShopping() {
     setQuickItems: (target: ShoppingCategory, items: QuickItem[]) => setQuickItems(previous => ({ ...previous, [target]: items })),
     setQuickCustom: (target: ShoppingCategory, value: string) => setQuickCustom(previous => ({ ...previous, [target]: value })),
     addQuick,
+    addQuickAll,
     addPetFood,
     edit,
     startEdit: (item: ShoppingItem) => setEdit({ id: item.id, name: item.name, notes: item.notes ?? ``, category: item.category }),

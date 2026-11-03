@@ -12,10 +12,12 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
 }
 async function add(page: Page, name: string, category: string, details: string) {
   await page.getByRole('button', { name: '+ Add shopping item' }).click();
-  await page.getByLabel('Item name', { exact: true }).fill(name);
-  await page.getByLabel('Details (optional)').fill(details);
-  await page.getByLabel('Category', { exact: true }).selectOption(category);
-  await page.getByRole('button', { name: 'Add item', exact: true }).click();
+  await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: category }).click();
+  await page.getByRole('button', { name: '+ Custom item' }).click();
+  await page.getByLabel('Custom product').fill(name);
+  await page.locator('.quick-custom').getByRole('button', { name: 'Add', exact: true }).click();
+  await page.locator('.quick-selection').getByLabel('Details (optional)').fill(details);
+  await page.getByRole('button', { name: 'Add 1 item' }).click();
   await expect(page.locator('.us-shopping-item').filter({ hasText: name })).toBeVisible();
 }
 
@@ -66,18 +68,19 @@ test('an unsuccessful dashboard addition keeps its draft when navigating', async
   const server = transport(); await server.attach(context);
   await login(page, 'Masha');
   await page.getByRole('button', { name: '+ Add shopping item' }).click();
-  await page.getByLabel('Item name', { exact: true }).fill('Unfinished dashboard item');
-  await page.getByLabel('Details (optional)').fill('Keep these details');
-  await page.getByLabel('Category', { exact: true }).selectOption('Pets');
+  await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
+  await page.getByRole('button', { name: '+ Custom item' }).click();
+  await page.getByLabel('Custom product').fill('Unfinished dashboard item');
+  await page.locator('.quick-custom').getByRole('button', { name: 'Add', exact: true }).click();
+  await page.locator('.quick-selection').getByLabel('Details (optional)').fill('Keep these details');
   server.failNextSave();
-  await page.getByRole('button', { name: 'Add item', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('couldn’t complete');
-  await expect(page.getByText('All caught up! Your shopping list is empty.')).toHaveCount(0);
-  await expect(page.getByLabel('Item name', { exact: true })).toHaveValue('Unfinished dashboard item');
+  await page.getByRole('button', { name: 'Add 1 item' }).click();
+  await expect(page.locator('.quick-add').getByRole('alert')).toContainText('couldn’t complete');
+  await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
   await page.getByRole('button', { name: '+ Add shopping item' }).click();
-  await expect(page.getByLabel('Item name', { exact: true })).toHaveValue('Unfinished dashboard item');
-  await expect(page.getByLabel('Details (optional)')).toHaveValue('Keep these details');
-  await expect(page.getByLabel('Category', { exact: true })).toHaveValue('Pets');
+  await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
+  await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
+  await expect(page.locator('.quick-selection').getByLabel('Details (optional)')).toHaveValue('Keep these details');
 });

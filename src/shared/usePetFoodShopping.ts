@@ -5,6 +5,11 @@ type Pet = { id: string; name: string; kind: string };
 type Food = { id: string; pet_id: string; name: string; brand: string; flavor: string; food_type: string; package_size: string; notes: string; photo: string | null };
 export type PetFoodForShopping = Food & { petNames: string[] };
 
+export function formatPetFoodDetails(food: PetFoodForShopping) {
+  const type = food.food_type === 'Dry' ? 'Dry Food' : food.food_type === 'Wet' ? 'Wet Food' : food.food_type;
+  return [`For: ${food.petNames.join(' & ')}`, food.brand && `Brand: ${food.brand}`, food.flavor && `Flavor: ${food.flavor}`, type && `Type: ${type}`, food.package_size && `Size: ${food.package_size}`, food.notes && `Notes: ${food.notes}`].filter(Boolean).join(' · ');
+}
+
 function groupFoods(foods: Food[], pets: Pet[]): PetFoodForShopping[] {
   const petNames = new Map(pets.map(pet => [pet.id, pet.name]));
   const groups = new Map<string, PetFoodForShopping>();

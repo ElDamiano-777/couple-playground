@@ -1,0 +1,86 @@
+import { expect, test } from '@playwright/test';
+import { transport, pocPassword } from './helpers/sharedTransport';
+import { mainNavigation, openPets } from './navigation';
+
+test.use({ serviceWorkers: 'block' });
+
+test('dashboard Quick Add shares selections, favorite photos and pet associations across categories', async ({ browser }) => {
+  test.setTimeout(150000);
+  const server = transport();
+  const a = await browser.newContext({ viewport: { width: 320, height: 844 }, serviceWorkers: 'block' });
+  const b = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  await server.attach(a); await server.attach(b);
+  const first = await a.newPage(), second = await b.newPage();
+  try {
+    for (const [page, name] of [[first, 'Masha'], [second, 'Damian']] as const) {
+      await page.goto('./'); await page.getByRole('button', { name, exact: true }).click();
+      await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+      await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    }
+    await openPets(first);
+    await first.getByRole('button', { name: '+ Add Pet' }).click();
+    await first.getByLabel('Name', { exact: true }).fill('Example pet');
+    await first.getByRole('button', { name: 'Add pet', exact: true }).click();
+    await first.getByRole('button', { name: 'View pets' }).click();
+    await first.locator('.pet-card').filter({ hasText: 'Example pet' }).getByRole('button', { name: 'My Food' }).click();
+    await first.getByRole('button', { name: '+ Add Food' }).click();
+    await first.getByLabel('Name', { exact: true }).fill('Example dinner');
+    await first.getByLabel('Brand').fill('Pet brand');
+    await first.getByLabel('Package size (optional)').fill('1 kg');
+    await first.getByLabel('Packaging photo').setInputFiles('public/icons/icon-192.png');
+    await expect(first.getByAltText('Food packaging preview')).toBeVisible();
+    await first.getByRole('button', { name: 'Save food' }).click();
+    await expect(first.getByText('Example dinner', { exact: true })).toBeVisible();
+    await mainNavigation(first).getByRole('button', { name: 'Us', exact: true }).click();
+    await first.getByRole('button', { name: '+ Add shopping item' }).click();
+    await first.getByRole('button', { name: '+ Add favorite' }).click();
+    await first.getByRole('button', { name: '+ Enter a custom product' }).click();
+    await first.getByLabel('Product name').fill('Favorite tea');
+    await first.getByLabel('Brand (optional)').fill('Tea brand');
+    await first.getByLabel('Size (optional)').fill('500 g');
+    await first.getByLabel('Product photo (optional)').setInputFiles('public/icons/icon-192.png');
+    await expect(first.getByAltText('Product photo preview')).toBeVisible();
+    await first.getByRole('button', { name: 'Save favorite' }).click();
+    const favorite = first.locator('.favorite-select').filter({ hasText: 'Favorite tea' });
+    await expect(favorite).toContainText('Tea brand · 500 g');
+    const favoritePhoto = await favorite.locator('img').getAttribute('src');
+    await favorite.click();
+    await first.getByLabel('Search products').fill('eggs');
+    await first.getByRole('button', { name: 'Eggs', exact: true }).click();
+    await first.locator('.quick-selection').filter({ hasText: 'Eggs' }).getByLabel('Details (optional)').fill('Quantity: 6 · Free range');
+    const tabs = first.getByRole('group', { name: 'Quick Add categories' });
+    await tabs.getByRole('button', { name: 'Pets' }).click();
+    const food = first.locator('.quick-pet-food-item').filter({ hasText: 'Example dinner' });
+    await expect(food).toContainText('For Example pet');
+    const foodPhoto = await food.locator('img').getAttribute('src');
+    await food.click();
+    await first.getByRole('button', { name: 'Care & supplies' }).click();
+    await first.getByRole('button', { name: 'Cat litter' }).click();
+    await tabs.getByRole('button', { name: 'Kids' }).click();
+    await first.getByRole('button', { name: 'Diapers', exact: true }).click();
+    const save = first.getByRole('button', { name: 'Add 5 items' });
+    await expect(save).toBeVisible();
+    expect(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const posted: unknown[] = [];
+    first.on('request', request => { if (request.url().includes('/shopping_items') && request.method() === 'POST') posted.push(request.postDataJSON()); });
+    await save.evaluate((button: HTMLButtonElement) => { button.click(); button.click(); });
+    await expect(first.locator('.quick-add')).toHaveCount(0);
+    expect(posted).toHaveLength(1);
+    const rows = posted[0] as { name: string; category: string; favorite_id: string | null; pet_food_id: string | null; photo?: string }[];
+    expect(rows).toHaveLength(5);
+    expect(rows.find(row => row.name === 'Favorite tea')?.favorite_id).toBeTruthy();
+    expect(rows.find(row => row.name === 'Example dinner')?.pet_food_id).toBeTruthy();
+    expect(rows.map(row => row.category).sort()).toEqual(['Home', 'Home', 'Kids', 'Pets', 'Pets']);
+    expect(rows.every(row => row.photo === undefined)).toBe(true);
+    await expect(first.locator('.us-shopping-item').filter({ hasText: 'Favorite tea' }).locator('img')).toHaveAttribute('src', favoritePhoto!);
+    const dashboardFood = first.locator('.us-shopping-item').filter({ hasText: 'Example dinner' });
+    await expect(dashboardFood.locator('img')).toHaveAttribute('src', foodPhoto!);
+    await expect(dashboardFood).toContainText('For: Example pet');
+    await expect(first.locator('.us-shopping-item').filter({ hasText: 'Eggs' })).toContainText('Quantity: 6');
+    await mainNavigation(second).getByRole('button', { name: 'Us', exact: true }).click();
+    await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(second.locator('.us-shopping-item')).toHaveCount(5);
+    await expect(second.locator('.us-shopping-item').filter({ hasText: 'Example dinner' }).locator('img')).toHaveAttribute('src', foodPhoto!);
+    await expect(second.locator('.us-shopping-item').filter({ hasText: 'Favorite tea' }).locator('img')).toHaveAttribute('src', favoritePhoto!);
+  } finally { await a.close(); await b.close(); }
+});
