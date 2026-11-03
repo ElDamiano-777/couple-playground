@@ -38,7 +38,7 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
       if (value.length > 1400000) throw new Error('Photo too large');
       setRecognition('Reading product information…');
       const result = await recognizeProduct(value);
-      setDraft(previous => ({ ...previous, ...Object.fromEntries(Object.entries(result.fields).filter(([, field]) => field)), photo: result.source === 'barcode' ? result.photo : value }));
+      setDraft(previous => ({ ...previous, ...result.fields, photo: result.source === 'barcode' ? result.photo : value }));
       setRecognition(result.source === 'barcode'
         ? result.photo ? 'Product and product photo found from barcode. Review before saving.' : 'Product found from barcode. Add a front photo if you want one.'
         : Object.values(result.fields).some(Boolean) ? 'Visible text added. Review before saving.' : 'Could not identify product details. You can enter them yourself.');
@@ -50,7 +50,7 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
     try {
       const result = await recognizeBarcode(code);
       if (!Object.values(result.fields).some(Boolean)) { setRecognition('No product found for this barcode. You can enter it yourself.'); return; }
-      setDraft(previous => ({ ...previous, ...Object.fromEntries(Object.entries(result.fields).filter(([, field]) => field)), photo: result.photo }));
+      setDraft(previous => ({ ...previous, ...result.fields, photo: result.photo }));
       setPicking(false);
       setRecognition(result.photo ? 'Product and product photo found. Review before saving.' : 'Product found. Add a front photo if you want one.');
     } catch { setPhotoError('Could not look up this barcode. Try again or enter details yourself.'); }
