@@ -98,7 +98,7 @@ test('imported recipes are reviewed, saved and shared, with a link-only fallback
   await server.attach(a); await server.attach(b);
   const first = await a.newPage(), second = await b.newPage();
   const json = { '@context': 'https://schema.org', '@graph': [{ '@type': ['Thing', 'Recipe'], name: 'Apple cake', recipeCategory: 'Dessert', prepTime: 'PT35M', image: ['https://example.com/cake.jpg'], recipeIngredient: ['2 apples', '100 g flour'], recipeInstructions: [{ '@type': 'HowToSection', itemListElement: [{ '@type': 'HowToStep', text: 'Slice apples.' }, { '@type': 'HowToStep', text: 'Bake for 30 minutes.' }] }] }] };
-  await a.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<html><script type="application/ld+json">${JSON.stringify(json)}</script></html>` }));
+  await a.route('https://r.jina.ai/**', route => route.request().url().includes('instagram.com') ? route.fulfill({ status: 503, body: 'Unavailable' }) : route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<html><script type="application/ld+json">${JSON.stringify(json)}</script></html>` }));
   try {
     await login(first, 'Masha'); await login(second, 'Damian'); await recipes(first);
     await first.getByRole('button', { name: 'Import from Link' }).click();
@@ -240,4 +240,112 @@ test('recipe details separate ingredients, notes and steps and add chosen items 
     await expect(second.locator('.recipe-detail')).toContainText('4 servings');
     await expect(second.locator('.recipe-notes')).toContainText('Serve warm.');
   } finally { await a.close(); await b.close(); }
+});
+
+test('public Instagram metadata and captions are saved without inventing details', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<html><head><meta property="og:title" content="Berry toast"><meta content="https://images.example.com/toast.jpg" property="og:image"><meta property="og:description" content="Breakfast ideas&#10;Ingredients:&#10;2 slices bread&#10;1 cup berries&#10;Method:&#10;Toast the bread.&#10;Add berries."></head></html>` }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('Try this https://www.instagram.com/reel/Example123/?igsh=abc');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('Berry toast');
+  await expect(page.getByLabel('Photo link (optional)')).toHaveValue('https://images.example.com/toast.jpg');
+  await expect(page.getByLabel('Original caption (optional)')).toContainText('Breakfast ideas');
+  await expect(page.getByLabel('Ingredients')).toHaveValue('2 slices bread\n1 cup berries');
+  await expect(page.getByLabel('Instructions')).toHaveValue('Toast the bread.\nAdd berries.');
+  await page.getByRole('button', { name: 'Save recipe' }).click();
+  await page.locator('.recipe-card').filter({ hasText: 'Berry toast' }).click();
+  await page.getByText('Original caption or description').click();
+  await expect(page.locator('.recipe-caption')).toContainText('Breakfast ideas');
+  const link = page.getByRole('link', { name: /Open Original/ });
+  await expect(link).toHaveAttribute('href', 'https://www.instagram.com/reel/Example123/?igsh=abc');
+  await expect(link).not.toHaveAttribute('target', '_blank');
+  await page.reload(); await recipes(page); await page.locator('.recipe-card').filter({ hasText: 'Berry toast' }).click();
+  await page.getByText('Original caption or description').click();
+  await expect(page.locator('.recipe-caption')).toContainText('1 cup berries');
+});
+
+test('TikTok metadata and shortened links work when public details are available', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 503, body: 'Unavailable' }));
+  await context.route('https://www.tiktok.com/oembed**', route => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, json: { title: 'Quick toast\nIngredients:\n2 eggs\nMethod:\nCook eggs.', thumbnail_url: 'https://images.example.com/toast.jpg' } }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://vt.tiktok.com/short123/');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('Quick toast');
+  await expect(page.getByLabel('Ingredients')).toHaveValue('2 eggs');
+  await expect(page.getByLabel('Instructions')).toHaveValue('Cook eggs.');
+  await expect(page.getByLabel('Original link')).toHaveValue('https://vt.tiktok.com/short123/');
+  await page.getByRole('button', { name: 'Save recipe' }).click();
+  await page.locator('.recipe-card').filter({ hasText: 'Quick toast' }).click();
+  const link = page.getByRole('link', { name: /Open Original/ });
+  await expect(link).toHaveAttribute('href', 'https://vt.tiktok.com/short123/');
+  await expect(link).not.toHaveAttribute('target', '_blank');
+});
+
+test('repeated instructions are displayed once while saved text stays unchanged', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  const json = { '@type': 'Recipe', name: 'Simple toast', recipeInstructions: [{ text: 'Toast bread.' }, { text: 'Add berries.' }, { text: 'Toast bread.' }, { text: 'Add berries.' }] };
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<script type="application/ld+json">${JSON.stringify(json)}</script>` }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://example.com/toast');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await page.getByRole('button', { name: 'Save recipe' }).click();
+  await page.locator('.recipe-card').filter({ hasText: 'Simple toast' }).click();
+  await expect(page.locator('.recipe-steps li')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Edit Simple toast' }).click();
+  await expect(page.getByLabel('Instructions')).toHaveValue('Toast bread.\nAdd berries.\nToast bread.\nAdd berries.');
+});
+
+test('a shared link survives sign-in and opens the import form prefilled', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  const shared = 'https://www.instagram.com/reel/Shared123/';
+  await page.goto(`./?share_text=${encodeURIComponent(`Try this! ${shared}`)}`);
+  await page.getByRole('button', { name: 'Masha', exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByLabel('Recipe link')).toHaveValue(shared);
+  await expect(page.getByText('On iPhone, choose Share → Copy Link, then paste it here.')).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel('Recipe link')).toHaveValue(shared);
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  expect(await page.evaluate(() => sessionStorage.getItem('together.recipe-share'))).toBeNull();
+  expect(new URL(page.url()).searchParams.has('share_text')).toBe(false);
+  const manifest = await (await page.request.get('./manifest.webmanifest')).json();
+  expect(manifest.share_target.params.url).toBe('share_url');
+  await page.goto(`./?share_url=${encodeURIComponent(shared)}`);
+  await expect(page.getByLabel('Recipe link')).toHaveValue(shared);
+});
+
+test('a shortened TikTok link imports public reader metadata and keeps the original link', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  const requests: string[] = [];
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/plain', headers: { 'Access-Control-Allow-Origin': '*' }, body: 'Title: TikTok\nURL Source: https://vt.tiktok.com/short123/\nFinal URL: https://www.tiktok.com/@cook/video/123456?tracking=1\n\nMarkdown Content:\n![Image 1: Quick soup\nIngredients:\n1 carrot\nMethod:\nCook gently.](https://images.example.com/soup.jpg)' }));
+  await context.route('https://www.tiktok.com/oembed**', route => { requests.push(route.request().url()); return route.fulfill({ status: 400, json: { message: 'Unavailable' } }); });
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://vt.tiktok.com/short123/');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('Quick soup');
+  await expect(page.getByLabel('Photo link (optional)')).toHaveValue('https://images.example.com/soup.jpg');
+  await expect(page.getByLabel('Ingredients')).toHaveValue('1 carrot');
+  await expect(page.getByLabel('Instructions')).toHaveValue('Cook gently.');
+  await expect(page.getByLabel('Original link')).toHaveValue('https://vt.tiktok.com/short123/');
+  expect(requests.some(request => new URL(request).searchParams.get('url') === 'https://www.tiktok.com/@cook/video/123456')).toBe(true);
+});
+
+test('the paste button accepts a copied message containing a recipe link', async ({ page, context }) => {
+  test.setTimeout(60000);
+  const server = transport(); await server.attach(context);
+  await page.addInitScript(() => { Object.defineProperty(navigator, 'clipboard', { value: { readText: async () => 'Try this recipe: https://vm.tiktok.com/Example123/' }, configurable: true }); });
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByRole('button', { name: 'Paste copied link' }).click();
+  await expect(page.getByLabel('Recipe link')).toHaveValue('https://vm.tiktok.com/Example123/');
+  await page.evaluate(() => { Object.defineProperty(navigator, 'clipboard', { value: { readText: async () => { throw new Error('Permission denied'); } }, configurable: true }); });
+  await page.getByRole('button', { name: 'Paste copied link' }).click();
+  await expect(page.getByRole('alert')).toContainText('Touch and hold');
 });

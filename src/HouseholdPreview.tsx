@@ -13,7 +13,7 @@ import type { FolderEntriesState } from './collections/useFolderEntries';
 export { Symbol } from './ui/Symbol';
 export type HouseholdPage = FolderPage | `activity`;
 
-export default function HouseholdPreview({ page, navigate, shopping, family, collections, shoppingCategory, onShoppingCategory }: {
+export default function HouseholdPreview({ page, navigate, shopping, family, collections, shoppingCategory, onShoppingCategory, sharedRecipe, onClearSharedRecipe }: {
   page: HouseholdPage;
   navigate: (page: HouseholdPage) => void;
   shopping: SharedShoppingState;
@@ -21,6 +21,8 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   collections: FolderEntriesState;
   shoppingCategory: ShoppingItem['category'] | null;
   onShoppingCategory: (category: ShoppingItem['category']) => void;
+  sharedRecipe: string | null;
+  onClearSharedRecipe: () => void;
 }) {
   if (page === `activity`) return <section className="preview-page">
     <button className="text-action" onClick={() => navigate(`folders`)}>← Us</button>
@@ -43,7 +45,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} initialCategory={shoppingCategory} />
       : page === `pets` ? <Pets key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
       : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
-      : page === `recipes` ? <Recipes key={`${collections.userId}:${collections.household}`} state={collections} shopping={shopping} onSignIn={() => navigate(`shopping`)} />
+      : page === `recipes` ? <Recipes key={`${collections.userId}:${collections.household}`} state={collections} shopping={shopping} sharedRecipe={sharedRecipe} onClearSharedRecipe={onClearSharedRecipe} onSignIn={() => navigate(`shopping`)} />
       : page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
       : <FolderPages page={page} navigate={navigate} />}
   </div>;

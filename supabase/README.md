@@ -34,4 +34,6 @@ The third migration adds only two reserved, owner-requested POC users and a sepa
 
 `20261103070000_recipe_servings.sql` adds the optional recipe yield while leaving existing recipes unchanged.
 
+`20261103080000_recipe_caption.sql` adds an optional public post caption to household-protected recipes. The app reads accessible public metadata from Jina Reader and TikTok oEmbed when available; unavailable posts remain links.
+
 `python3 scripts/test-folder-entries.py` runs the first two base migrations and this new migration in disposable PostgreSQL 17. It checks both members across all three kinds, multiline notes and limits, forbidden foreign/anonymous requests to known IDs, immutable columns and account-deletion cleanup. It never touches hosted data, runs no unrelated family tests and changes no existing CI checks.

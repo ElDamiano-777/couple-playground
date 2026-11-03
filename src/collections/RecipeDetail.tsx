@@ -13,6 +13,7 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
   const steps = instructionSteps(recipe.recipe_instructions || '');
   const notes = [recipe.notes?.trim(), ...parsed.notes].filter(Boolean);
   const source = recipe.recipe_source_url && publicUrl(recipe.recipe_source_url);
+  const social = source && /(^|\.)(instagram\.com|instagr\.am|tiktok\.com)$/i.test(new URL(source).hostname);
   const photo = recipe.recipe_photo || (recipe.recipe_image_url && publicUrl(recipe.recipe_image_url));
   const linkOnly = !!source && !ingredients.length && !steps.length;
   const [checked, setChecked] = useState<number[]>([]);
@@ -29,7 +30,7 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
       <div className="recipe-detail-copy">
         <h1>{recipe.title}</h1>
         <div className="recipe-meta">{recipe.recipe_category && <span>{recipe.recipe_category}</span>}{recipe.preparation_minutes && <span>{recipe.preparation_minutes} min</span>}{recipe.recipe_servings && <span>Yield: {recipe.recipe_servings}</span>}</div>
-        {linkOnly && <div className="recipe-link-only"><Symbol name="recipe" /><h2>Saved recipe link</h2><p>Open the original to see this recipe.</p>{source && <a className="primary" href={source} target="_blank" rel="noopener noreferrer">Open Original ↗</a>}</div>}
+        {linkOnly && <div className="recipe-link-only"><Symbol name="recipe" /><h2>Saved recipe link</h2><p>Open the original to see this recipe.</p>{source && <a className="primary" href={source} target={social ? undefined : "_blank"} rel="noopener noreferrer">Open Original ↗</a>}</div>}
         {ingredients.length > 0 && <section className="recipe-details-section" aria-labelledby="recipe-ingredients-heading">
           <div className="recipe-section-header"><div><h2 id="recipe-ingredients-heading">Ingredients</h2><p>Check off ingredients as you cook.</p></div></div>
           <div className="recipe-ingredient-list">{(() => { let index = -1; return parsed.ingredients.map((item, position) => {
@@ -41,8 +42,9 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
           {message && <p className="feedback" role="status">{message}</p>}
         </section>}
         {steps.length > 0 && <section className="recipe-details-section"><h2>Instructions</h2><ol className="recipe-steps">{steps.map((step, index) => <li key={index}><span>{index + 1}</span><p>{step}</p></li>)}</ol></section>}
+        {recipe.recipe_caption && <details className="recipe-caption"><summary>Original caption or description</summary><p>{recipe.recipe_caption}</p></details>}
         {notes.length > 0 && <section className="recipe-details-section recipe-notes"><h2>Notes</h2>{notes.map((note, index) => <p className="collection-notes" key={index}>{note}</p>)}</section>}
-        {source && !linkOnly && <a className="recipe-original" href={source} target="_blank" rel="noopener noreferrer">Open Original Recipe ↗</a>}
+        {source && !linkOnly && <a className="recipe-original" href={source} target={social ? undefined : "_blank"} rel="noopener noreferrer">Open Original Recipe ↗</a>}
         <div className="collection-actions"><button className="text-action" disabled={busy} aria-label={`Edit ${recipe.title}`} onClick={onEdit}>Edit</button><button className="text-action" disabled={busy || !online} aria-label={`Delete ${recipe.title}`} onClick={onDelete}>Delete</button></div>
       </div>
     </article>

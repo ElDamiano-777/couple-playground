@@ -73,3 +73,7 @@
 .recipe-shopping-sheet>.feedback{padding:0 18px}
 .recipe-shopping-footer{flex:none;padding:12px 18px 16px;border-top:1px solid #ead9ef}
 .recipe-shopping-footer button{width:100%}
+
+.recipe-caption{margin:20px 0;border:1px solid #ead9ef;border-radius:14px;padding:13px 15px;color:#62516e}
+.recipe-caption summary{min-height:30px;font-weight:700;cursor:pointer}
+.recipe-caption p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.6}

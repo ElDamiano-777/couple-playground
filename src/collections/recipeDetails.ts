@@ -30,7 +30,18 @@ export function ingredientDetails(value: string): { ingredients: Ingredient[]; n
 }
 
 export function instructionSteps(value: string): string[] {
-  return value.split(/\r?\n/).map(tidyLine).map(line => line.replace(/^(?:step\s+\d+\s*[:.)-]?\s*|\d+[.)]\s+)/i, '').trim()).filter(Boolean);
+  const lines = value.split(/\r?\n/).map(tidyLine).map(line => line.replace(/^(?:step\s+\d+\s*[:.)-]?\s*|\d+[.)]\s+)/i, '').trim()).filter(Boolean);
+  const normalized = (line: string) => line.replace(/\s+/g, ' ').toLocaleLowerCase();
+  const unique = lines.filter((line, index) => index === 0 || normalized(line) !== normalized(lines[index - 1]));
+  for (let size = Math.min(50, Math.floor(unique.length / 2)); size >= 2; size--) {
+    for (let index = 0; index + size * 2 <= unique.length; index++) {
+      if (normalized(unique[index]) === normalized(unique[index + size]) && unique.slice(index, index + size).every((line, offset) => normalized(line) === normalized(unique[index + size + offset]))) {
+        unique.splice(index + size, size);
+        index--;
+      }
+    }
+  }
+  return unique;
 }
 
 export function shoppingIngredient(item: Ingredient): { name: string; notes: string } {

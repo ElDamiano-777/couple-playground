@@ -5,10 +5,18 @@ import { readNotes, saveNotes, type Note } from './storage';
 import { useSharedShopping, type ShoppingItem } from './shared/useSharedShopping';
 import { useFamilyProfiles } from './family/useFamilyProfiles';
 import { useFolderEntries } from './collections/useFolderEntries';
+import { extractSharedUrl } from './collections/recipeImport';
 
 type Page = HouseholdPage | `notes` | `more` | `welcome`;
 type Profile = `masha` | `damian`;
 const profileKey = `together.profile.v1`;
+const shareKey = `together.recipe-share`;
+function readSharedRecipe() {
+  const params = new URLSearchParams(window.location.search);
+  const incoming = extractSharedUrl(params.get(`share_url`) || ``) || extractSharedUrl(params.get(`share_text`) || ``);
+  if (incoming) return incoming;
+  try { return extractSharedUrl(sessionStorage.getItem(shareKey) || ``); } catch { return null; }
+}
 
 function readProfile(): Profile | null {
   try {
@@ -34,7 +42,8 @@ export default function App() {
   const shopping = useSharedShopping();
   const family = useFamilyProfiles({ userId: shopping.session?.user.id, household: shopping.household, authReady: shopping.authReady, contextLoading: shopping.loading, isPoc: shopping.isPoc });
   const collections = useFolderEntries({ userId: shopping.session?.user.id, household: shopping.household, authReady: shopping.authReady, contextLoading: shopping.loading, isPoc: shopping.isPoc });
-  const [page, setPage] = useState<Page>(`folders`);
+  const [sharedRecipe, setSharedRecipe] = useState<string | null>(readSharedRecipe);
+  const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : `folders`);
   const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
   const [profileSaved, setProfileSaved] = useState(true);
@@ -46,7 +55,29 @@ export default function App() {
   const [online, setOnline] = useState(navigator.onLine);
   const [updateReady, setUpdateReady] = useState(false);
 
-  const hasDraft = !!draft.trim() || shopping.dirty || family.dirty || collections.dirty;
+  const hasDraft = !!draft.trim() || shopping.dirty || family.dirty || collections.dirty || !!sharedRecipe;
+  useEffect(() => {
+    if (!sharedRecipe) return;
+    try {
+      sessionStorage.setItem(shareKey, sharedRecipe);
+      const url = new URL(window.location.href);
+      for (const key of [`share_url`, `share_text`, `share_title`]) url.searchParams.delete(key);
+      window.history.replaceState(window.history.state, ``, url.href);
+    } catch { /* The in-memory link remains available if session storage is blocked. */ }
+  }, [sharedRecipe]);
+  useEffect(() => {
+    if (sharedRecipe && shopping.authReady && shopping.session && shopping.household) {
+      collections.setKind(`recipe`);
+      setPage(`recipes`);
+    }
+  }, [sharedRecipe, shopping.authReady, shopping.session, shopping.household]);
+  function clearSharedRecipe() {
+    setSharedRecipe(null);
+    try { sessionStorage.removeItem(shareKey); } catch { /* The link is cleared in memory. */ }
+    const url = new URL(window.location.href);
+    for (const key of [`share_url`, `share_text`, `share_title`]) url.searchParams.delete(key);
+    window.history.replaceState(window.history.state, ``, url.href);
+  }
 
   useEffect(() => {
     try { setNotes(readNotes()); }
@@ -159,7 +190,7 @@ export default function App() {
         </div>
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
-      {([`folders`, `home`, `shopping`, `recipes`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} shoppingCategory={shoppingCategory} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
+      {([`folders`, `home`, `shopping`, `recipes`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
       {page === `welcome` && <>
         <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">
