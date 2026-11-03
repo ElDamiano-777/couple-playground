@@ -34,3 +34,9 @@
 .recipe-photo-preview{max-width:100%;width:150px;max-height:130px;object-fit:contain;border-radius:12px}
 .recipe-feedback{position:relative;z-index:31}
 @media(max-width:390px){.recipe-heading{align-items:flex-start;flex-direction:column}.recipe-heading h1{font-size:34px}.recipe-add{align-self:flex-end;margin-top:-8px}.recipe-grid{gap:10px}}
+.recipe-heading-actions{display:flex;align-items:flex-end;flex-direction:column;gap:2px}
+.recipe-manual{min-height:44px;font-size:13px}
+.recipe-details-section{margin:22px 0}
+.recipe-details-section h2{font-size:21px}
+.recipe-details-section p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.6;color:#62516e}
+.recipe-original{display:inline-flex;align-items:center;min-height:44px;color:#783495;font-weight:700}

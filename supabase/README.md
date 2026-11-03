@@ -30,4 +30,6 @@ The third migration adds only two reserved, owner-requested POC users and a sepa
 
 `20261103050000_recipe_library.sql` adds optional category, preparation time and compressed photo fields to existing recipes. Existing notes and shared household access remain unchanged. Recipe photos use the same household-protected database storage as existing pet and favorite photos.
 
+`20261103060000_recipe_import.sql` adds the original link, optional external photo link, ingredients and instructions to the same household-protected records. Recipe imports use the public Jina Reader service; social links and unavailable sites can be saved without extraction. No API key is used.
+
 `python3 scripts/test-folder-entries.py` runs the first two base migrations and this new migration in disposable PostgreSQL 17. It checks both members across all three kinds, multiline notes and limits, forbidden foreign/anonymous requests to known IDs, immutable columns and account-deletion cleanup. It never touches hosted data, runs no unrelated family tests and changes no existing CI checks.

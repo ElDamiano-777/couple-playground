@@ -32,10 +32,11 @@ select pg_temp.check_true((select notes = E'First line\nSecond line' from public
 -- Upgrade an existing recipe in place; old notes and identity must survive.
 reset role;
 \ir ../migrations/20261103050000_recipe_library.sql
+\ir ../migrations/20261103060000_recipe_import.sql
 set role authenticated;
 select pg_temp.check_true((select notes = E'First line\nSecond line' and recipe_category is null and preparation_minutes is null and recipe_photo is null from public.folder_entries where id = :'recipe'));
 select set_config('test.recipe', :'recipe', false);
-update public.folder_entries set recipe_category = 'Breakfast', preparation_minutes = 20, recipe_photo = 'data:image/jpeg;base64,dGVzdA==' where id = :'recipe';
+update public.folder_entries set recipe_category = 'Breakfast', preparation_minutes = 20, recipe_photo = 'data:image/jpeg;base64,dGVzdA==', recipe_source_url = 'https://example.com/recipe', recipe_ingredients = '2 eggs', recipe_instructions = 'Mix' where id = :'recipe';
 do $$ begin
  begin update public.folder_entries set recipe_category = 'Invalid' where id = current_setting('test.recipe', true)::uuid; raise exception 'TEST FAILED'; exception when check_violation then null; end;
 end $$;
@@ -62,7 +63,7 @@ end $$;
 select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000002', false);
 select public.join_household(:'invitation');
 select pg_temp.check_true((select count(*) = 3 from public.folder_entries));
-select pg_temp.check_true((select recipe_category = 'Breakfast' and preparation_minutes = 20 and recipe_photo = 'data:image/jpeg;base64,dGVzdA==' from public.folder_entries where id = :'recipe'));
+select pg_temp.check_true((select recipe_category = 'Breakfast' and preparation_minutes = 20 and recipe_photo = 'data:image/jpeg;base64,dGVzdA==' and recipe_source_url = 'https://example.com/recipe' and recipe_ingredients = '2 eggs' and recipe_instructions = 'Mix' from public.folder_entries where id = :'recipe'));
 update public.folder_entries set title = 'Partner edited ' || kind, notes = E'Partner first line\nPartner second line';
 insert into public.folder_entries(household_id, kind, title, notes)
  select public.current_household(), kind, repeat('a',150), repeat('b',20000) from unnest(array['recipe', 'wish', 'place']) as kind;
