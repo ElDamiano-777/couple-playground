@@ -126,6 +126,7 @@ test('imported recipes are reviewed, saved and shared, with a link-only fallback
     await first.getByRole('button', { name: 'Import from Link' }).click();
     await first.getByLabel('Recipe link').fill('https://www.instagram.com/p/example/');
     await first.getByRole('button', { name: 'Preview recipe' }).click();
+    await first.getByRole('button', { name: 'Continue without description' }).click();
     await expect(first.getByLabel('Ingredients')).toHaveValue('');
     await expect(first.getByLabel('Instructions')).toHaveValue('');
     await expect(first.getByLabel('Original link')).toHaveValue('https://www.instagram.com/p/example/');
@@ -396,6 +397,7 @@ test('an ambiguous social caption stays available without invented ingredients',
   await page.getByRole('button', { name: 'Import from Link' }).click();
   await page.getByLabel('Recipe link').fill('https://www.instagram.com/p/example/');
   await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
   await expect(page.getByLabel('Ingredients')).toHaveValue('');
   await expect(page.getByLabel('Original caption (optional)')).toHaveValue(/2 apples and 3 pears/);
   await page.getByRole('button', { name: 'Save recipe' }).click();
@@ -480,6 +482,7 @@ test('an unavailable social photo does not block saving the recipe', async ({ pa
   await page.getByRole('button', { name: 'Import from Link' }).click();
   await page.getByLabel('Recipe link').fill('https://www.instagram.com/p/soup/');
   await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
   await expect(page.getByLabel('Recipe name')).toHaveValue('Easy soup');
   await expect(page.getByLabel('Photo link (optional)')).toHaveValue(image);
   await expect(page.getByAltText('Recipe photo preview', { exact: true })).toHaveCount(0);
@@ -502,4 +505,146 @@ test('a flattened caption with clear quantities and numbered steps is separated'
   await expect(page.locator('.recipe-ingredient')).toHaveCount(3);
   await expect(page.locator('.recipe-steps li')).toHaveCount(2);
   await expect(page.locator('.recipe-caption')).toHaveCount(0);
+});
+
+test('a blocked Instagram post can be previewed from a copied description and shared with a gallery photo', async ({ browser }) => {
+  test.setTimeout(120000);
+  const server = transport();
+  const a = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 320, height: 844 } });
+  const b = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 390, height: 844 } });
+  await server.attach(a); await server.attach(b);
+  const first = await a.newPage(), second = await b.newPage();
+  await a.route('https://r.jina.ai/**', route => route.fulfill({ status: 403, body: 'Blocked' }));
+  const original = 'https://www.instagram.com/reel/blocked123/';
+  try {
+    await login(first, 'Masha'); await login(second, 'Damian'); await recipes(first);
+    await first.getByRole('button', { name: 'Import from Link' }).click();
+    await first.getByLabel('Recipe link').fill(original);
+    await first.getByRole('button', { name: 'Preview recipe' }).click();
+    await expect(first.getByRole('alert')).toContainText('Instagram did not provide the full recipe');
+    await expect(first.locator('.recipe-card')).toHaveCount(0);
+    const caption = 'Рецепт: Оладьи с яблоком\nИнгредиенты:\n2 яйца\n200 г муки\n100 мл молока\nПриготовление:\n1. Смешайте продукты.\n2. Обжарьте оладьи.';
+    await first.getByLabel('Post description').fill(caption);
+    await first.getByRole('button', { name: 'Preview recipe' }).click();
+    await expect(first.getByRole('heading', { name: 'Review recipe' })).toBeVisible();
+    await expect(first.getByLabel('Recipe name')).toHaveValue('Оладьи с яблоком');
+    await expect(first.getByLabel('Ingredients')).toHaveValue('2 яйца\n200 г муки\n100 мл молока');
+    await expect(first.getByLabel('Instructions')).toHaveValue('1. Смешайте продукты.\n2. Обжарьте оладьи.');
+    await expect(first.getByLabel('Original link')).toHaveValue(original);
+    await expect(first.getByLabel('Recipe preview')).toContainText('200 г муки');
+    await expect(first.locator('.recipe-card')).toHaveCount(0);
+    await first.getByLabel('Recipe photo (optional)').setInputFiles('public/icons/icon-192.png');
+    await expect(first.getByAltText('Recipe photo preview')).toBeVisible();
+    const photo = await first.getByAltText('Recipe photo preview').getAttribute('src');
+    await first.getByRole('button', { name: 'Save recipe' }).click();
+    await recipes(second); await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    const card = second.locator('.recipe-card').filter({ hasText: 'Оладьи с яблоком' });
+    await expect(card.locator('img')).toHaveAttribute('src', photo!);
+    await card.click();
+    await expect(second.locator('.recipe-ingredient')).toHaveCount(3);
+    await expect(second.locator('.recipe-steps li')).toHaveCount(2);
+    await expect(second.getByRole('link', { name: /Open Original/ })).toHaveAttribute('href', original);
+    expect(await second.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await a.close(); await b.close(); }
+});
+
+test('copied unlabelled captions are parsed only when the structure is clear', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 403, body: 'Blocked' }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://www.instagram.com/p/unlabelled/');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await page.getByLabel('Post description').fill('Pancakes\n2 eggs\n200 g flour\n100 ml milk\n1. Mix everything.\n2. Cook in a pan.');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('Pancakes');
+  await expect(page.getByLabel('Ingredients')).toHaveValue('2 eggs\n200 g flour\n100 ml milk');
+  await expect(page.getByLabel('Instructions')).toHaveValue('1. Mix everything.\n2. Cook in a pan.');
+  await expect(page.getByLabel('Recipe preview').locator('li')).toHaveCount(5);
+});
+
+test('insufficient Instagram information is explained without a made-up title or automatic save', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 403, body: 'Blocked' }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://www.instagram.com/p/incomplete/');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await page.getByLabel('Post description').fill('Ingredients:\n2 eggs\n100 g flour');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Some recipe details could not be recognized' })).toBeVisible();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('');
+  await expect(page.getByLabel('Instructions')).toHaveValue('');
+  await expect(page.getByRole('button', { name: 'Save recipe' })).toBeDisabled();
+  await expect(page.locator('.recipe-card')).toHaveCount(0);
+});
+
+test('a copied Instagram description survives navigation and can be pasted with one tap', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 403, body: 'Blocked' }));
+  const caption = 'Apple pancakes\nIngredients:\n2 eggs\n200 g flour\nMethod:\n1. Mix everything.\n2. Cook until golden.';
+  await page.addInitScript(value => { Object.defineProperty(navigator, 'clipboard', { value: { readText: async () => value }, configurable: true }); }, caption);
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://www.instagram.com/p/paste-test/');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await page.getByRole('button', { name: 'Paste description' }).click();
+  await expect(page.getByLabel('Post description')).toHaveValue(caption);
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
+  await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await expect(page.getByLabel('Post description')).toHaveValue(caption);
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('Apple pancakes');
+  await expect(page.getByLabel('Ingredients')).toHaveValue('2 eggs\n200 g flour');
+  await expect(page.getByLabel('Instructions')).toHaveValue('1. Mix everything.\n2. Cook until golden.');
+});
+
+test('available Instagram metadata stays in the preview when a description is pasted', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: '<meta property="og:title" content="Berry cake"><meta property="og:image" content="https://images.example.com/cake.jpg">' }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://www.instagram.com/p/metadata/');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await page.getByLabel('Post description').fill('Ingredients:\n2 eggs\n100 g flour\nInstructions:\nMix and bake.');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('Berry cake');
+  await expect(page.getByLabel('Photo link (optional)')).toHaveValue('https://images.example.com/cake.jpg');
+  await expect(page.getByLabel('Original link')).toHaveValue('https://www.instagram.com/p/metadata/');
+  await expect(page.getByLabel('Ingredients')).toHaveValue('2 eggs\n100 g flour');
+  await expect(page.getByLabel('Instructions')).toHaveValue('Mix and bake.');
+});
+
+test('a copied caption with an ingredient heading and numbered method is recognized', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 403, body: 'Blocked' }));
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://www.instagram.com/reel/numbered/');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await page.getByLabel('Post description').fill('Recipe: Berry pancakes\nIngredients:\n2 eggs\n100 g flour\n1. Mix the ingredients.\n2. Cook in a pan.');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('Berry pancakes');
+  await expect(page.getByLabel('Ingredients')).toHaveValue('2 eggs\n100 g flour');
+  await expect(page.getByLabel('Instructions')).toHaveValue('1. Mix the ingredients.\n2. Cook in a pan.');
+});
+
+test('a shared Instagram link and copied caption survive navigation until the preview', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 403, body: 'Blocked' }));
+  await login(page, 'Masha');
+  const source = 'https://www.instagram.com/reel/shared-draft/';
+  await page.goto(`./?share_url=${encodeURIComponent(source)}`);
+  await expect(page.getByLabel('Recipe link')).toHaveValue(source);
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  const caption = 'Apple pancakes\nIngredients:\n2 eggs\n200 g flour\nMethod:\nMix and cook.';
+  await page.getByLabel('Post description').fill(caption);
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
+  await recipes(page);
+  await expect(page.getByLabel('Post description')).toHaveValue(caption);
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByLabel('Recipe name')).toHaveValue('Apple pancakes');
+  await expect(page.getByLabel('Original link')).toHaveValue(source);
+  expect(await page.evaluate(() => sessionStorage.getItem('together.recipe-share'))).toBeNull();
 });

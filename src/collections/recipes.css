@@ -77,3 +77,11 @@
 .recipe-caption{margin:20px 0;border:1px solid #ead9ef;border-radius:14px;padding:13px 15px;color:#62516e}
 .recipe-caption summary{min-height:30px;font-weight:700;cursor:pointer}
 .recipe-caption p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.6}
+
+.recipe-import-preview{border:1px solid #e3cbed;border-radius:16px;background:#f7effb;padding:14px;overflow-wrap:anywhere}
+.recipe-import-preview h3{font-size:14px;color:#765485;margin:0 0 9px}
+.recipe-import-preview img{display:block;width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:10px}
+.recipe-import-preview strong{display:block;font-size:17px}
+.recipe-import-preview h4{margin:12px 0 4px;font-size:14px}
+.recipe-import-preview ul,.recipe-import-preview ol{margin:0;padding-left:20px;font-size:14px;line-height:1.55}
+.recipe-import-preview p{font-size:14px;margin:8px 0 0}
