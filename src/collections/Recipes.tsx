@@ -33,9 +33,8 @@ function RecipeForm({ draft, setField, busy, online, onSave, onClose, editing, l
   const previewIngredients = ingredientDetails(draft.recipe_ingredients).ingredients;
   const previewSteps = instructionSteps(draft.recipe_instructions);
   const previewPhoto = draft.recipe_photo || (draft.recipe_image_url && publicUrl(draft.recipe_image_url));
-  return <form className={`note-form add-sheet recipe-form${imported ? ' recipe-import-editor' : ''}`} onSubmit={submit}>
-    <button className="text-action recipe-form-close" type="button" disabled={busy || photoBusy} onClick={onClose}>Close</button>
-    <h2>{editing ? 'Edit recipe' : imported ? 'Review recipe' : 'Add Recipe'}</h2>
+  return <form className="note-form recipe-form recipe-editor-form" onSubmit={submit}>
+    <div className="recipe-editor-header"><button className="text-action" type="button" disabled={busy || photoBusy} onClick={onClose}>← Recipes</button><h1>{editing ? 'Edit recipe' : imported ? 'Review recipe' : 'Add Recipe'}</h1><button className="text-action" type="button" disabled={busy || photoBusy} onClick={onClose}>Cancel</button></div>
     {imported && <><p role="status">{message || 'Review and edit the details before saving.'}</p><section className="recipe-import-preview" aria-label="Recipe preview"><h3>Preview</h3>{previewPhoto && <img src={previewPhoto} referrerPolicy="no-referrer" alt="" />}<strong>{draft.title || 'Recipe name needed'}</strong>{previewIngredients.length > 0 && <><h4>Ingredients</h4><ul>{previewIngredients.map((item, index) => <li key={index}>{[item.quantity, item.name, item.alternative].filter(Boolean).join(' ')}</li>)}</ul></>}{previewSteps.length > 0 && <><h4>Instructions</h4><ol>{previewSteps.map((step, index) => <li key={index}>{step}</li>)}</ol></>}{!previewIngredients.length && !previewSteps.length && <p>No ingredients or instructions recognized yet.</p>}</section>{!draft.title.trim() && <p>Add a recipe name before saving.</p>}</>}
     <label htmlFor="recipe-name">Recipe name</label>
     <input id="recipe-name" required maxLength={150} value={draft.title} disabled={busy} onChange={event => setField('title', event.target.value)} />
@@ -54,9 +53,9 @@ function RecipeForm({ draft, setField, busy, online, onSave, onClose, editing, l
       {!!draft.recipe_source_url && !recipeSourceUrl(draft.recipe_source_url) && <p className="error-message" role="alert">Use a link to the original post, not its photo.</p>}
       <label htmlFor="recipe-image-link">Photo link (optional)</label><p className="small-print">{draft.recipe_photo ? 'A copy will be saved with your recipe.' : 'The imported photo stays on its original website.'}</p><input id="recipe-image-link" type="url" maxLength={4096} value={draft.recipe_image_url} disabled={busy} onChange={event => setField('recipe_image_url', event.target.value)} />
       {!draft.recipe_photo && publicUrl(draft.recipe_image_url) && <img className="recipe-photo-preview" src={publicUrl(draft.recipe_image_url)!} referrerPolicy="no-referrer" alt="Imported recipe photo preview" />}
-      <label htmlFor="recipe-ingredients">Ingredients</label><textarea id="recipe-ingredients" rows={5} maxLength={20000} value={draft.recipe_ingredients} disabled={busy} placeholder="One ingredient per line" onChange={event => setField('recipe_ingredients', event.target.value)} />
-      <label htmlFor="recipe-caption">Original caption (optional)</label><textarea id="recipe-caption" rows={4} maxLength={20000} value={draft.recipe_caption} disabled={busy} onChange={event => setField('recipe_caption', event.target.value)} />
-      <label htmlFor="recipe-instructions">Instructions</label><textarea id="recipe-instructions" rows={5} maxLength={20000} value={draft.recipe_instructions} disabled={busy} onChange={event => setField('recipe_instructions', event.target.value)} />
+      <label htmlFor="recipe-ingredients">Ingredients</label><textarea id="recipe-ingredients" rows={9} maxLength={20000} value={draft.recipe_ingredients} disabled={busy} placeholder="One ingredient per line" onChange={event => setField('recipe_ingredients', event.target.value)} />
+      <label htmlFor="recipe-instructions">Instructions</label><textarea id="recipe-instructions" rows={9} maxLength={20000} value={draft.recipe_instructions} disabled={busy} onChange={event => setField('recipe_instructions', event.target.value)} />
+      <label htmlFor="recipe-caption">Original caption (optional)</label><textarea id="recipe-caption" rows={8} maxLength={20000} value={draft.recipe_caption} disabled={busy} onChange={event => setField('recipe_caption', event.target.value)} />
       <label htmlFor="recipe-import-notes">Notes (optional)</label><textarea id="recipe-import-notes" rows={3} maxLength={20000} value={draft.notes} disabled={busy} onChange={event => setField('notes', event.target.value)} />
     </>}
     {editing && legacyNotes && !draft.recipe_source_url && !draft.recipe_caption && !draft.recipe_ingredients && !draft.recipe_instructions && <><label htmlFor="recipe-saved-notes">Previously saved notes</label><textarea id="recipe-saved-notes" rows={4} maxLength={20000} value={draft.notes} disabled={busy} onChange={event => setField('notes', event.target.value)} /></>}
@@ -85,6 +84,9 @@ export default function Recipes({ state, shopping, sharedRecipe, onClearSharedRe
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   function isSocial(url: string) {
     try { return /(^|\.)(instagram\.com|instagr\.am|tiktok\.com)$/i.test(new URL(url).hostname); } catch { return false; }
+  }
+  function importedTitle(value: string, social: boolean) {
+    return social && /(?:\bon instagram\b|\bon tiktok\b|\blikes?\b|\bcomments?\b)/i.test(value) ? '' : value;
   }
   function pasteDescription() {
     const clipboard = navigator.clipboard;
@@ -120,7 +122,7 @@ export default function Recipes({ state, shopping, sharedRecipe, onClearSharedRe
     const photo = result?.image ? await importedSocialPhoto(result.image) : null;
     if (!mounted.current) return;
     const social = isSocial(url);
-    const values: Partial<Draft> = { title: result?.title || (social ? '' : `Recipe from ${new URL(url).hostname.replace(/^www\./, '')}`), notes: result?.notes || '', recipe_caption: result?.caption || '', recipe_servings: result?.servings || '', recipe_category: result?.category || '', preparation_minutes: result?.minutes || '', recipe_photo: photo || '', recipe_source_url: url, recipe_image_url: result?.image || '', recipe_ingredients: result?.ingredients || '', recipe_instructions: result?.instructions || '' };
+    const values: Partial<Draft> = { title: importedTitle(result?.title || (social ? '' : `Recipe from ${new URL(url).hostname.replace(/^www\./, '')}`), social), notes: result?.notes || '', recipe_caption: result?.caption || '', recipe_servings: result?.servings || '', recipe_category: result?.category || '', preparation_minutes: result?.minutes || '', recipe_photo: photo || '', recipe_source_url: url, recipe_image_url: result?.image || '', recipe_ingredients: result?.ingredients || '', recipe_instructions: result?.instructions || '' };
     for (const [field, value] of Object.entries(values)) state.setDraft(field as keyof Draft, value);
     setImportBusy(false);
     if (!result?.ingredients || !result?.instructions) {
@@ -136,6 +138,7 @@ export default function Recipes({ state, shopping, sharedRecipe, onClearSharedRe
   const selected = recipes.find(entry => entry.id === selectedId);
   const shown = recipes.filter(entry => filter === 'All' || entry.recipe_category === filter);
   const isEditing = !!state.edit && state.edit.id === selectedId;
+  if (adding || (isEditing && state.edit)) return <section className="preview-page collection-page recipes-page recipe-editor-page" lang="en"><RecipeForm draft={isEditing && state.edit ? state.edit : state.drafts.recipe} setField={isEditing ? state.setEditField : state.setDraft} busy={state.busy} online={state.online} editing={isEditing} legacyNotes={isEditing && state.edit ? !!selected?.notes : false} imported={imported} message={importMessage} error={state.error} onClose={() => { if (isEditing) state.cancelEdit(); else { setAdding(false); setImportMessage(''); } }} onSave={() => { if (isEditing) { void state.saveEdit(); } else void state.add()?.then(success => { if (success) { setAdding(false); setImportMessage(''); } }); }} /></section>;
   return <section className="preview-page collection-page recipes-page" lang="en">
     {selected ? <>
       <RecipeDetail key={selected.id} recipe={selected} shopping={shopping} busy={state.busy} online={state.online} onBack={() => setSelectedId(null)} onEdit={() => state.startEdit(selected)} onDelete={() => { if (window.confirm(`Remove “${selected.title}” from your shared recipes?`)) void state.remove(selected)?.then(success => { if (success) setSelectedId(null); }); }} />

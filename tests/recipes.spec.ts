@@ -606,15 +606,20 @@ test('a TikTok caption opens an editable full-screen recipe review', async ({ pa
   await expect(page.getByRole('alert')).toContainText('TikTok did not provide the full recipe');
   await page.getByLabel('Post description').fill('Quick tomato pasta\nIngredients:\n200 g pasta\n2 tomatoes\nMethod:\n1. Cook pasta.\n2. Add tomatoes.\nCook time: 12 min\nServes 2');
   await page.getByRole('button', { name: 'Parse Description' }).click();
-  const editor = page.locator('.recipe-import-editor');
+  const editor = page.locator('.recipe-editor-page');
   await expect(editor).toBeVisible();
+  await expect(editor.locator('.add-sheet')).toHaveCount(0);
   await expect(page.getByLabel('Recipe name')).toHaveValue('Quick tomato pasta');
   await expect(page.getByLabel('Ingredients')).toHaveValue('200 g pasta\n2 tomatoes');
   await expect(page.getByLabel('Instructions')).toHaveValue('1. Cook pasta.\n2. Add tomatoes.');
   await expect(page.getByLabel('Preparation time (minutes)')).toHaveValue('12');
   await expect(page.getByLabel('Servings or yield (optional)')).toHaveValue('2 servings');
-  const screen = await editor.evaluate(element => { const box = element.getBoundingClientRect(); return { top: box.top, bottom: box.bottom, viewport: innerHeight }; });
-  expect(screen.top).toBeGreaterThanOrEqual(0); expect(screen.bottom).toBeLessThanOrEqual(screen.viewport);
+  const screen = await editor.evaluate(element => { const category = element.querySelector('#recipe-category')!.getBoundingClientRect(); return { top: element.getBoundingClientRect().top, pageHeight: document.documentElement.scrollHeight, viewport: innerHeight, categoryRight: category.right, width: innerWidth, position: getComputedStyle(element).position }; });
+  expect(screen.top).toBeGreaterThanOrEqual(0); expect(screen.pageHeight).toBeGreaterThan(screen.viewport);
+  expect(screen.categoryRight).toBeLessThanOrEqual(screen.width); expect(screen.position).not.toBe('fixed');
+  const caption = page.getByLabel('Original caption (optional)');
+  await caption.scrollIntoViewIfNeeded(); await caption.focus();
+  expect(await caption.evaluate(element => element.getBoundingClientRect().bottom <= innerHeight)).toBe(true);
 });
 
 test('insufficient Instagram information is explained without a made-up title or automatic save', async ({ page, context }) => {
