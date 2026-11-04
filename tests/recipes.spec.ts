@@ -90,6 +90,18 @@ test('a failed recipe save keeps the form and photo for retry', async ({ page, c
   await expect(page.locator('.recipe-card')).toContainText('Unfinished soup');
 });
 
+test('recipe cards clamp long titles and hide missing cooking times', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await login(page, 'Masha'); await recipes(page);
+  const title = 'A very long recipe title that stays balanced on a small iPhone recipe card without pushing every other card out of shape';
+  await page.getByRole('button', { name: '+ Add Recipe manually' }).click();
+  await page.getByLabel('Recipe name').fill(title);
+  await page.getByRole('button', { name: 'Save recipe' }).click();
+  const card = page.locator('.recipe-card').filter({ hasText: title });
+  await expect(card.locator('small')).toHaveCount(0);
+  await expect(card.locator('strong')).toHaveCSS('-webkit-line-clamp', '4');
+});
+
 test('imported recipes are reviewed, saved and shared, with a link-only fallback', async ({ browser }) => {
   test.setTimeout(120000);
   const server = transport();
@@ -210,7 +222,19 @@ test('recipe details separate ingredients, notes and steps and add chosen items 
     await detail.getByRole('button', { name: '+ Add ingredients to Shopping' }).click();
     const sheet = first.getByRole('dialog', { name: 'Add to Shopping' });
     await expect(sheet.getByRole('checkbox')).toHaveCount(2);
+    const modal = await sheet.evaluate(element => {
+      const dialog = element.getBoundingClientRect();
+      const action = element.querySelector('.recipe-shopping-footer')!.getBoundingClientRect();
+      const list = element.querySelector('.recipe-shopping-list')!;
+      return { top: dialog.top, bottom: dialog.bottom, actionBottom: action.bottom, height: dialog.height, viewport: innerHeight, listOverflow: getComputedStyle(list).overflowY };
+    });
+    expect(modal.top).toBeGreaterThanOrEqual(0);
+    expect(modal.bottom).toBeLessThanOrEqual(modal.viewport);
+    expect(modal.actionBottom).toBeLessThanOrEqual(modal.viewport);
+    expect(modal.height).toBeLessThanOrEqual(modal.viewport);
+    expect(modal.listOverflow).toBe('auto');
     await sheet.locator('.recipe-ingredient').filter({ hasText: 'flour' }).getByRole('checkbox').uncheck();
+    await expect(sheet.locator('.recipe-ingredient').filter({ hasText: 'flour' }).locator('.recipe-ingredient-name')).toHaveCSS('text-decoration-line', 'none');
     const failShopping = '**/rest/v1/shopping_items*';
     await a.route(failShopping, route => route.request().method() === 'POST' ? route.fulfill({ status: 503, json: { message: 'Synthetic failure' } }) : route.fallback());
     await sheet.getByRole('button', { name: 'Add 1 item' }).click();
