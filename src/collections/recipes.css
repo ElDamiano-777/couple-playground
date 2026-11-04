@@ -66,9 +66,10 @@
 .recipe-link-only .primary{text-decoration:none;min-height:48px}
 .recipe-shopping-overlay{position:fixed;z-index:30;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));background:#35223c55}
 .recipe-shopping-sheet{width:min(500px,100%);height:min(680px,100%);display:flex;flex-direction:column;overflow:hidden;background:#fffaf3;border:1px solid #ead9ef;border-radius:22px;box-shadow:0 8px 35px #3d29452b}
-.recipe-shopping-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 18px 8px}
-.recipe-shopping-head h2{font-size:23px}.recipe-shopping-head p{font-size:13px;color:#705d78;line-height:1.4;margin:6px 0}
-.recipe-shopping-head button{flex:none;min-height:44px}
+.recipe-shopping-head{padding:14px 18px 8px}
+.recipe-shopping-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.recipe-shopping-head h2{min-width:0;margin:0;font-size:23px;line-height:1.15;white-space:nowrap}.recipe-shopping-head p{font-size:13px;color:#705d78;line-height:1.4;margin:6px 0 0}
+.recipe-shopping-head .text-action{flex:none;width:auto;min-height:36px;padding:7px 0;border:0;justify-content:flex-end;text-align:right}
 .recipe-shopping-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 18px}
 .recipe-shopping-sheet>.feedback{padding:0 18px}
 .recipe-shopping-footer{flex:none;padding:12px 18px max(16px,env(safe-area-inset-bottom));border-top:1px solid #ead9ef;background:#fffaf3}
