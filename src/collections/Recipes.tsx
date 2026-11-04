@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { createWorker } from 'tesseract.js';
 import { readPhoto } from '../family/petPhoto';
 import { Symbol } from '../ui/Symbol';
 import type { Draft, FolderEntriesState, FolderEntry } from './useFolderEntries';
@@ -12,6 +13,39 @@ import './collections.css';
 import './recipes.css';
 
 const categories = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Desserts'] as const;
+
+function ScreenshotImport({ onCancel, onExtract }: { onCancel: () => void; onExtract: (text: string) => void }) {
+  const [shots, setShots] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  async function choose(files: FileList | null) {
+    if (!files?.length) return;
+    setMessage('');
+    try {
+      const photos = await Promise.all(Array.from(files).slice(0, 6).map(readPhoto));
+      setShots(previous => [...previous, ...photos]);
+    } catch { setMessage('Could not open one of these screenshots. Try a JPEG or PNG screenshot.'); }
+  }
+  async function extract() {
+    if (!shots.length) return;
+    setBusy(true); setMessage('Preparing local text recognition…');
+    let worker: Awaited<ReturnType<typeof createWorker>> | null = null;
+    try {
+      worker = await createWorker('eng+deu+rus');
+      const text: string[] = [];
+      for (let index = 0; index < shots.length; index++) {
+        setMessage(`Reading screenshot ${index + 1} of ${shots.length}…`);
+        const result = await worker.recognize(shots[index]);
+        if (result.data.text.trim()) text.push(result.data.text.trim());
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      }
+      if (!text.length) { setMessage('No readable text found. Try clearer screenshots or enter the recipe manually.'); return; }
+      onExtract(text.join('\n\n'));
+    } catch { setMessage('Text could not be read. Try a clearer screenshot.'); }
+    finally { await worker?.terminate(); setBusy(false); }
+  }
+  return <section className="preview-page collection-page recipes-page recipe-editor-page" lang="en"><div className="note-form recipe-form recipe-editor-form"><div className="recipe-editor-header"><button className="text-action" type="button" onClick={onCancel}>← Recipes</button><h1>Import screenshots</h1><button className="text-action" type="button" onClick={onCancel}>Cancel</button></div><p>Text stays on this device while Together reads it.</p><label htmlFor="recipe-screenshots">Screenshots</label><input id="recipe-screenshots" type="file" accept="image/jpeg,image/png,image/heic,image/heif" multiple disabled={busy} onChange={event => void choose(event.target.files)} />{shots.length > 0 && <div className="recipe-screenshot-previews">{shots.map((shot, index) => <figure key={`${index}-${shot.slice(-12)}`}><img src={shot} alt={`Selected screenshot ${index + 1}`} /><button type="button" disabled={busy} onClick={() => setShots(previous => previous.filter((_, item) => item !== index))}>Remove</button></figure>)}</div>}{message && <p className={message.startsWith('No ') || message.startsWith('Could') ? 'error-message' : 'feedback'} role="status">{message}</p>}<button className="primary" type="button" disabled={busy || !shots.length} onClick={() => void extract()}>{busy ? 'Extracting text…' : 'Extract Text'}</button></div></section>;
+}
 
 function RecipeForm({ draft, setField, busy, online, onSave, onClose, editing, legacyNotes, error, imported, message }: {
   draft: Draft; setField: (field: keyof Draft, value: string) => void;
@@ -73,6 +107,7 @@ export default function Recipes({ state, shopping, sharedRecipe, onClearSharedRe
   const [filter, setFilter] = useState('All');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [screenshotImporting, setScreenshotImporting] = useState(false);
   const [importing, setImporting] = useState(!!sharedRecipe);
   const [imported, setImported] = useState(false);
   const [source, setSource] = useState(sharedRecipe || '');
@@ -138,13 +173,14 @@ export default function Recipes({ state, shopping, sharedRecipe, onClearSharedRe
   const selected = recipes.find(entry => entry.id === selectedId);
   const shown = recipes.filter(entry => filter === 'All' || entry.recipe_category === filter);
   const isEditing = !!state.edit && state.edit.id === selectedId;
+  if (screenshotImporting) return <ScreenshotImport onCancel={() => setScreenshotImporting(false)} onExtract={text => { const parsed = captionRecipe(text); state.setDraft('title', parsed.title); state.setDraft('recipe_ingredients', parsed.ingredients); state.setDraft('recipe_instructions', parsed.instructions); state.setDraft('preparation_minutes', parsed.minutes); state.setDraft('recipe_servings', parsed.servings); state.setDraft('recipe_caption', text); setScreenshotImporting(false); setImported(true); setImportMessage(parsed.ingredients || parsed.instructions ? 'Text extracted locally. Review and edit before saving.' : 'No recipe sections found. Raw text is kept below; add details manually.'); setAdding(true); }} />;
   if (adding || (isEditing && state.edit)) return <section className="preview-page collection-page recipes-page recipe-editor-page" lang="en"><RecipeForm draft={isEditing && state.edit ? state.edit : state.drafts.recipe} setField={isEditing ? state.setEditField : state.setDraft} busy={state.busy} online={state.online} editing={isEditing} legacyNotes={isEditing && state.edit ? !!selected?.notes : false} imported={imported} message={importMessage} error={state.error} onClose={() => { if (isEditing) state.cancelEdit(); else { setAdding(false); setImportMessage(''); } }} onSave={() => { if (isEditing) { void state.saveEdit(); } else void state.add()?.then(success => { if (success) { setAdding(false); setImportMessage(''); } }); }} /></section>;
   return <section className="preview-page collection-page recipes-page" lang="en">
     {selected ? <>
       <RecipeDetail key={selected.id} recipe={selected} shopping={shopping} busy={state.busy} online={state.online} onBack={() => setSelectedId(null)} onEdit={() => state.startEdit(selected)} onDelete={() => { if (window.confirm(`Remove “${selected.title}” from your shared recipes?`)) void state.remove(selected)?.then(success => { if (success) setSelectedId(null); }); }} />
       {isEditing && state.edit && <RecipeForm draft={state.edit} setField={state.setEditField} busy={state.busy} online={state.online} editing legacyNotes={!!selected.notes} error={state.error} onClose={state.cancelEdit} onSave={() => { void state.saveEdit(); }} />}
     </> : <>
-      <div className="recipe-heading"><div><p className="eyebrow">SAVED TOGETHER</p><h1>Our Recipes<span>.</span></h1></div>{state.userId && state.household && <div className="recipe-heading-actions"><button className="primary recipe-add" onClick={() => { const draft = state.drafts.recipe; const resume = !sharedRecipe && !!draft.recipe_source_url && isSocial(draft.recipe_source_url) && (!draft.recipe_ingredients || !draft.recipe_instructions); setSource(sharedRecipe || (resume ? draft.recipe_source_url : '')); setNeedsCaption(resume); setCaptionChanged(false); setImportMessage(resume ? 'Your copied description is still here. Review it below.' : ''); setImporting(true); }}>Import from Link</button><button className="text-action recipe-manual" onClick={() => { setImported(!!state.drafts.recipe.recipe_source_url); setAdding(true); }}>+ Add Recipe manually</button></div>}</div>
+      <div className="recipe-heading"><div><p className="eyebrow">SAVED TOGETHER</p><h1>Our Recipes<span>.</span></h1></div>{state.userId && state.household && <div className="recipe-heading-actions"><button className="primary recipe-add" onClick={() => { const draft = state.drafts.recipe; const resume = !sharedRecipe && !!draft.recipe_source_url && isSocial(draft.recipe_source_url) && (!draft.recipe_ingredients || !draft.recipe_instructions); setSource(sharedRecipe || (resume ? draft.recipe_source_url : '')); setNeedsCaption(resume); setCaptionChanged(false); setImportMessage(resume ? 'Your copied description is still here. Review it below.' : ''); setImporting(true); }}>Import from Link</button><button className="text-action recipe-manual" onClick={() => setScreenshotImporting(true)}>Import from Screenshots</button><button className="text-action recipe-manual" onClick={() => { setImported(!!state.drafts.recipe.recipe_source_url); setAdding(true); }}>+ Add Recipe manually</button></div>}</div>
       {!state.authReady || state.contextLoading ? <p role="status">Opening your recipes…</p> : !state.userId || !state.household ? <section className="dashboard-card"><h2>{state.userId ? 'Connect your home' : 'Sign in to your account'}</h2><p>Recipes are shared with both people in your home.</p><button className="primary" onClick={onSignIn}>{state.userId ? 'Connect home' : 'Sign in through Shopping'}</button></section> : <>
         {state.isPoc && <p className="notice">POC test space. Don’t add sensitive personal information or private photos.</p>}
         {!state.online && <p className="notice" role="status">You’re offline. Your text stays here. Connect to save it.</p>}

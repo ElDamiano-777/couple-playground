@@ -622,6 +622,18 @@ test('a TikTok caption opens an editable full-screen recipe review', async ({ pa
   expect(await caption.evaluate(element => element.getBoundingClientRect().bottom <= innerHeight)).toBe(true);
 });
 
+test('screenshots can be selected, previewed and removed before local OCR', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Screenshots' }).click();
+  await page.getByLabel('Screenshots').setInputFiles(['public/icons/icon-192.png', 'public/icons/icon-512.png']);
+  await expect(page.getByAltText('Selected screenshot 1')).toBeVisible();
+  await expect(page.getByAltText('Selected screenshot 2')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Extract Text' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Remove' }).first().click();
+  await expect(page.getByAltText('Selected screenshot 2')).toHaveCount(0);
+});
+
 test('insufficient Instagram information is explained without a made-up title or automatic save', async ({ page, context }) => {
   const server = transport(); await server.attach(context);
   await context.route('https://r.jina.ai/**', route => route.fulfill({ status: 403, body: 'Blocked' }));
