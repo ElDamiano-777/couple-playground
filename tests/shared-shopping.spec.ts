@@ -178,6 +178,17 @@ test(`failed and offline saves preserve the draft; updates and navigation preser
   );
 });
 
+test(`notification settings provide separate iPhone and Android setup`, async ({ page, context }) => {
+  await transport().attach(context);
+  await signIn(page, `alpha@example.test`);
+  await page.getByRole(`button`, { name: `Create our home`, exact: true }).click();
+  await expect(page.getByRole(`heading`, { name: `Notifications`, exact: true })).toBeVisible();
+  await page.getByText(`Set up on iPhone`, { exact: true }).click();
+  await expect(page.getByText(`Tap Share, then Add to Home Screen.`)).toBeVisible();
+  await page.getByText(`Set up on Samsung Android`, { exact: true }).click();
+  await expect(page.getByText(`Open Together in Chrome.`)).toBeVisible();
+});
+
 test(`registration asks for email confirmation and never claims that the account is signed in`, async ({
   page,
   context,

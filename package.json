@@ -11,6 +11,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "test:smoke": "playwright test",
+    "test:push": "python3 scripts/test-push-notifications.py",
     "verify": "npm run build && npm run test:smoke",
     "verify:cloud": "npm run build && playwright test --project=chromium",
     "verify:live": "node scripts/verify-live.mjs",

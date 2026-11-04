@@ -8,6 +8,32 @@ Before auth/data implementation the required cases are: two separately authentic
 
 The hosted project is `lyewmhtufesdccisqmin`; only the public project URL and publishable key belong in the client. No database password or privileged key is needed by the browser. Do not commit session tokens, invitation codes or real purchases.
 
+## Web Push owner configuration
+
+`20261104010000_web_push_notifications.sql` records Shopping additions and completed purchases server-side. It creates private subscriptions, preference, event and delivery tables, then calls the `push-delivery` Edge Function. The function excludes the actor, reads the recipient's household membership at delivery time, respects individual preferences and stores one delivery key per event/device. It removes endpoints that return HTTP 404 or 410. The minute schedule also evaluates weekly reminders in the member's selected IANA timezone and only when unpurchased items still exist. Delivery logs are deleted after 30 days.
+
+Before enabling the feature in production, a Supabase Owner or Administrator must:
+
+1. Enable `pg_net`, `pg_cron` and Supabase Vault in the project Database Extensions page. The migration safely records events even before the dispatch token exists, so Shopping never fails because notification configuration is incomplete. If extensions are enabled after this migration, run this once in the SQL editor:
+
+   ```sql
+   do $$ begin
+     if to_regprocedure('cron.schedule(text,text,text)') is not null then
+       if not exists (select 1 from cron.job where jobname = 'together-push-schedule') then
+         perform cron.schedule('together-push-schedule', '* * * * *', $schedule$select public.run_together_push_schedule()$schedule$);
+       end if;
+     end if;
+   end $$;
+   ```
+2. Generate a VAPID key pair locally. Keep the private key out of source control. Set `VAPID_SUBJECT` to a monitored `mailto:` address.
+3. Set these Edge Function secrets: `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and a random `PUSH_DELIVERY_TOKEN`.
+4. Add the same random value to Vault under the exact name `together_push_delivery_token`. This is the token database triggers use to call the private delivery function.
+5. Deploy `push-subscriptions` and `push-delivery` from `supabase/functions/` to project `lyewmhtufesdccisqmin`.
+
+Neither VAPID private material nor `PUSH_DELIVERY_TOKEN` belongs in GitHub Pages, Git, browser code or support screenshots. The browser receives only the VAPID public key from the authenticated `push-subscriptions` function.
+
+For a real-device test, install Together from the Home Screen on iPhone and from Chrome on Android, enable notifications for both accounts, then add and buy separate uniquely named items. Confirm each partner receives one notification while the app is closed. Set two different weekly reminder times, leave an unpurchased item, and confirm one reminder at each chosen time. Do not mark the feature as live until this has passed.
+
 ## Shared child and pet profiles
 
 `20261101050000_family_profiles.sql` adds `family_profiles` in the existing project, with stable profile/household UUIDs, an immutable `child`/`pet` kind, a trimmed 1–100 character name, an optional trimmed 1–80 character animal type for pets only, creator identity and creation time. Both household members can add, read, rename and delete their shared cards. RLS blocks unrelated and anonymous accounts; column privileges prevent clients from forging identity/authorship or moving a card to another household. Deleting the creator's account preserves cards for the remaining partner with null authorship; deleting the final household removes its cards. No photos, additional services, secrets or setup are introduced.

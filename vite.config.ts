@@ -25,6 +25,20 @@ self.addEventListener('fetch', event => {
   if (event.request.mode !== 'navigate' || new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(fetch(event.request).catch(() => caches.match(BASE + 'offline.html')));
 });
+self.addEventListener('push', event => {
+  let message = { title: 'Together', body: 'Shopping update', url: BASE };
+  try { message = { ...message, ...event.data.json() }; } catch {}
+  event.waitUntil(self.registration.showNotification(message.title, {
+    body: message.body,
+    icon: BASE + 'icons/icon-192.png',
+    badge: BASE + 'icons/icon-192.png',
+    data: { url: message.url || BASE },
+  }));
+});
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow(event.notification.data?.url || BASE));
+});
 ` });
     },
   }],

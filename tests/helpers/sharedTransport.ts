@@ -121,6 +121,13 @@ export function transport() {
         });
       }
       if (!user) return reply({ message: `Unauthorized` }, 401);
+      if (url.pathname === `/functions/v1/push-subscriptions`) {
+        if (method === `GET`) return reply({
+          vapidPublicKey: `BOrPLpcZpm-c1p0UqsqjB9-8u5vVe45duQw4K_8cQG4sGhPOD_6a1zP5IGSAUyvxMK6qwRRVwCq9qceKmtk0GzQ`,
+          preferences: { new_item_enabled: true, purchased_enabled: true, reminder_enabled: false, reminder_weekday: 0, reminder_time: `18:00:00`, timezone: `Europe/Berlin` },
+        });
+        return reply({ ok: true });
+      }
       if (url.pathname.endsWith(`/rpc/current_household`))
         return reply(homeFor(user));
       if (url.pathname.endsWith(`/rpc/create_household`)) {

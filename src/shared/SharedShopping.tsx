@@ -4,6 +4,7 @@ import QuickAdd from "./QuickAdd";
 import { Symbol } from "../ui/Symbol";
 import PetFoodShopping from "./PetFoodShopping";
 import ShoppingItemDetail, { shoppingPhoto } from './ShoppingItemDetail';
+import NotificationSettings from './NotificationSettings';
 
 export default function SharedShopping({
   state,
@@ -452,6 +453,7 @@ export default function SharedShopping({
         </>
       )}
       {!quickOpen && feedback}
+      <NotificationSettings active={!!state.household} />
       {!state.isPoc && (
         <details className="account-options">
           <summary>Account options</summary>

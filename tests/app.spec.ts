@@ -88,7 +88,10 @@ test(`PWA manifest, icon files and exact release metadata are served from the pr
   expect(version.commit).toMatch(/^[0-9a-f]{40}$/);
   const sw = await request.get(`sw.js`);
   expect(sw.ok()).toBe(true);
-  expect(await sw.text()).not.toContain(`skipWaiting`);
+  const worker = await sw.text();
+  expect(worker).not.toContain(`skipWaiting`);
+  expect(worker).toContain(`showNotification`);
+  expect(worker).toContain(`notificationclick`);
 });
 
 test(`offline navigation has a clear fallback instead of a blank screen`, async ({ page, context }) => {
