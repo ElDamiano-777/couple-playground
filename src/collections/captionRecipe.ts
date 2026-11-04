@@ -1,12 +1,13 @@
 export type CaptionSections = { ingredients: string; instructions: string; remainder: string };
+export type CaptionRecipe = CaptionSections & { title: string; minutes: string; servings: string };
 
-const firstInstruction = /^(?:step\s*)?1[.)、]\s*(?:(?:mix|stir|combine|whisk|add|heat|preheat|bake|cook|slice|chop|place|pour|wash|fry|fold|grate|boil|spread)\b|(?:смеш|взбей|добав|нареж|разогрей|выпек|обжар|соедин|приготов|перемеш|вылож|запек|свар|налей))/iu;
+const firstInstruction = /^(?:step\s*)?1[.)、]\s*(?:(?:mix|stir|combine|whisk|add|heat|preheat|bake|cook|slice|chop|place|pour|wash|fry|fold|grate|boil|spread)\b|(?:misch|rühr|verrühr|hinzufüg|erhitz|vorheiz|back|koch|schneid|hack|brat|gib|stell|füll|verteil)|(?:смеш|взбей|добав|нареж|разогрей|выпек|обжар|соедин|приготов|перемеш|вылож|запек|свар|налей))/iu;
 
 // Only use text explicitly labelled by the author; keep uncertain text in the caption.
 export function captionSections(caption: string): CaptionSections {
   const ingredients: string[] = [], instructions: string[] = [], remainder: string[] = [];
   let section: 'ingredients' | 'instructions' | null = null;
-  const labels = 'ingredients?|zutaten|ingredientes|ингредиенты|продукты|состав|instructions?|directions?|method|steps?|zubereitung|preparaci[oó]n|приготовление|способ приготовления|как приготовить|инструкция';
+  const labels = 'ingredients?|zutaten|ingredientes|ингредиенты|продукты|состав|instructions?|directions?|method|steps?|zubereitung|anleitung|preparaci[oó]n|приготовление|способ приготовления|как приготовить|инструкция|шаги';
   const separated = caption.replace(/\r\n?/g, '\n')
     .replace(/[＊*]\s*(材料|作り方)\s*[＊*]/g, '\n$1:\n')
     .replace(new RegExp(`(?:^|\\s)(${labels})\\s*[:：]`, 'giu'), '\n$1:\n');
@@ -23,7 +24,9 @@ export function captionSections(caption: string): CaptionSections {
       if (start[2]) (section === 'ingredients' ? ingredients : instructions).push(start[2]);
       continue;
     }
-    if (/^(?:notes?|tips?|hashtags?|hinweise|notas|примечания|советы)\s*[:：]/iu.test(header) || /コツ$/u.test(header) || /^(?:#|@|https?:\/\/)/i.test(text)) section = null;
+    if (/^(?:notes?|tips?|hashtags?|hinweise|notas|примечания|советы)\s*[:：]/iu.test(header) || /コツ$/u.test(header) || /^(?:#|@|https?:\/\/)/i.test(text)) { section = null; if (/^(?:#|@|https?:\/\/)/i.test(text)) continue; }
+    if (/^(?:\d[\d.,]*\s*(?:likes?|comments?|views?)|\d[\d.,]*\s*(?:gefällt mir|kommentare|просмотров|лайков)|follow(?:\s+for)?|folge\s+(?:mir|für)|подписывай)/iu.test(text)) { section = null; continue; }
+    if (/^(?:(?:prep(?:aration)?|cook(?:ing)?|total|ready\s+in|zubereitungszeit|kochzeit|gesamtzeit|готов(?:ить|ки)|время)\s*(?:time)?\s*[:：-]?\s*\d{1,4}\s*(?:min(?:utes?)?|mins?|мин(?:ут[аы]?)?)|serves?\s*[:：-]?\s*\d{1,3}|\d{1,3}\s*(?:servings?|portions?|portionen?|portion|порц(?:ии|ия|ий)?))$/iu.test(text)) { section = null; remainder.push(text); continue; }
     if (section === 'ingredients' && ingredients.length && firstInstruction.test(text.replace(/([0-9])\uFE0F?\u20E3/g, '$1. '))) section = 'instructions';
     if (section === 'ingredients') ingredients.push(text);
     else if (section === 'instructions') instructions.push(text);
@@ -65,6 +68,14 @@ export function captionSections(caption: string): CaptionSections {
   return { ingredients: ambiguous ? '' : ingredientLines.join('\n').slice(0, 20000), instructions: steps.join('\n').slice(0, 20000), remainder: remainder.join('\n').slice(0, 20000) };
 }
 
+export function captionRecipe(caption: string): CaptionRecipe {
+  const sections = captionSections(caption);
+  const text = caption.replace(/\r\n?/g, '\n');
+  const minutes = /(?:prep(?:aration)?|cook(?:ing)?|total|ready\s+in|zubereitungszeit|kochzeit|gesamtzeit|готов(?:ить|ки)|время)\s*(?:time)?\s*[:：-]?\s*(\d{1,4})\s*(?:min(?:utes?)?|mins?|мин(?:ут[аы]?)?)/iu.exec(text)?.[1] || '';
+  const servings = /(?:(\d{1,3})\s*(?:servings?|portions?|portionen?|portion|порц(?:ии|ия|ий)?)|serves?\s*[:：-]?\s*(\d{1,3}))/iu.exec(text);
+  return { ...sections, title: captionTitle(caption), minutes, servings: servings ? `${servings[1] || servings[2]} servings` : '' };
+}
+
 function splitFlatIngredients(line: string): string[] {
   const unit = '(?:kg|mg|g|ml|l|oz|lbs?|cups?|tbsp|tsp|tablespoons?|teaspoons?|eggs?|cloves?|cans?|slices?|ст\\.?\\s*л\\.?|ч\\.?\\s*л\\.?|кг|г|мл|л|яйц[ао]?|шт\\.?)';
   const pattern = new RegExp(`(?:^|\\s)(?=\\d+(?:[.,]\\d+)?(?:\\s+\\d+\\/\\d+|\\/\\d+|\\s*[¼½¾⅓⅔⅛⅜⅝⅞])?\\s*${unit}(?!\\p{L}))`, 'giu');
@@ -87,6 +98,6 @@ export function captionTitle(caption: string): string {
   if (/^#/.test(line)) return '';
   const named = /^(?:recipe|rezept|рецепт|название|title)\s*[:：-]\s*(.+)$/iu.exec(text)?.[1].trim();
   if (named && named.length <= 150) return named;
-  if (!text || text.length > 150 || /^(?:#|\d|[¼½¾⅓⅔⅛⅜⅝⅞])/.test(text) || /^(?:ingredients?|instructions?|method|directions?|recipe|rezept|рецепт|zutaten|ингредиенты|приготовление|способ приготовления)(?=\s|[:：]|$)/iu.test(text)) return '';
+  if (!text || text.length > 150 || /^(?:#|\d|[¼½¾⅓⅔⅛⅜⅝⅞])/.test(text) || /^(?:follow|folge|подписывай|ingredients?|instructions?|method|directions?|recipe|rezept|рецепт|zutaten|ингредиенты|приготовление|способ приготовления)(?=\s|[:：]|$)/iu.test(text)) return '';
   return text;
 }

@@ -30,7 +30,8 @@
 .recipe-form{gap:10px;align-items:stretch}
 .recipe-form select{min-height:48px;width:100%;border:1px solid #cfabe4;border-radius:12px;background:#fffcf6;padding:10px 14px;color:#33283c;font:inherit;font-size:16px}
 .recipe-form input[type=file]{font-size:14px}
-.recipe-form-close{align-self:flex-end;min-height:44px}
+.recipe-form-close{align-self:flex-end;width:auto;min-height:44px;padding:8px 0;border:0}
+.recipe-import-editor{top:max(10px,env(safe-area-inset-top));bottom:max(10px,env(safe-area-inset-bottom));max-height:none;height:auto;margin:0;overflow-y:auto;padding:20px max(19px,env(safe-area-inset-right)) 28px max(19px,env(safe-area-inset-left));border-radius:22px}
 .recipe-photo-preview{max-width:100%;width:150px;max-height:130px;object-fit:contain;border-radius:12px}
 .recipe-feedback{position:relative;z-index:31}
 @media(max-width:390px){.recipe-heading{align-items:flex-start;flex-direction:column}.recipe-heading h1{font-size:34px}.recipe-add{align-self:flex-end;margin-top:-8px}.recipe-grid{gap:10px}}
