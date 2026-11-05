@@ -19,7 +19,16 @@ export function useGoogleCalendar({ userId, household }: { userId?: string; hous
   const [notice, setNotice] = useState('');
   const invoke = useCallback(async (body: Record<string, unknown>) => {
     const result = await supabase.functions.invoke('calendar-google', { body });
-    if (result.error) throw new Error((result.data as { error?: string } | null)?.error || result.error.message);
+    if (result.error) {
+      const context = 'context' in result.error ? result.error.context : null;
+      if (context instanceof Response) {
+        if (context.status === 404) throw new Error('Google Calendar is not available yet. Ask the app owner to finish setup.');
+        const payload = await context.json().catch(() => null) as { error?: string } | null;
+        if (payload?.error) throw new Error(payload.error);
+        if (context.status === 401) throw new Error('Your session expired. Sign in again and retry.');
+      }
+      throw new Error('Google Calendar is unavailable. Check your connection or ask the app owner to finish setup.');
+    }
     if ((result.data as { error?: string } | null)?.error) throw new Error((result.data as { error: string }).error);
     return result.data as Record<string, unknown>;
   }, []);
@@ -36,7 +45,7 @@ export function useGoogleCalendar({ userId, household }: { userId?: string; hous
       await refreshSettings();
       const data = await invoke({ action: 'events', ...monthRange(month) });
       setEvents(Array.isArray(data.events) ? data.events as CalendarEvent[] : []);
-    } catch (value) { setError(value instanceof Error && /not configured|reconnecting/i.test(value.message) ? value.message : failure); }
+    } catch (value) { setError(value instanceof Error ? value.message : failure); }
     finally { setLoading(false); }
   }, [household, invoke, refreshSettings, userId]);
   useEffect(() => { void refreshSettings().catch(() => { /* Calendar stays optional until connected. */ }); }, [refreshSettings]);

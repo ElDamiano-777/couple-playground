@@ -24,3 +24,17 @@ test('calendar shows month and agenda views with private-by-default calendar con
   await expect(share).toBeChecked();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test('calendar explains an unavailable connection service', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('**/functions/v1/calendar-google', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Google Calendar is not configured yet.' }) }));
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Masha', exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await openShopping(page);
+  await page.getByRole('button', { name: 'Calendar', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Google Calendar is not configured yet.');
+  await page.getByRole('button', { name: 'Connect Google Calendar', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Google Calendar is not configured yet.');
+});

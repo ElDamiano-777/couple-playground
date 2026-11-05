@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react';
 import type { FolderEntry } from '../collections/useFolderEntries';
 import type { SharedShoppingState } from '../shared/useSharedShopping';
 import { plannedIngredients } from './mealIngredients';
-import { mealSlots, type MealPlanItem, type MealSlot } from './useMealPlan';
+import { localDate, mealSlots, type MealPlanItem, type MealSlot } from './useMealPlan';
 import './meals.css';
 
 type MealState = { weekStart: string; setWeekStart: (value: string) => void; items: MealPlanItem[]; loading: boolean; busy: boolean; error: string; notice: string; refresh: () => Promise<void>; save: (item: { id?: string; dayIndex: number; mealSlot: MealSlot; recipeId: string | null; title: string }) => Promise<boolean>; remove: (item: MealPlanItem) => Promise<boolean> };
-const dayName = (week: string, index: number) => new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'short' }).format(new Date(`${week}T12:00:00`).getTime() + index * 86400000);
-const weekShift = (week: string, amount: number) => { const date = new Date(`${week}T12:00:00`); date.setDate(date.getDate() + amount * 7); return date.toISOString().slice(0, 10); };
+const shiftedDay = (week: string, days: number) => { const date = new Date(`${week}T12:00:00`); date.setDate(date.getDate() + days); return date; };
+const dayName = (week: string, index: number) => new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }).format(shiftedDay(week, index));
+const weekShift = (week: string, amount: number) => localDate(shiftedDay(week, amount * 7));
 export default function MealPlanner({ plan, recipes, shopping }: { plan: MealState; recipes: FolderEntry[]; shopping: SharedShoppingState }) {
   const [editing, setEditing] = useState<MealPlanItem | { day_index: number; meal_slot: MealSlot } | null>(null);
   const [recipeId, setRecipeId] = useState(''); const [custom, setCustom] = useState('');
@@ -16,7 +17,7 @@ export default function MealPlanner({ plan, recipes, shopping }: { plan: MealSta
   const save = async () => { if (!editing) return; const success = await plan.save({ id: 'id' in editing ? editing.id : undefined, dayIndex: editing.day_index, mealSlot: editing.meal_slot, recipeId: recipeId || null, title: custom }); if (success) setEditing(null); };
   const openShopping = () => { setSelected(ingredients.map(item => item.id)); setShoppingOpen(true); };
   return <section className="meal-planner"><p className="eyebrow">SHARED WEEKLY PLAN</p><h1>Meals<span>.</span></h1><p className="meal-lead">Plan breakfast, lunch and dinner together.</p>
-    <div className="meal-week-controls"><button aria-label="Previous week" onClick={() => plan.setWeekStart(weekShift(plan.weekStart, -1))}>‹</button><strong>{new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' }).format(new Date(`${plan.weekStart}T12:00:00`))} – {new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${weekShift(plan.weekStart, 1)}T12:00:00`).getTime() - 86400000)}</strong><button aria-label="Next week" onClick={() => plan.setWeekStart(weekShift(plan.weekStart, 1))}>›</button><button className="text-button" disabled={plan.loading} onClick={() => void plan.refresh()}>Refresh</button></div>
+    <div className="meal-week-controls"><button aria-label="Previous week" onClick={() => plan.setWeekStart(weekShift(plan.weekStart, -1))}>‹</button><strong>{new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date(`${plan.weekStart}T12:00:00`))} – {new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(shiftedDay(plan.weekStart, 6))}</strong><button aria-label="Next week" onClick={() => plan.setWeekStart(weekShift(plan.weekStart, 1))}>›</button><button className="text-button" disabled={plan.loading} onClick={() => void plan.refresh()}>Refresh</button></div>
     {plan.error && <p className="feedback error-message" role="alert">{plan.error}</p>}{plan.notice && <p className="feedback" role="status">{plan.notice}</p>}
     <div className="meal-week">{Array.from({ length: 7 }, (_, dayIndex) => <section className="meal-day" key={dayIndex}><h2>{dayName(plan.weekStart, dayIndex)}</h2>{mealSlots.map(slot => { const item = plan.items.find(row => row.day_index === dayIndex && row.meal_slot === slot); return <div className="meal-slot" key={slot}><span>{slot}</span>{item ? <button className="meal-card" onClick={() => openEditor(item)}><strong>{item.title}</strong>{item.recipe_id && <small>Recipe</small>}</button> : <button className="meal-empty" disabled={plan.busy} onClick={() => openEditor({ day_index: dayIndex, meal_slot: slot })}>+ Add meal</button>}</div>; })}</section>)}</div>
     <button className="primary meal-shopping" disabled={!ingredients.length || plan.busy || shopping.busy} onClick={openShopping}>Create Shopping List</button>

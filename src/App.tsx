@@ -47,7 +47,7 @@ export default function App() {
   const meals = useMealPlan({ userId: shopping.session?.user.id, household: shopping.household });
   const tasks = useHouseholdTasks({ userId: shopping.session?.user.id, household: shopping.household });
   const [sharedRecipe, setSharedRecipe] = useState<string | null>(readSharedRecipe);
-  const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : `folders`);
+  const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : new URLSearchParams(window.location.search).has(`calendar`) ? `calendar` : `folders`);
   const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
   const [profileSaved, setProfileSaved] = useState(true);
