@@ -75,7 +75,7 @@ test('dashboard highlights and orders active tasks and reflects changes on phone
 });
 
 
-test('dashboard colors, attention order and recipe links work at phone sizes', async ({ browser }) => {
+test('dashboard colors, fixed order and recipe links work at phone sizes', async ({ browser }) => {
   for (const viewport of [{ width: 390, height: 844 }, { width: 360, height: 800 }]) {
     const server = transport();
     const recipe = server.seedRecipe('Pasta tonight', '200 g pasta', { instructions: 'Cook pasta.' });
@@ -106,6 +106,41 @@ test('dashboard colors, attention order and recipe links work at phone sizes', a
     await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
     await page.getByRole('button', { name: '1 recipe' }).click();
     await expect(page.getByRole('heading', { name: 'Our Recipes.' })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await context.close();
+  }
+});
+
+test('empty dashboard cards stay compact and in fixed order while shopping changes', async ({ browser }) => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 360, height: 800 }]) {
+    const server = transport();
+    const context = await browser.newContext({ viewport, serviceWorkers: 'block' });
+    await server.attach(context); const page = await context.newPage();
+    await page.goto('./'); await page.getByRole('button', { name: 'Masha', exact: true }).click();
+    await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    const shopping = page.locator('.us-shopping');
+    await expect(shopping.locator('.us-shopping-heading > span')).toHaveText('0 items');
+    await expect(shopping.getByRole('button', { name: '+ Add shopping item' })).toHaveCount(0);
+    expect((await shopping.boundingBox())!.height).toBeLessThan(90);
+    expect((await page.locator('.task-dashboard').boundingBox())!.height).toBeLessThan(110);
+    const order = () => page.locator('.dashboard-sections > .dashboard-card').evaluateAll(cards => cards.map(card => card.classList.contains('task-dashboard') ? 'tasks' : card.classList.contains('us-shopping') ? 'shopping' : card.classList.contains('dinner-dashboard') ? 'dinner' : 'saved'));
+    await expect.poll(order).toEqual(['tasks', 'shopping', 'dinner', 'saved']);
+    await shopping.getByRole('button', { name: 'Shopping' }).click();
+    await shopping.getByRole('button', { name: '+ Add shopping item' }).click();
+    await page.getByRole('button', { name: '+ Custom item' }).click();
+    await page.getByLabel('Custom product').fill('Bread');
+    await page.locator('.quick-custom').getByRole('button', { name: 'Add', exact: true }).click();
+    await page.getByRole('button', { name: 'Add 1 item' }).click();
+    await expect(shopping).toHaveClass(/dashboard-active/);
+    await expect(shopping).toContainText('Bread');
+    expect(await order()).toEqual(['tasks', 'shopping', 'dinner', 'saved']);
+    await page.getByRole('checkbox', { name: 'Mark Bread as purchased' }).click();
+    await expect(shopping.locator('.us-shopping-heading > span')).toHaveText('0 items');
+    await expect(shopping.getByRole('button', { name: '+ Add shopping item' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
+    expect(await order()).toEqual(['tasks', 'shopping', 'dinner', 'saved']);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await context.close();
   }

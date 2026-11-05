@@ -8,6 +8,9 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
   await page.getByLabel('Password', { exact: true }).fill(pocPassword);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+  await expect(page.locator('.us-shopping-heading > span')).toBeVisible();
+  const heading = page.locator('.us-shopping-heading button');
+  if (await heading.getAttribute('aria-expanded') === 'false') await heading.click();
   await expect(page.getByRole('group', { name: 'Shopping categories' })).toBeVisible();
 }
 async function add(page: Page, name: string, category: string, details: string) {
@@ -82,6 +85,7 @@ test('an unsuccessful dashboard addition keeps its draft when navigating', async
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+  await page.locator('.us-shopping-heading button').click();
   await page.getByRole('button', { name: '+ Add shopping item' }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');

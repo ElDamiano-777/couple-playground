@@ -1,10 +1,11 @@
-export type SymbolName = `more` | `home` | `shopping` | `plans` | `family` | `bell` | `plus` | `arrow` | `heart` | `folder` | `recipe` | `pet` | `pin` | `wishlist` | `calendar`;
+export type SymbolName = `more` | `home` | `shopping` | `plans` | `family` | `bell` | `plus` | `arrow` | `heart` | `folder` | `recipe` | `pet` | `pin` | `wishlist` | `calendar` | `utensils`;
 
 export function Symbol({ name }: { name: SymbolName }) {
   const paths: Record<SymbolName, string> = {
     more: `M4 12h.01M12 12h.01M20 12h.01`,
     home: `m3 10 9-7 9 7v10H15v-7H9v7H3Z`,
     shopping: `M5 7h14l2 14H3L5 7Zm3 0V6a4 4 0 0 1 8 0v1`,
+    utensils: `M5 3v7m3-7v7M5 7h3m-1.5 3v11M16 3c-2 2-3 5-3 9h3m0-9v18`,
     calendar: `M4 5h16v16H4ZM8 2v6m8-6v6M4 11h16m-12 4h3m2 0h3`,
     plans: `M4 5h16v16H4ZM8 2v6m8-6v6M4 11h16m-12 4h3m2 0h3`,
     family: `M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 10v-3a6 6 0 0 1 12 0v3m3-17a4 4 0 0 1 0 8m1 3a5 5 0 0 1 4 5v1`,

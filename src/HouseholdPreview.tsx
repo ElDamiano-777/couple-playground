@@ -84,25 +84,12 @@ function Dashboard({ navigate, shopping, collections, meals, tasks, onShoppingCa
     const priority = nextTask && { high: 'High', normal: 'Normal', low: 'Low' }[nextTask.priority];
     const due = nextTask?.due_date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${nextTask.due_date}T12:00:00`)) : 'No due date';
     const saved = { wishes: collections.entries.filter(entry => entry.kind === 'wish').length, places: collections.entries.filter(entry => entry.kind === 'place').length, recipes: collections.entries.filter(entry => entry.kind === 'recipe').length };
-    const activeShopping = shopping.items.some(item => !item.bought);
     const activeSaved = saved.wishes + saved.places + saved.recipes > 0;
-    const priorityOrder = [
-      { id: 'tasks', rank: overdue ? 0 : nextTask ? 1 : 5 },
-      { id: 'shopping', rank: activeShopping ? 2 : 6 },
-      { id: 'dinner', rank: todayMeals.length ? 3 : 7 },
-      { id: 'saved', rank: activeSaved ? 4 : 8 },
-    ].sort((a, b) => a.rank - b.rank).map(item => item.id);
-    const [order, setOrder] = useState<string[] | null>(null);
-    useEffect(() => {
-      if (order || !shopping.authReady || shopping.loading || tasks.loading || meals.loading || collections.loading || (shopping.session && !shopping.household)) return;
-      const timer = window.setTimeout(() => setOrder(priorityOrder), 300);
-      return () => window.clearTimeout(timer);
-    }, [order, shopping.authReady, shopping.loading, shopping.session, shopping.household, tasks.loading, meals.loading, collections.loading, overdue, !!nextTask, activeShopping, todayMeals.length, activeSaved]);
     const cards: Record<string, React.ReactNode> = {
       tasks: <button key="tasks" className={`dashboard-card meal-dashboard task-dashboard${openTasks.length ? ' dashboard-active' : ''}${overdue ? ' dashboard-overdue' : ''}`} onClick={() => navigate(`tasks`)}><h2><span className="dashboard-icon"><Symbol name="plans" /></span>Upcoming tasks</h2>{nextTask ? <><p className="dashboard-count">{openTasks.length} {openTasks.length === 1 ? 'task' : 'tasks'} to do{overdue && <span className="dashboard-warning"> · Overdue</span>}</p><strong className="dashboard-task-title">{nextTask.title}</strong><p className="dashboard-task-meta">{assignee} · {nextTask.due_date ? `Due ${due}` : due} · {priority} priority</p></> : <p>No open tasks.</p>}</button>,
-      dinner: <button key="dinner" className={`dashboard-card meal-dashboard dinner-dashboard${todayMeals.length ? ' dashboard-active' : ''}`} onClick={() => todayMeals[0] ? onDinner(todayMeals[0]) : navigate(`meals`)}><h2><span className="dashboard-icon"><Symbol name="recipe" /></span>Today’s dinner</h2>{todayMeals.length ? <><p>{todayMeals.map(item => item.title).join(' · ')}</p>{todayMeals[0].recipe_id && <span className="dashboard-link">View recipe →</span>}</> : <p>No dinner planned for today.</p>}</button>,
+      dinner: <button key="dinner" className={`dashboard-card meal-dashboard dinner-dashboard${todayMeals.length ? ' dashboard-active' : ''}`} onClick={() => todayMeals[0] ? onDinner(todayMeals[0]) : navigate(`meals`)}><h2><span className="dashboard-icon"><Symbol name="utensils" /></span>Today’s dinner</h2>{todayMeals.length ? <><p>{todayMeals.map(item => item.title).join(' · ')}</p>{todayMeals[0].recipe_id && <span className="dashboard-link">View recipe →</span>}</> : <p>No dinner planned for today.</p>}</button>,
       shopping: <UsShopping key="shopping" state={shopping} onCategory={onShoppingCategory} onSignIn={() => navigate(`shopping`)} />,
       saved: <section key="saved" className={`dashboard-card saved-dashboard${activeSaved ? ' dashboard-active' : ''}`}><h2><span className="dashboard-icon"><Symbol name="heart" /></span>Saved together</h2><div className="dashboard-saved-links"><button onClick={() => navigate('wishlist')}>{saved.wishes} {saved.wishes === 1 ? 'wish' : 'wishes'}</button><button onClick={() => navigate('places')}>{saved.places} {saved.places === 1 ? 'place' : 'places'}</button><button onClick={() => navigate('recipes')}>{saved.recipes} {saved.recipes === 1 ? 'recipe' : 'recipes'}</button></div></section>,
     };
-    return <section className="preview-page"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}<div className="dashboard-sections" onPointerDownCapture={() => { if (!order) setOrder(priorityOrder); }} onKeyDownCapture={() => { if (!order) setOrder(priorityOrder); }}>{(order ?? priorityOrder).map(id => cards[id])}</div></section>;
+    return <section className="preview-page"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}<div className="dashboard-sections">{['tasks', 'shopping', 'dinner', 'saved'].map(id => cards[id])}</div></section>;
   }
