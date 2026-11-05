@@ -34,6 +34,20 @@ Neither VAPID private material nor `PUSH_DELIVERY_TOKEN` belongs in GitHub Pages
 
 For a real-device test, install Together from the Home Screen on iPhone and from Chrome on Android, enable notifications for both accounts, then add and buy separate uniquely named items. Confirm each partner receives one notification while the app is closed. Set two different weekly reminder times, leave an unpurchased item, and confirm one reminder at each chosen time. Do not mark the feature as live until this has passed.
 
+## Google Calendar, read-only
+
+`20261105020000_google_calendar_readonly.sql` creates private connection and calendar-preference records. Browser clients have no database permissions for either table. The `calendar-google` Edge Function verifies the Together session, reads only calendars selected by the owner, and sends a partner only calendars explicitly marked Share. It uses Google’s `calendar.readonly` scope; no Google event write endpoint exists.
+
+Before Google connection can work in production, a Supabase Owner or Administrator must configure it once:
+
+1. In Google Cloud Console, create or select a project, enable **Google Calendar API**, then configure an OAuth consent screen. Add Masha and Damian as test users while the app is in Testing.
+2. Create a **Web application** OAuth client. Add this exact authorized redirect URI: `https://lyewmhtufesdccisqmin.supabase.co/functions/v1/calendar-google?action=callback`.
+3. Deploy `calendar-google` from `supabase/functions/` to project `lyewmhtufesdccisqmin` with JWT verification disabled. The function validates the Together bearer token itself.
+4. Set Edge Function secrets: `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, and `GOOGLE_CALENDAR_TOKEN_KEY`. Generate the last value as a random 32-byte key encoded with base64. Do not put it, Google’s client secret, an OAuth code, or a refresh token in GitHub, browser code, screenshots, or support messages.
+5. Open Together → Home → Calendar on each phone, use **Connect Google Calendar**, complete Google’s consent screen, choose visible calendars, and only then switch on Share for calendars the partner may see.
+
+Google returns refresh tokens only for offline consent. A Testing consent screen can issue refresh tokens that expire after seven days; publish the consent screen or reconnect when Google asks. The connection is read-only: Together expands recurring events for display, keeps all-day values as dates, and asks Google for every refresh instead of copying events into Together.
+
 ## Shared child and pet profiles
 
 `20261101050000_family_profiles.sql` adds `family_profiles` in the existing project, with stable profile/household UUIDs, an immutable `child`/`pet` kind, a trimmed 1–100 character name, an optional trimmed 1–80 character animal type for pets only, creator identity and creation time. Both household members can add, read, rename and delete their shared cards. RLS blocks unrelated and anonymous accounts; column privileges prevent clients from forging identity/authorship or moving a card to another household. Deleting the creator's account preserves cards for the remaining partner with null authorship; deleting the final household removes its cards. No photos, additional services, secrets or setup are introduced.

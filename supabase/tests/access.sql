@@ -12,6 +12,7 @@ grant execute on function auth.uid() to anon, authenticated;
 \ir ../migrations/20261101020000_shared_shopping.sql
 \ir ../migrations/20261101021000_account_deletion.sql
 \ir ../migrations/20261105010000_prevent_duplicate_active_shopping_items.sql
+\ir ../migrations/20261105020000_google_calendar_readonly.sql
 insert into auth.users values
  ('00000000-0000-4000-8000-000000000001'),
  ('00000000-0000-4000-8000-000000000002'),
@@ -20,6 +21,12 @@ insert into auth.users values
 set role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 select public.create_household() as household \gset
+do $$ begin
+ begin perform * from public.google_calendar_connections; raise exception 'TEST FAILED';
+ exception when insufficient_privilege then null; end;
+ begin insert into public.google_calendar_preferences(user_id, calendar_id) values (auth.uid(), 'private'); raise exception 'TEST FAILED';
+ exception when insufficient_privilege then null; end;
+end $$;
 select public.create_household_invitation() as invitation \gset
 select public.create_household_invitation() as replacement \gset
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000002', false);

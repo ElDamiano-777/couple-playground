@@ -128,6 +128,14 @@ export function transport() {
         });
         return reply({ ok: true });
       }
+      if (url.pathname === `/functions/v1/calendar-google`) {
+        const action = data.action;
+        const calendars = [{ id: `primary`, summary: `Our calendar`, color: `#8040be`, primary: true, selected: true, shared: false }];
+        if (action === `calendars`) return reply({ connected: true, calendars });
+        if (action === `events`) return reply({ events: [{ id: `calendar-event`, title: `Synthetic dinner`, start: { dateTime: `2026-11-12T18:30:00+01:00` }, end: { dateTime: `2026-11-12T20:00:00+01:00` }, calendar: `Our calendar`, color: `#8040be`, own: true }] });
+        if (action === `connect`) return reply({ url: `https://accounts.google.test/connect` });
+        return reply({ ok: true });
+      }
       if (url.pathname.endsWith(`/rpc/current_household`))
         return reply(homeFor(user));
       if (url.pathname.endsWith(`/rpc/create_household`)) {

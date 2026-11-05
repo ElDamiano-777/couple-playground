@@ -190,7 +190,7 @@ export default function App() {
         </div>
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
-      {([`folders`, `home`, `shopping`, `recipes`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
+      {([`folders`, `home`, `shopping`, `recipes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
       {page === `welcome` && <>
         <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">
