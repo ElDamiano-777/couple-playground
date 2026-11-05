@@ -1,7 +1,7 @@
 import { Symbol, type SymbolName } from '../ui/Symbol';
 import './folders.css';
 
-export type FolderPage = `folders` | `home` | `shopping` | `recipes` | `meals` | `calendar` | `pets` | `children` | `wishlist` | `places`;
+export type FolderPage = `folders` | `home` | `shopping` | `recipes` | `meals` | `tasks` | `expenses` | `partner-notes` | `calendar` | `pets` | `children` | `wishlist` | `places`;
 type Navigate = (page: FolderPage) => void;
 
 export function HomeNavigation({ page, navigate }: { page: FolderPage; navigate: Navigate }) {
@@ -12,6 +12,9 @@ export function HomeNavigation({ page, navigate }: { page: FolderPage; navigate:
         { page: `shopping`, title: `Shopping`, icon: `shopping` },
         { page: `recipes`, title: `Recipes`, icon: `recipe` },
         { page: `meals`, title: `Meals`, icon: `plans` },
+        { page: `tasks`, title: `Tasks`, icon: `plans` },
+        { page: `expenses`, title: `Expenses`, icon: `plans` },
+        { page: `partner-notes`, title: `Partner notes`, icon: `heart` },
         { page: `calendar`, title: `Calendar`, icon: `calendar` },
         { page: `children`, title: `Children`, icon: `family` },
         { page: `pets`, title: `Pets`, icon: `pet` },
@@ -26,6 +29,9 @@ export function FolderPages({ page, navigate }: { page: FolderPage; navigate: Na
     { page: `home`, title: `Home`, detail: `Shopping, recipes, children and pets`, icon: `home`, color: `violet` },
     { page: `calendar`, title: `Calendar`, detail: `Google calendars you choose to share`, icon: `calendar`, color: `sage` },
     { page: `meals`, title: `Meals`, detail: `Plan the week and shop from recipes`, icon: `plans`, color: `peach` },
+    { page: `tasks`, title: `Tasks`, detail: `Shared household tasks`, icon: `plans`, color: `violet` },
+    { page: `expenses`, title: `Expenses`, detail: `Keep shared spending simple`, icon: `plans`, color: `sage` },
+    { page: `partner-notes`, title: `Partner notes`, detail: `Short notes for each other`, icon: `heart`, color: `peach` },
     { page: `wishlist`, title: `Wishlist`, detail: `Your wishes, in one place`, icon: `wishlist`, color: `peach` },
     { page: `places`, title: `Places`, detail: `Places to remember together`, icon: `pin`, color: `sage` },
   ];

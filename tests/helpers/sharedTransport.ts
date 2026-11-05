@@ -36,6 +36,8 @@ export function transport() {
   let petDislikes: any[] = [];
   let favorites: any[] = [];
   let mealPlans: any[] = [];
+  let householdTasks: any[] = [];
+  let expenses: any[] = []; let partnerNotes: any[] = []; let noteReads: any[] = [];
   let failFamilySave = false;
   let familyRequests = 0;
   let delayedFamilyRead: Promise<void> | null = null;
@@ -212,6 +214,28 @@ export function transport() {
         const row = mealPlans.find(item => item.id === id && item.household_id === household);
         if (!row) return reply({ message: `Not found` }, 404);
         if (method === `DELETE`) { mealPlans = mealPlans.filter(item => item !== row); return reply({ id }); }
+      }
+      if (url.pathname === `/rest/v1/household_tasks`) {
+        const household = homeFor(user);
+        if (!household) return reply({ message: `Forbidden` }, 403);
+        if (method === `GET`) return reply(householdTasks.filter(item => item.household_id === household));
+        if (method === `POST`) {
+          if (data.household_id !== household) return reply({ message: `Forbidden` }, 403);
+          const row = { ...data, id: crypto.randomUUID(), created_by: user, completed_at: null, created_at: new Date().toISOString() }; householdTasks.push(row); return reply(row, 201);
+        }
+        const id = url.searchParams.get(`id`)?.replace(`eq.`, ``); const row = householdTasks.find(item => item.id === id && item.household_id === household);
+        if (!row) return reply({ message: `Not found` }, 404);
+        if (method === `PATCH`) { Object.assign(row, data); return reply(row); }
+        if (method === `DELETE`) { householdTasks = householdTasks.filter(item => item !== row); return reply({ id }); }
+      }
+      if ([`/rest/v1/shared_expenses`, `/rest/v1/partner_notes`, `/rest/v1/partner_note_reads`].includes(url.pathname)) {
+        const household = homeFor(user); if (!household) return reply({ message: `Forbidden` }, 403);
+        if (url.pathname.endsWith(`partner_note_reads`)) { if (method === `GET`) return reply(noteReads.filter(item => item.user_id === user)); if (method === `POST`) { const row = { ...data, read_at: new Date().toISOString() }; noteReads = [...noteReads.filter(item => !(item.note_id === row.note_id && item.user_id === row.user_id)), row]; return reply(row, 201); } }
+        const rows = url.pathname.endsWith(`shared_expenses`) ? expenses : partnerNotes;
+        if (method === `GET`) return reply(rows.filter(item => item.household_id === household));
+        if (method === `POST`) { if (data.household_id !== household) return reply({ message: `Forbidden` }, 403); const row = { ...data, id: crypto.randomUUID(), created_by: user, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }; rows.push(row); return reply(row, 201); }
+        const id = url.searchParams.get(`id`)?.replace(`eq.`, ``); const row = rows.find(item => item.id === id && item.household_id === household); if (!row) return reply({ message: `Not found` }, 404);
+        if (method === `PATCH`) { Object.assign(row, data); return reply(row); } if (method === `DELETE`) { if (url.pathname.endsWith(`shared_expenses`)) expenses = expenses.filter(item => item !== row); else partnerNotes = partnerNotes.filter(item => item !== row); return reply({ id }); }
       }
       if ([`/rest/v1/pet_details`, `/rest/v1/pet_food`, `/rest/v1/pet_dislikes`].includes(url.pathname)) {
         const household = homeFor(user);

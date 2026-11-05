@@ -7,6 +7,7 @@ import { useFamilyProfiles } from './family/useFamilyProfiles';
 import { useFolderEntries } from './collections/useFolderEntries';
 import { extractSharedUrl } from './collections/recipeImport';
 import { useMealPlan } from './meals/useMealPlan';
+import { useHouseholdTasks } from './tasks/useHouseholdTasks';
 
 type Page = HouseholdPage | `notes` | `more` | `welcome`;
 type Profile = `masha` | `damian`;
@@ -44,6 +45,7 @@ export default function App() {
   const family = useFamilyProfiles({ userId: shopping.session?.user.id, household: shopping.household, authReady: shopping.authReady, contextLoading: shopping.loading, isPoc: shopping.isPoc });
   const collections = useFolderEntries({ userId: shopping.session?.user.id, household: shopping.household, authReady: shopping.authReady, contextLoading: shopping.loading, isPoc: shopping.isPoc });
   const meals = useMealPlan({ userId: shopping.session?.user.id, household: shopping.household });
+  const tasks = useHouseholdTasks({ userId: shopping.session?.user.id, household: shopping.household });
   const [sharedRecipe, setSharedRecipe] = useState<string | null>(readSharedRecipe);
   const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : `folders`);
   const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
@@ -158,6 +160,7 @@ export default function App() {
     if (next === `pets`) family.setKind(`pet`);
     if (next === `recipes`) collections.setKind(`recipe`);
     if (next === `meals`) { /* The meal plan is always scoped to its visible week. */ }
+    if (next === `tasks`) { /* Tasks refresh themselves while the household is open. */ }
     if (next === `wishlist`) collections.setKind(`wish`);
     if (next === `places`) collections.setKind(`place`);
     setPage(next === `home` ? `shopping` : next);
@@ -193,7 +196,7 @@ export default function App() {
         </div>
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
-      {([`folders`, `home`, `shopping`, `recipes`, `meals`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} meals={meals} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
+      {([`folders`, `home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
       {page === `welcome` && <>
         <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">
