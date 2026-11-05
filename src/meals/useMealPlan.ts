@@ -3,7 +3,8 @@ import { supabase } from '../shared/client';
 
 export type MealSlot = 'Breakfast' | 'Lunch' | 'Dinner';
 export type MealPlanItem = { id: string; household_id: string; week_start: string; day_index: number; meal_slot: MealSlot; recipe_id: string | null; title: string; created_at: string };
-export const mealSlots: MealSlot[] = ['Breakfast', 'Lunch', 'Dinner'];
+// Keep all meal types in the data model; this household currently plans dinner only.
+export const activeMealSlots: MealSlot[] = ['Dinner'];
 export const localDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 export const monday = (date = new Date()) => { const value = new Date(date); const offset = (value.getDay() + 6) % 7; value.setHours(0, 0, 0, 0); value.setDate(value.getDate() - offset); return localDate(value); };
 const failure = 'We couldn’t update your meal plan. Check your connection and try again.';

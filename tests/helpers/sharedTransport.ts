@@ -383,7 +383,9 @@ export function transport() {
   return {
     attach,
     seedLegacyRecipe: (title: string, notes: string, source?: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes, created_by: pocMasha, created_at: new Date().toISOString(), ...(source ? { recipe_source_url: source } : {}) }); },
-    seedRecipe: (title: string, ingredients: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes: '', recipe_ingredients: ingredients, recipe_instructions: '', created_by: pocMasha, created_at: new Date().toISOString() }); },
+    seedRecipe: (title: string, ingredients: string, details: { instructions?: string; photo?: string } = {}) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes: '', recipe_ingredients: ingredients, recipe_instructions: details.instructions || '', ...(details.photo ? { recipe_image_url: details.photo } : {}), created_by: pocMasha, created_at: new Date().toISOString() }); },
+    seedMeal: (week: string, slot: string, title: string) => { mealPlans.push({ id: crypto.randomUUID(), household_id: pocHome, week_start: week, day_index: 0, meal_slot: slot, recipe_id: null, title, created_at: new Date().toISOString() }); },
+    meals: () => mealPlans.map(item => ({ ...item })),
     failNextEntrySave: () => { failEntrySave = true; },
     delayEntryWrites: () => { delayedEntryWrite = new Promise<void>((resolve) => { releaseEntryWrite = resolve; }); },
     releaseEntryWrites: () => { releaseEntryWrite?.(); delayedEntryWrite = null; releaseEntryWrite = null; },

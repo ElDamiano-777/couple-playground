@@ -11,7 +11,7 @@ import Recipes from './collections/Recipes';
 import type { FolderEntriesState } from './collections/useFolderEntries';
 import Calendar from './calendar/Calendar';
 import MealPlanner from './meals/MealPlanner';
-import type { MealPlanState } from './meals/useMealPlan';
+import { activeMealSlots, type MealPlanState } from './meals/useMealPlan';
 import Tasks from './tasks/Tasks';
 import type { HouseholdTasksState } from './tasks/useHouseholdTasks';
 import Expenses from './expenses/Expenses';
@@ -50,9 +50,9 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
 
   if (page === `folders`) {
     const todayIndex = (new Date().getDay() + 6) % 7;
-    const todayMeals = meals.items.filter(item => item.day_index === todayIndex);
+    const todayMeals = meals.items.filter(item => item.day_index === todayIndex && activeMealSlots.includes(item.meal_slot));
     const openTasks = tasks.items.filter(task => !task.completed_at);
-    return <section className="preview-page"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}<UsShopping state={shopping} onCategory={onShoppingCategory} onSignIn={() => navigate(`shopping`)} /><button className="dashboard-card meal-dashboard" onClick={() => navigate(`meals`)}><h2>Today’s meals</h2>{todayMeals.length ? <p>{todayMeals.map(item => item.title).join(' · ')}</p> : <p>No meals planned for today.</p>}</button><button className="dashboard-card meal-dashboard" onClick={() => navigate(`tasks`)}><h2>Upcoming tasks</h2>{openTasks.length ? <p>{openTasks.slice(0, 3).map(task => task.title).join(' · ')}</p> : <p>No open tasks.</p>}</button><div className="dashboard-card"><h2>Saved together</h2><p>{collections.entries.filter(entry => entry.kind === `wish`).length} wishes · {collections.entries.filter(entry => entry.kind === `place`).length} places · {collections.entries.filter(entry => entry.kind === `recipe`).length} recipes</p></div></section>;
+    return <section className="preview-page"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}<UsShopping state={shopping} onCategory={onShoppingCategory} onSignIn={() => navigate(`shopping`)} /><button className="dashboard-card meal-dashboard" onClick={() => navigate(`meals`)}><h2>Today’s dinner</h2>{todayMeals.length ? <p>{todayMeals.map(item => item.title).join(' · ')}</p> : <p>No dinner planned for today.</p>}</button><button className="dashboard-card meal-dashboard" onClick={() => navigate(`tasks`)}><h2>Upcoming tasks</h2>{openTasks.length ? <p>{openTasks.slice(0, 3).map(task => task.title).join(' · ')}</p> : <p>No open tasks.</p>}</button><div className="dashboard-card"><h2>Saved together</h2><p>{collections.entries.filter(entry => entry.kind === `wish`).length} wishes · {collections.entries.filter(entry => entry.kind === `place`).length} places · {collections.entries.filter(entry => entry.kind === `recipe`).length} recipes</p></div></section>;
   }
 
   return <div className="household-preview">

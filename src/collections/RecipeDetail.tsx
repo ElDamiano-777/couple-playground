@@ -6,8 +6,8 @@ import { publicUrl, recipeSourceUrl } from './recipeImport';
 import { captionSections } from './captionRecipe';
 import { ingredientDetails, instructionSteps, shoppingIngredient, type Ingredient } from './recipeDetails';
 
-export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelete, busy, online }: {
-  recipe: FolderEntry; shopping: SharedShoppingState; onBack: () => void; onEdit: () => void; onDelete: () => void; busy: boolean; online: boolean;
+export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelete, busy, online, backLabel = '← Our Recipes' }: {
+  recipe: FolderEntry; shopping: SharedShoppingState; onBack: () => void; onEdit?: () => void; onDelete?: () => void; busy: boolean; online: boolean; backLabel?: string;
 }) {
   const parsed = ingredientDetails(recipe.recipe_ingredients || '');
   const ingredients = parsed.ingredients.filter(item => !item.heading);
@@ -28,7 +28,7 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
   function openShopping() { setChoices(ingredients); setSelected(ingredients.map((_, index) => index)); setMessage(''); setSelecting(true); }
   function toggle(value: number, values: number[], update: (values: number[]) => void) { update(values.includes(value) ? values.filter(item => item !== value) : [...values, value]); }
   return <>
-    <button className="text-action recipe-back" onClick={onBack}>← Our Recipes</button>
+    <button className="text-action recipe-back" onClick={onBack}>{backLabel}</button>
     <article className="recipe-detail">
       <div className="recipe-image">{photo ? <img src={photo} referrerPolicy="no-referrer" alt="" /> : <span aria-hidden="true"><Symbol name="recipe" /></span>}</div>
       <div className="recipe-detail-copy">
@@ -50,7 +50,7 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
         {notes.length > 0 && <section className="recipe-details-section recipe-notes"><h2>Notes</h2>{notes.map((note, index) => <p className="collection-notes" key={index}>{note}</p>)}</section>}
         {recipe.recipe_source_url && !source && <p className="small-print">Original post link unavailable. Edit this recipe to add it.</p>}
         {source && !linkOnly && <a className="recipe-original" href={source} target={social ? undefined : "_blank"} rel="noopener noreferrer">Open Original Recipe ↗</a>}
-        <div className="collection-actions"><button className="text-action" disabled={busy} aria-label={`Edit ${recipe.title}`} onClick={onEdit}>Edit</button><button className="text-action" disabled={busy || !online} aria-label={`Delete ${recipe.title}`} onClick={onDelete}>Delete</button></div>
+        {(onEdit || onDelete) && <div className="collection-actions">{onEdit && <button className="text-action" disabled={busy} aria-label={`Edit ${recipe.title}`} onClick={onEdit}>Edit</button>}{onDelete && <button className="text-action" disabled={busy || !online} aria-label={`Delete ${recipe.title}`} onClick={onDelete}>Delete</button>}</div>}
       </div>
     </article>
     {selecting && <div className="recipe-shopping-overlay"><section className="recipe-shopping-sheet" role="dialog" aria-modal="true" aria-labelledby="recipe-shopping-title">

@@ -18,7 +18,7 @@ test('meal planner selects a recipe and reviews its quantities before adding to 
   await page.getByRole('button', { name: 'Save meal', exact: true }).click();
   await expect(page.getByText('Synthetic pasta', { exact: true })).toBeVisible();
   await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Today’s meals' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Today’s dinner' })).toBeVisible();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
   await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Meals', exact: true }).click();
   await page.getByRole('button', { name: 'Create Shopping List', exact: true }).click();
@@ -58,4 +58,56 @@ test('phone layout uses English dates and navigates weeks in the local timezone'
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await context.close();
   }
+});
+
+
+test('dinner details, editing, moving and removal preserve other meal data', async ({ page, context }) => {
+  const server = transport();
+  server.seedRecipe('Synthetic pasta', '200 g pasta', { instructions: 'Boil pasta.', photo: 'https://example.com/pasta.jpg' });
+  server.seedRecipe('Synthetic soup', '1 carrot');
+  server.seedMeal('2026-03-30', 'Breakfast', 'Existing breakfast');
+  server.seedMeal('2026-03-30', 'Lunch', 'Existing lunch');
+  await server.attach(context);
+  await page.clock.setFixedTime(new Date('2026-03-30T12:00:00Z'));
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Masha', exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await openShopping(page);
+  await page.getByRole('button', { name: 'Meals', exact: true }).click();
+  await expect(page.locator('.meal-day')).toHaveCount(7);
+  await expect(page.locator('.meal-slot')).toHaveCount(7);
+  await expect(page.getByText('Existing breakfast')).toHaveCount(0);
+  await expect(page.getByText('Existing lunch')).toHaveCount(0);
+  await page.getByRole('button', { name: '+ Add meal' }).first().click();
+  await expect(page.getByLabel('Meal', { exact: true })).toHaveCount(0);
+  await page.getByLabel('Saved recipe').selectOption({ label: 'Synthetic pasta' });
+  await page.getByRole('button', { name: 'Save meal' }).click();
+  const before = server.meals();
+  await page.getByRole('button', { name: /Synthetic pasta/ }).click();
+  await expect(page.locator('.recipe-detail')).toContainText('200 g pasta');
+  await expect(page.locator('.recipe-detail')).toContainText('Boil pasta.');
+  await expect(page.locator('.recipe-detail img')).toHaveAttribute('src', 'https://example.com/pasta.jpg');
+  expect(server.meals()).toEqual(before);
+  await page.getByRole('button', { name: 'Edit dinner' }).click();
+  await page.getByLabel('Day').selectOption('1');
+  await page.getByLabel('Saved recipe').selectOption({ label: 'Synthetic soup' });
+  await page.getByRole('button', { name: 'Save meal' }).click();
+  await expect(page.locator('.meal-day').nth(1)).toContainText('Synthetic soup');
+  await page.getByRole('button', { name: /Synthetic soup/ }).click();
+  await expect(page.locator('.recipe-detail')).toContainText('1 carrot');
+  await page.getByRole('button', { name: 'Edit dinner' }).click();
+  await page.getByLabel('Saved recipe').selectOption('');
+  await page.getByLabel('Custom meal name').fill('A very long custom dinner name for our family');
+  await page.getByRole('button', { name: 'Save meal' }).click();
+  await page.getByRole('button', { name: /A very long custom dinner/ }).click();
+  await expect(page.locator('.meal-custom-detail')).toContainText('A very long custom dinner name');
+  await page.getByRole('button', { name: 'Edit dinner' }).click();
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
+  await expect(page.getByRole('button', { name: /A very long custom dinner/ })).toHaveCount(0);
+  expect(server.meals().map(item => item.title).sort()).toEqual(['Existing breakfast', 'Existing lunch']);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Recipes', exact: true }).click();
+  await expect(page.getByText('Synthetic pasta', { exact: true })).toBeVisible();
+  await expect(page.getByText('Synthetic soup', { exact: true })).toBeVisible();
 });
