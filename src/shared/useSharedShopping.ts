@@ -21,6 +21,8 @@ export type QuickItem = { id: string; name: string; notes: string; favoriteId?: 
 type ShoppingCategory = ShoppingItem[`category`];
 const emptyQuick = (): Record<ShoppingCategory, QuickItem[]> => ({ Home: [], Pets: [], Kids: [] });
 const emptyCustom = (): Record<ShoppingCategory, string> => ({ Home: ``, Pets: ``, Kids: `` });
+const itemKey = (category: ShoppingCategory, name: string) =>
+  `${category}\u0000${name.trim().toLocaleLowerCase()}`;
 
 function friendlyError(error: unknown): string {
   const text =
@@ -47,6 +49,8 @@ function friendlyError(error: unknown): string {
     return `You already have a home. Refresh your list to open it.`;
   if (/rate limit|too many/i.test(text))
     return `Please wait a little before trying again.`;
+  if (/already active in your shared list/i.test(text))
+    return `That item is already on your active shared list.`;
   return `We couldn’t complete that. Check your connection and try again. Your unfinished text is still here.`;
 }
 
@@ -303,6 +307,8 @@ export function useSharedShopping() {
     perform(async () => {
       if (!household || !draft.trim()) return;
       if (!navigator.onLine) throw new Error(`Offline`);
+      if (items.some(item => !item.bought && itemKey(item.category, item.name) === itemKey(category, draft)))
+        throw new Error(`Already active in your shared list`);
       const result = await supabase
         .from(`shopping_items`)
         .insert({ household_id: household, name: draft.trim(), category, notes: draftNotes.trim() })
@@ -321,37 +327,55 @@ export function useSharedShopping() {
       const selected = targets.flatMap(category => quickItems[category].map(item => ({ ...item, category })));
       if (!household || !selected.length || !navigator.onLine) throw new Error(`Offline`);
       if (selected.some(item => item.notes.length > 20000)) throw new Error(`Pet food details are too long`);
-      const result = await supabase.from(`shopping_items`).insert(selected.map(item => ({
+      const active = new Set(items.filter(item => !item.bought).map(item => itemKey(item.category, item.name)));
+      const newItems = selected.filter(item => {
+        const key = itemKey(item.category, item.name);
+        if (active.has(key)) return false;
+        active.add(key);
+        return true;
+      });
+      if (!newItems.length) throw new Error(`Already active in your shared list`);
+      const result = await supabase.from(`shopping_items`).insert(newItems.map(item => ({
         household_id: household, category: item.category, name: item.name.trim(), notes: item.notes.trim(), favorite_id: item.favoriteId ?? null, pet_food_id: item.petFoodId ?? null,
       }))).select();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved items`);
       if (currentUser.current !== userId) return;
       ++requestVersion.current;
       setItems(previous => [...result.data as ShoppingItem[], ...previous]);
-      setFavoritePhotos(previous => ({ ...previous, ...Object.fromEntries(selected.filter(item => item.favoriteId).map(item => [item.favoriteId!, item.favoritePhoto ?? null])) }));
-      setPetFoodPhotos(previous => ({ ...previous, ...Object.fromEntries(selected.filter(item => item.petFoodId).map(item => [item.petFoodId!, item.petFoodPhoto ?? null])) }));
+      setFavoritePhotos(previous => ({ ...previous, ...Object.fromEntries(newItems.filter(item => item.favoriteId).map(item => [item.favoriteId!, item.favoritePhoto ?? null])) }));
+      setPetFoodPhotos(previous => ({ ...previous, ...Object.fromEntries(newItems.filter(item => item.petFoodId).map(item => [item.petFoodId!, item.petFoodPhoto ?? null])) }));
       setQuickItems(previous => ({ ...previous, ...Object.fromEntries(targets.map(target => [target, []])) }));
-      setNotice(`${selected.length} ${selected.length === 1 ? `item` : `items`} added to your shared list.`);
+      setNotice(`${newItems.length} ${newItems.length === 1 ? `item` : `items`} added to your shared list.`);
     });
   const addQuick = (target: ShoppingCategory) => addQuickCategories([target]);
   const addQuickAll = () => addQuickCategories([`Home`, `Pets`, `Kids`]);
   const addRecipeIngredients = (ingredients: { name: string; notes: string }[]) =>
     perform(async () => {
       if (!household || !ingredients.length || !navigator.onLine) throw new Error(`Offline`);
-      const result = await supabase.from(`shopping_items`).insert(ingredients.map(item => ({
+      const active = new Set(items.filter(item => !item.bought).map(item => itemKey(item.category, item.name)));
+      const newIngredients = ingredients.filter(item => {
+        const key = itemKey(`Home`, item.name);
+        if (active.has(key)) return false;
+        active.add(key);
+        return true;
+      });
+      if (!newIngredients.length) throw new Error(`Already active in your shared list`);
+      const result = await supabase.from(`shopping_items`).insert(newIngredients.map(item => ({
         household_id: household, category: `Home`, name: item.name, notes: item.notes,
       }))).select();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved items`);
       if (currentUser.current !== userId) return;
       ++requestVersion.current;
       setItems(previous => [...result.data as ShoppingItem[], ...previous]);
-      setNotice(`${ingredients.length} ${ingredients.length === 1 ? `item` : `items`} added to your shared list.`);
+      setNotice(`${newIngredients.length} ${newIngredients.length === 1 ? `item` : `items`} added to your shared list.`);
     });
   const addPetFood = (food: PetFoodForShopping) =>
     perform(async () => {
       if (!household || !navigator.onLine) throw new Error(`Offline`);
       const details = formatPetFoodDetails(food);
       if (details.length > 20000) throw new Error(`Pet food details are too long`);
+      if (items.some(item => !item.bought && itemKey(item.category, item.name) === itemKey(`Pets`, food.name)))
+        throw new Error(`Already active in your shared list`);
       const result = await supabase.from(`shopping_items`).insert({ household_id: household, category: `Pets`, name: food.name, notes: details, pet_food_id: food.id }).select().single();
       if (result.error || !result.data) throw result.error ?? new Error(`No saved item`);
       if (currentUser.current !== userId) return;
@@ -363,6 +387,8 @@ export function useSharedShopping() {
   const saveEdit = () =>
     perform(async () => {
       if (!edit || !edit.name.trim() || !navigator.onLine) throw new Error(`Offline`);
+      if (items.some(item => item.id !== edit.id && !item.bought && itemKey(item.category, item.name) === itemKey(edit.category, edit.name)))
+        throw new Error(`Already active in your shared list`);
       const result = await supabase.from(`shopping_items`)
         .update({ name: edit.name.trim(), notes: edit.notes.trim(), category: edit.category })
         .eq(`id`, edit.id).select().single();

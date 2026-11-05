@@ -52,12 +52,18 @@ async function barcodeFromImage(photo: string) {
 export async function recognizeBarcode(code: string): Promise<ProductRecognition> {
   if (!code) return { fields: empty(), source: 'barcode', photo: null };
   const fields = 'product_name,brands,quantity,image_front_url,image_url';
-  const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`, { headers: { Accept: 'application/json' } });
-  if (!response.ok) return { fields: empty(), source: 'barcode', photo: null };
-  const body = await response.json() as { product?: Record<string, unknown>; status?: number };
-  return body.status === 1 && body.product
-    ? { fields: fromProduct(body.product), source: 'barcode', photo: productPhoto(body.product) }
-    : { fields: empty(), source: 'barcode', photo: null };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`, {
+      headers: { Accept: 'application/json' }, signal: controller.signal,
+    });
+    if (!response.ok) return { fields: empty(), source: 'barcode', photo: null };
+    const body = await response.json() as { product?: Record<string, unknown>; status?: number };
+    return body.status === 1 && body.product
+      ? { fields: fromProduct(body.product), source: 'barcode', photo: productPhoto(body.product) }
+      : { fields: empty(), source: 'barcode', photo: null };
+  } finally { clearTimeout(timeout); }
 }
 
 export async function recognizeProduct(photo: string): Promise<ProductRecognition> {

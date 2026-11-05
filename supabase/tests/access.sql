@@ -11,6 +11,7 @@ grant usage on schema public, auth to anon, authenticated;
 grant execute on function auth.uid() to anon, authenticated;
 \ir ../migrations/20261101020000_shared_shopping.sql
 \ir ../migrations/20261101021000_account_deletion.sql
+\ir ../migrations/20261105010000_prevent_duplicate_active_shopping_items.sql
 insert into auth.users values
  ('00000000-0000-4000-8000-000000000001'),
  ('00000000-0000-4000-8000-000000000002'),
@@ -33,8 +34,11 @@ insert into public.shopping_items(household_id, name, category) values (:'househ
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 do $$ begin
  if (select count(*) from public.shopping_items) <> 1 then raise exception 'Partner cannot read'; end if;
+ begin insert into public.shopping_items(household_id, name, category) values (public.current_household(), '  SYNTHETIC BREAD  ', 'Home'); raise exception 'TEST FAILED';
+ exception when unique_violation then null; end;
 end $$;
 update public.shopping_items set bought = true;
+insert into public.shopping_items(household_id, name, category) values (public.current_household(), 'Synthetic bread', 'Home');
 -- A member cannot forge item ownership or change pair IDs.
 do $$ begin
  begin update public.shopping_items set created_by = auth.uid(); raise exception 'TEST FAILED';

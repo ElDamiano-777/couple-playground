@@ -286,6 +286,13 @@ export function transport() {
             return reply({ message: `Synthetic storage failure` }, 503);
           const batch = Array.isArray(data) ? data : [data];
           if (batch.some(item => item.household_id !== homeFor(user))) return reply({ message: `Forbidden` }, 403);
+          const activeKeys = new Set(rows.filter(item => !item.bought && item.household_id === homeFor(user)).map(item => `${item.category}\u0000${item.name.trim().toLowerCase()}`));
+          if (batch.some(item => {
+            const key = `${item.category}\u0000${String(item.name).trim().toLowerCase()}`;
+            if (activeKeys.has(key)) return true;
+            activeKeys.add(key);
+            return false;
+          })) return reply({ code: `23505`, message: `This item is already active in your shared list` }, 409);
           const added = batch.map(item => ({
             ...item,
             id: crypto.randomUUID(),

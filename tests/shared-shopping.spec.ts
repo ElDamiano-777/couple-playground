@@ -131,6 +131,28 @@ test(`two isolated signed-in browsers share additions, bought state and deletion
   }
 });
 
+test(`active duplicates are rejected but a purchased item can be added again`, async ({ page, context }) => {
+  const server = transport();
+  await server.attach(context);
+  await signIn(page, `alpha@example.test`);
+  await page.getByRole(`button`, { name: `Create our home`, exact: true }).click();
+  await openShoppingCategory(page, `Home`);
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
+  await page.getByLabel(`What do we need?`).fill(`Synthetic apples`);
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
+  await expect(page.getByText(`Synthetic apples`, { exact: true })).toBeVisible();
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
+  await page.getByLabel(`What do we need?`).fill(`  SYNTHETIC APPLES  `);
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
+  await expect(page.getByRole(`alert`)).toContainText(`already on your active shared list`);
+  await closeAddForm(page);
+  await page.getByRole(`checkbox`, { name: `Mark Synthetic apples as purchased` }).click();
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
+  await page.getByLabel(`What do we need?`).fill(`Synthetic apples`);
+  await page.getByRole(`button`, { name: `Add purchase`, exact: true }).last().click();
+  await expect(page.getByRole(`checkbox`, { name: `Mark Synthetic apples as purchased` })).toBeVisible();
+});
+
 test(`failed and offline saves preserve the draft; updates and navigation preserve unfinished shopping`, async ({
   page,
   context,
