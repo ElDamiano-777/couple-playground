@@ -14,7 +14,7 @@ test('shared tasks support assignment, due date, completion and restore on iPhon
   await editor.locator('input').first().fill('Synthetic laundry'); await editor.locator('select').nth(0).selectOption('damian'); await editor.locator('input[type="date"]').fill('2026-11-12'); await editor.locator('select').nth(1).selectOption('high');
   await page.getByRole('button', { name: 'Save task', exact: true }).click();
   const task = page.locator('.task-row').filter({ hasText: 'Synthetic laundry' });
-  await expect(task).toContainText('Damian'); await expect(task).toContainText('Due');
+  await expect(task.locator('.badge-assignee')).toHaveText('Damian'); await expect(task.locator('.badge-due')).toHaveAttribute('aria-label', /Due|Overdue/);
   await page.getByRole('button', { name: 'Assigned to Partner', exact: true }).click(); await expect(page.getByText('Synthetic laundry', { exact: true })).toBeVisible();
   await page.getByLabel('Complete Synthetic laundry').click(); await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Undo', exact: true }).click(); await expect(page.getByLabel('Complete Synthetic laundry')).toBeVisible();
@@ -40,7 +40,9 @@ test('dashboard highlights and orders active tasks and reflects changes on phone
     const card = page.locator('.task-dashboard');
     await expect(card).toContainText('3 tasks to do');
     await expect(card).toContainText('Older overdue');
-    await expect(card).toContainText('Damian · Due 28 Mar 2026 · Low priority');
+    await expect(card.locator('.badge-assignee')).toHaveText('Damian');
+    await expect(card.locator('.badge-due')).toHaveText('Overdue · 28 Mar');
+    await expect(card.locator('.badge-low')).toHaveText('Low');
     await expect(card).toContainText('Overdue');
     await expect(card).toHaveClass(/dashboard-overdue/);
     await expect(page.locator('.meal-dashboard').filter({ hasText: 'Today’s dinner' })).toHaveClass(/dashboard-active/);
@@ -51,7 +53,9 @@ test('dashboard highlights and orders active tasks and reflects changes on phone
     await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
     await expect(card).toContainText('2 tasks to do');
     await expect(card).toContainText('Urgent soon');
-    await expect(card).toContainText('Both · Due 2 Apr 2026 · High priority');
+    await expect(card.locator('.badge-assignee')).toHaveText('Both');
+    await expect(card.locator('.badge-due')).toHaveText('2 Apr');
+    await expect(card.locator('.badge-high')).toHaveText('High');
     await expect(card).not.toHaveClass(/dashboard-overdue/);
     await card.click();
     await page.locator('.task-main').filter({ hasText: 'Urgent soon' }).click();
@@ -141,6 +145,46 @@ test('empty dashboard cards stay compact and in fixed order while shopping chang
     await expect(shopping.getByRole('button', { name: '+ Add shopping item' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
     expect(await order()).toEqual(['tasks', 'shopping', 'dinner', 'saved']);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await context.close();
+  }
+});
+
+
+test('task badges show English dates, priorities and overdue state on narrow phones', async ({ browser }) => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 360, height: 800 }, { width: 320, height: 700 }]) {
+    const server = transport();
+    server.seedTask('No due date', null, 'normal', 'masha');
+    server.seedTask('Future task', '2026-04-06', 'high', 'both');
+    server.seedTask('Past task', '2026-03-28', 'low', 'damian');
+    server.seedTask('Completed task', '2026-03-20', 'high', 'masha', '2026-03-29T10:00:00Z');
+    const context = await browser.newContext({ viewport, locale: 'de-DE', timezoneId: 'Europe/Berlin', serviceWorkers: 'block' });
+    await server.attach(context); const page = await context.newPage();
+    await page.clock.setFixedTime(new Date('2026-03-30T12:00:00Z'));
+    await page.goto('./'); await page.getByRole('button', { name: 'Masha', exact: true }).click();
+    await page.getByLabel('Password', { exact: true }).fill(pocPassword); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    const dashboard = page.locator('.task-dashboard');
+    await expect(dashboard.locator('.task-badge')).toHaveCount(3);
+    await expect(dashboard.locator('.badge-due')).toHaveAttribute('aria-label', 'Overdue 28 Mar');
+    await dashboard.click();
+    const past = page.locator('.task-row').filter({ hasText: 'Past task' });
+    const future = page.locator('.task-row').filter({ hasText: 'Future task' });
+    const undated = page.locator('.task-row').filter({ hasText: 'No due date' });
+    await expect(past.locator('.badge-overdue')).toHaveText('Overdue · 28 Mar');
+    await expect(past.locator('.badge-low')).toHaveText('Low');
+    await expect(future.locator('.badge-assignee')).toHaveText('Both');
+    await expect(future.locator('.badge-due')).toHaveText('6 Apr');
+    await expect(future.locator('.badge-high')).toHaveText('High');
+    await expect(undated.locator('.badge-assignee')).toHaveText('Masha');
+    await expect(undated.locator('.badge-due')).toHaveCount(0);
+    await expect(undated.locator('.badge-normal')).toHaveText('Normal');
+    const colors = await page.locator('.task-row .badge-priority').evaluateAll(badges => badges.map(badge => getComputedStyle(badge).backgroundColor));
+    expect(new Set(colors).size).toBe(3);
+    await page.getByRole('button', { name: 'Completed', exact: true }).click();
+    const completed = page.locator('.task-row').filter({ hasText: 'Completed task' });
+    await expect(completed.locator('.badge-due')).toHaveText('20 Mar');
+    await expect(completed.locator('.badge-overdue')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await context.close();
   }

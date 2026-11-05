@@ -14,6 +14,7 @@ import Calendar from './calendar/Calendar';
 import MealPlanner from './meals/MealPlanner';
 import { activeMealSlots, localDate, monday, type MealPlanItem, type MealPlanState } from './meals/useMealPlan';
 import Tasks from './tasks/Tasks';
+import TaskBadges from './tasks/TaskBadges';
 import type { HouseholdTasksState } from './tasks/useHouseholdTasks';
 import Expenses from './expenses/Expenses';
 import PartnerNotes from './notes/PartnerNotes';
@@ -80,13 +81,10 @@ function Dashboard({ navigate, shopping, collections, meals, tasks, onShoppingCa
     const openTasks = tasks.items.filter(task => !task.completed_at).sort((a, b) => taskRank(a) - taskRank(b) || (a.due_date ?? '9999-99-99').localeCompare(b.due_date ?? '9999-99-99') || a.created_at.localeCompare(b.created_at));
     const nextTask = openTasks[0];
     const overdue = !!nextTask?.due_date && nextTask.due_date < today;
-    const assignee = nextTask && { masha: 'Masha', damian: 'Damian', both: 'Both' }[nextTask.assignee];
-    const priority = nextTask && { high: 'High', normal: 'Normal', low: 'Low' }[nextTask.priority];
-    const due = nextTask?.due_date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${nextTask.due_date}T12:00:00`)) : 'No due date';
     const saved = { wishes: collections.entries.filter(entry => entry.kind === 'wish').length, places: collections.entries.filter(entry => entry.kind === 'place').length, recipes: collections.entries.filter(entry => entry.kind === 'recipe').length };
     const activeSaved = saved.wishes + saved.places + saved.recipes > 0;
     const cards: Record<string, React.ReactNode> = {
-      tasks: <button key="tasks" className={`dashboard-card meal-dashboard task-dashboard${openTasks.length ? ' dashboard-active' : ''}${overdue ? ' dashboard-overdue' : ''}`} onClick={() => navigate(`tasks`)}><h2><span className="dashboard-icon"><Symbol name="plans" /></span>Upcoming tasks</h2>{nextTask ? <><p className="dashboard-count">{openTasks.length} {openTasks.length === 1 ? 'task' : 'tasks'} to do{overdue && <span className="dashboard-warning"> · Overdue</span>}</p><strong className="dashboard-task-title">{nextTask.title}</strong><p className="dashboard-task-meta">{assignee} · {nextTask.due_date ? `Due ${due}` : due} · {priority} priority</p></> : <p>No open tasks.</p>}</button>,
+      tasks: <button key="tasks" className={`dashboard-card meal-dashboard task-dashboard${openTasks.length ? ' dashboard-active' : ''}${overdue ? ' dashboard-overdue' : ''}`} onClick={() => navigate(`tasks`)}><h2><span className="dashboard-icon"><Symbol name="plans" /></span>Upcoming tasks</h2>{nextTask ? <><p className="dashboard-count">{openTasks.length} {openTasks.length === 1 ? 'task' : 'tasks'} to do</p><strong className="dashboard-task-title">{nextTask.title}</strong><TaskBadges task={nextTask} /></> : <p>No open tasks.</p>}</button>,
       dinner: <button key="dinner" className={`dashboard-card meal-dashboard dinner-dashboard${todayMeals.length ? ' dashboard-active' : ''}`} onClick={() => todayMeals[0] ? onDinner(todayMeals[0]) : navigate(`meals`)}><h2><span className="dashboard-icon"><Symbol name="utensils" /></span>Today’s dinner</h2>{todayMeals.length ? <><p>{todayMeals.map(item => item.title).join(' · ')}</p>{todayMeals[0].recipe_id && <span className="dashboard-link">View recipe →</span>}</> : <p>No dinner planned for today.</p>}</button>,
       shopping: <UsShopping key="shopping" state={shopping} onCategory={onShoppingCategory} onSignIn={() => navigate(`shopping`)} />,
       saved: <section key="saved" className={`dashboard-card saved-dashboard${activeSaved ? ' dashboard-active' : ''}`}><h2><span className="dashboard-icon"><Symbol name="heart" /></span>Saved together</h2><div className="dashboard-saved-links"><button onClick={() => navigate('wishlist')}>{saved.wishes} {saved.wishes === 1 ? 'wish' : 'wishes'}</button><button onClick={() => navigate('places')}>{saved.places} {saved.places === 1 ? 'place' : 'places'}</button><button onClick={() => navigate('recipes')}>{saved.recipes} {saved.recipes === 1 ? 'recipe' : 'recipes'}</button></div></section>,

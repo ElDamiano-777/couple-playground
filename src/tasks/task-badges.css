@@ -1,0 +1,11 @@
+.task-badges,.task-main .task-badges{display:flex;flex-wrap:wrap;align-items:center;gap:5px;min-width:0;margin-top:8px}
+.task-badge,.task-main .task-badge{display:inline-flex;align-items:center;gap:4px;max-width:100%;margin:0;padding:5px 8px;border-radius:999px;font-size:11px;line-height:1.25;font-weight:700;white-space:nowrap}
+.task-badge svg{width:13px;height:13px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.task-badge.badge-assignee,.task-main .badge-assignee{background:#e4d4f4;color:#57366f}
+.task-badge.badge-due,.task-main .badge-due{background:#f0e8f8;color:#624874}
+.task-badge.badge-overdue,.task-main .badge-overdue{background:#f8d9d2;color:#913f36}
+.task-badge.badge-high,.task-main .badge-high{background:#f8d9d2;color:#913f36}
+.task-badge.badge-normal,.task-main .badge-normal{background:#eae0f4;color:#64477c}
+.task-badge.badge-low,.task-main .badge-low{background:#e1e9ee;color:#465e6b}
+.task-row{grid-template-columns:auto minmax(0,1fr) auto}
+.task-row .task-main{width:100%}
