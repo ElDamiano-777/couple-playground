@@ -73,3 +73,40 @@ test('dashboard highlights and orders active tasks and reflects changes on phone
     await context.close();
   }
 });
+
+
+test('dashboard colors, attention order and recipe links work at phone sizes', async ({ browser }) => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 360, height: 800 }]) {
+    const server = transport();
+    const recipe = server.seedRecipe('Pasta tonight', '200 g pasta', { instructions: 'Cook pasta.' });
+    server.seedMeal('2026-03-30', 'Dinner', 'Pasta tonight', recipe);
+    server.seedTask('Overdue task', '2026-03-29', 'normal');
+    server.seedShopping('Eggs', '');
+    const context = await browser.newContext({ viewport, timezoneId: 'Europe/Berlin', serviceWorkers: 'block' });
+    await server.attach(context); const page = await context.newPage();
+    await page.clock.setFixedTime(new Date('2026-03-30T12:00:00Z'));
+    await page.goto('./'); await page.getByRole('button', { name: 'Masha', exact: true }).click();
+    await page.getByLabel('Password', { exact: true }).fill(pocPassword); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    await expect(page.locator('.task-dashboard')).toContainText('Overdue task');
+    await expect(page.locator('.dinner-dashboard')).toContainText('Pasta tonight');
+    await expect(page.locator('.us-shopping')).toContainText('Eggs');
+    await expect(page.locator('.saved-dashboard')).toContainText('1 recipe');
+    const sections = page.locator('.dashboard-sections > .dashboard-card');
+    const names = () => sections.evaluateAll(cards => cards.map(card => card.classList.contains('task-dashboard') ? 'tasks' : card.classList.contains('us-shopping') ? 'shopping' : card.classList.contains('dinner-dashboard') ? 'dinner' : 'saved'));
+    await expect.poll(names).toEqual(['tasks', 'shopping', 'dinner', 'saved']);
+    const colors = await sections.evaluateAll(cards => cards.map(card => getComputedStyle(card).backgroundColor));
+    expect(new Set(colors).size).toBe(4);
+    await page.getByRole('checkbox', { name: 'Mark Eggs as purchased' }).click();
+    await expect(page.locator('.us-shopping')).not.toHaveClass(/dashboard-active/);
+    expect(await names()).toEqual(['tasks', 'shopping', 'dinner', 'saved']);
+    await page.locator('.dinner-dashboard').click();
+    await expect(page.locator('.recipe-detail h1')).toHaveText('Pasta tonight');
+    await expect(page.locator('.recipe-detail')).toContainText('Cook pasta.');
+    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    await page.getByRole('button', { name: '1 recipe' }).click();
+    await expect(page.getByRole('heading', { name: 'Our Recipes.' })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await context.close();
+  }
+});

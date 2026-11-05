@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import FamilyProfiles from './family/FamilyProfiles';
 import Pets from './family/Pets';
 import type { FamilyProfilesState } from './family/useFamilyProfiles';
@@ -11,7 +12,7 @@ import Recipes from './collections/Recipes';
 import type { FolderEntriesState } from './collections/useFolderEntries';
 import Calendar from './calendar/Calendar';
 import MealPlanner from './meals/MealPlanner';
-import { activeMealSlots, localDate, monday, type MealPlanState } from './meals/useMealPlan';
+import { activeMealSlots, localDate, monday, type MealPlanItem, type MealPlanState } from './meals/useMealPlan';
 import Tasks from './tasks/Tasks';
 import type { HouseholdTasksState } from './tasks/useHouseholdTasks';
 import Expenses from './expenses/Expenses';
@@ -34,6 +35,8 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   sharedRecipe: string | null;
   onClearSharedRecipe: () => void;
 }) {
+  const [dinnerToOpen, setDinnerToOpen] = useState<MealPlanItem | null>(null);
+  useEffect(() => { if (page === `folders`) setDinnerToOpen(null); }, [page]);
   if (page === `activity`) return <section className="preview-page">
     <button className="text-action" onClick={() => navigate(`folders`)}>← Us</button>
     <p className="eyebrow">KEEPING EACH OTHER IN THE LOOP</p>
@@ -48,7 +51,25 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     <div className="notification-note"><Symbol name="bell" /><p>Phone notifications aren’t connected yet. We’ll set them up after your shared space is ready.</p></div>
   </section>;
 
-  if (page === `folders`) {
+  if (page === `folders`) return <Dashboard key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} navigate={navigate} shopping={shopping} collections={collections} meals={meals} tasks={tasks} onShoppingCategory={onShoppingCategory} onDinner={meal => { setDinnerToOpen(meal); navigate('meals'); }} />;
+
+  return <div className="household-preview">
+    {[`home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`].includes(page) && <HomeNavigation page={page} navigate={navigate} />}
+    {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} initialCategory={shoppingCategory} />
+      : page === `pets` ? <Pets key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
+      : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
+      : page === `recipes` ? <Recipes key={`${collections.userId}:${collections.household}`} state={collections} shopping={shopping} sharedRecipe={sharedRecipe} onClearSharedRecipe={onClearSharedRecipe} onSignIn={() => navigate(`shopping`)} />
+      : page === `meals` ? <MealPlanner initialMeal={dinnerToOpen} plan={meals} recipes={collections.entries.filter(entry => entry.kind === `recipe`)} shopping={shopping} />
+      : page === `tasks` ? <Tasks state={tasks} viewer={viewer} />
+      : page === `expenses` ? <Expenses userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} />
+      : page === `partner-notes` ? <PartnerNotes userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} />
+      : page === `calendar` ? <Calendar shopping={shopping} />
+      : page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
+      : <FolderPages page={page} navigate={navigate} />}
+  </div>;
+}
+
+function Dashboard({ navigate, shopping, collections, meals, tasks, onShoppingCategory, onDinner }: { navigate: (page: HouseholdPage) => void; shopping: SharedShoppingState; collections: FolderEntriesState; meals: MealPlanState; tasks: HouseholdTasksState; onShoppingCategory: (category: ShoppingItem['category']) => void; onDinner: (meal: MealPlanItem) => void }) {
     const now = new Date();
     const today = localDate(now);
     const todayIndex = (now.getDay() + 6) % 7;
@@ -62,24 +83,26 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     const assignee = nextTask && { masha: 'Masha', damian: 'Damian', both: 'Both' }[nextTask.assignee];
     const priority = nextTask && { high: 'High', normal: 'Normal', low: 'Low' }[nextTask.priority];
     const due = nextTask?.due_date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${nextTask.due_date}T12:00:00`)) : 'No due date';
-    return <section className="preview-page"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}
-      <button className={`dashboard-card meal-dashboard task-dashboard${openTasks.length ? ' dashboard-active' : ''}${overdue ? ' dashboard-overdue' : ''}`} onClick={() => navigate(`tasks`)}><h2>Upcoming tasks</h2>{nextTask ? <><p className="dashboard-count">{openTasks.length} {openTasks.length === 1 ? 'task' : 'tasks'} to do{overdue && <span className="dashboard-warning"> · Overdue</span>}</p><strong className="dashboard-task-title">{nextTask.title}</strong><p className="dashboard-task-meta">{assignee} · {nextTask.due_date ? `Due ${due}` : due} · {priority} priority</p></> : <p>No open tasks.</p>}</button>
-      <button className={`dashboard-card meal-dashboard${todayMeals.length ? ' dashboard-active' : ''}`} onClick={() => navigate(`meals`)}><h2>Today’s dinner</h2>{todayMeals.length ? <p>{todayMeals.map(item => item.title).join(' · ')}</p> : <p>No dinner planned for today.</p>}</button>
-      <UsShopping state={shopping} onCategory={onShoppingCategory} onSignIn={() => navigate(`shopping`)} /><div className="dashboard-card"><h2>Saved together</h2><p>{collections.entries.filter(entry => entry.kind === `wish`).length} wishes · {collections.entries.filter(entry => entry.kind === `place`).length} places · {collections.entries.filter(entry => entry.kind === `recipe`).length} recipes</p></div></section>;
+    const saved = { wishes: collections.entries.filter(entry => entry.kind === 'wish').length, places: collections.entries.filter(entry => entry.kind === 'place').length, recipes: collections.entries.filter(entry => entry.kind === 'recipe').length };
+    const activeShopping = shopping.items.some(item => !item.bought);
+    const activeSaved = saved.wishes + saved.places + saved.recipes > 0;
+    const priorityOrder = [
+      { id: 'tasks', rank: overdue ? 0 : nextTask ? 1 : 5 },
+      { id: 'shopping', rank: activeShopping ? 2 : 6 },
+      { id: 'dinner', rank: todayMeals.length ? 3 : 7 },
+      { id: 'saved', rank: activeSaved ? 4 : 8 },
+    ].sort((a, b) => a.rank - b.rank).map(item => item.id);
+    const [order, setOrder] = useState<string[] | null>(null);
+    useEffect(() => {
+      if (order || !shopping.authReady || shopping.loading || tasks.loading || meals.loading || collections.loading || (shopping.session && !shopping.household)) return;
+      const timer = window.setTimeout(() => setOrder(priorityOrder), 300);
+      return () => window.clearTimeout(timer);
+    }, [order, shopping.authReady, shopping.loading, shopping.session, shopping.household, tasks.loading, meals.loading, collections.loading, overdue, !!nextTask, activeShopping, todayMeals.length, activeSaved]);
+    const cards: Record<string, React.ReactNode> = {
+      tasks: <button key="tasks" className={`dashboard-card meal-dashboard task-dashboard${openTasks.length ? ' dashboard-active' : ''}${overdue ? ' dashboard-overdue' : ''}`} onClick={() => navigate(`tasks`)}><h2><span className="dashboard-icon"><Symbol name="plans" /></span>Upcoming tasks</h2>{nextTask ? <><p className="dashboard-count">{openTasks.length} {openTasks.length === 1 ? 'task' : 'tasks'} to do{overdue && <span className="dashboard-warning"> · Overdue</span>}</p><strong className="dashboard-task-title">{nextTask.title}</strong><p className="dashboard-task-meta">{assignee} · {nextTask.due_date ? `Due ${due}` : due} · {priority} priority</p></> : <p>No open tasks.</p>}</button>,
+      dinner: <button key="dinner" className={`dashboard-card meal-dashboard dinner-dashboard${todayMeals.length ? ' dashboard-active' : ''}`} onClick={() => todayMeals[0] ? onDinner(todayMeals[0]) : navigate(`meals`)}><h2><span className="dashboard-icon"><Symbol name="recipe" /></span>Today’s dinner</h2>{todayMeals.length ? <><p>{todayMeals.map(item => item.title).join(' · ')}</p>{todayMeals[0].recipe_id && <span className="dashboard-link">View recipe →</span>}</> : <p>No dinner planned for today.</p>}</button>,
+      shopping: <UsShopping key="shopping" state={shopping} onCategory={onShoppingCategory} onSignIn={() => navigate(`shopping`)} />,
+      saved: <section key="saved" className={`dashboard-card saved-dashboard${activeSaved ? ' dashboard-active' : ''}`}><h2><span className="dashboard-icon"><Symbol name="heart" /></span>Saved together</h2><div className="dashboard-saved-links"><button onClick={() => navigate('wishlist')}>{saved.wishes} {saved.wishes === 1 ? 'wish' : 'wishes'}</button><button onClick={() => navigate('places')}>{saved.places} {saved.places === 1 ? 'place' : 'places'}</button><button onClick={() => navigate('recipes')}>{saved.recipes} {saved.recipes === 1 ? 'recipe' : 'recipes'}</button></div></section>,
+    };
+    return <section className="preview-page"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}<div className="dashboard-sections" onPointerDownCapture={() => { if (!order) setOrder(priorityOrder); }} onKeyDownCapture={() => { if (!order) setOrder(priorityOrder); }}>{(order ?? priorityOrder).map(id => cards[id])}</div></section>;
   }
-
-  return <div className="household-preview">
-    {[`home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`].includes(page) && <HomeNavigation page={page} navigate={navigate} />}
-    {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} initialCategory={shoppingCategory} />
-      : page === `pets` ? <Pets key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
-      : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
-      : page === `recipes` ? <Recipes key={`${collections.userId}:${collections.household}`} state={collections} shopping={shopping} sharedRecipe={sharedRecipe} onClearSharedRecipe={onClearSharedRecipe} onSignIn={() => navigate(`shopping`)} />
-      : page === `meals` ? <MealPlanner plan={meals} recipes={collections.entries.filter(entry => entry.kind === `recipe`)} shopping={shopping} />
-      : page === `tasks` ? <Tasks state={tasks} viewer={viewer} />
-      : page === `expenses` ? <Expenses userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} />
-      : page === `partner-notes` ? <PartnerNotes userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} />
-      : page === `calendar` ? <Calendar shopping={shopping} />
-      : page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
-      : <FolderPages page={page} navigate={navigate} />}
-  </div>;
-}

@@ -380,3 +380,31 @@
 .dashboard-task-title{display:block;margin-top:7px;font-size:16px;overflow-wrap:anywhere}
 .task-dashboard .dashboard-task-meta{font-size:13px;margin:5px 0 0;overflow-wrap:anywhere}
 .dashboard-warning{color:#a9443e}
+
+/* The dashboard keeps a distinct, quiet palette for each area. */
+.dashboard-sections{display:grid;gap:12px}
+.dashboard-sections>.dashboard-card{margin:0;min-width:0}
+.dashboard-sections h2{display:flex;align-items:center;gap:10px;font-size:22px;line-height:1.2}
+.dashboard-icon{display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border-radius:12px}
+.dashboard-icon svg{width:20px;height:20px}
+.preview-page .task-dashboard{background:#faf7fc;border-color:#e4d6ec;color:#4d315d}
+.preview-page .task-dashboard.dashboard-active{background:#ead8f5;border-color:#bf92db}
+.task-dashboard .dashboard-icon{background:#dbc1ee;color:#693487}
+.preview-page .task-dashboard.dashboard-overdue{border-color:#d58c82;box-shadow:inset 4px 0 #d67e73,0 3px 12px #74439913}
+.preview-page .us-shopping{background:#f8fbf6;border-color:#d8e4d4}
+.preview-page .us-shopping.dashboard-active{background:#e4f0e0;border-color:#a7c7a2;box-shadow:0 3px 12px #4d725013}
+.us-shopping .dashboard-icon{background:#cce0c7;color:#3f6946}
+.us-shopping .us-shopping-heading>span{color:#456c4b}
+.us-shopping .us-shopping-shortcuts button{background:#d4e6d0;color:#365d3d}
+.preview-page .dinner-dashboard{background:#fefaf7;border-color:#f0ded2;color:#624337}
+.preview-page .dinner-dashboard.dashboard-active{background:#f9e1d1;border-color:#e8bca4}
+.dinner-dashboard .dashboard-icon{background:#f5cfb6;color:#94573f}
+.preview-page .saved-dashboard{background:#f8fbfc;border-color:#d9e6eb;color:#3b5967}
+.preview-page .saved-dashboard.dashboard-active{background:#e0eff5;border-color:#abcbd7;box-shadow:0 3px 12px #416f8113}
+.saved-dashboard .dashboard-icon{background:#c7e1eb;color:#396b7f}
+.dashboard-heading-button{display:flex;align-items:center;gap:10px;padding:0;background:transparent;color:inherit;font:inherit;text-align:left}
+.dashboard-heading-button:focus-visible,.dashboard-saved-links button:focus-visible,.dashboard-show-all:focus-visible{outline:3px solid #8040be;outline-offset:3px;border-radius:8px}
+.dashboard-link,.dashboard-show-all{display:inline-block;margin-top:7px;color:#8a4b34;font-size:13px;font-weight:700}
+.dashboard-show-all{min-height:40px;background:transparent;color:#3f6946}
+.dashboard-saved-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.dashboard-saved-links button{min-height:40px;padding:7px 11px;border-radius:11px;background:#f5fafc;color:#355e70;font-size:13px;font-weight:700}

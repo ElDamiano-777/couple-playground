@@ -11,9 +11,9 @@ type MealState = { weekStart: string; setWeekStart: (value: string) => void; ite
 const shiftedDay = (week: string, days: number) => { const date = new Date(`${week}T12:00:00`); date.setDate(date.getDate() + days); return date; };
 const dayName = (week: string, index: number) => new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }).format(shiftedDay(week, index));
 const weekShift = (week: string, amount: number) => localDate(shiftedDay(week, amount * 7));
-export default function MealPlanner({ plan, recipes, shopping }: { plan: MealState; recipes: FolderEntry[]; shopping: SharedShoppingState }) {
+export default function MealPlanner({ plan, recipes, shopping, initialMeal = null }: { initialMeal?: MealPlanItem | null; plan: MealState; recipes: FolderEntry[]; shopping: SharedShoppingState }) {
   const [editing, setEditing] = useState<MealPlanItem | { day_index: number; meal_slot: MealSlot } | null>(null);
-  const [viewing, setViewing] = useState<MealPlanItem | null>(null);
+  const [viewing, setViewing] = useState<MealPlanItem | null>(initialMeal);
   const viewedRecipe = viewing?.recipe_id ? recipes.find(recipe => recipe.id === viewing.recipe_id) : null;
   const [recipeId, setRecipeId] = useState(''); const [custom, setCustom] = useState('');
   const [shoppingOpen, setShoppingOpen] = useState(false); const ingredients = useMemo(() => plannedIngredients(plan.items.filter(item => activeMealSlots.includes(item.meal_slot)), recipes), [plan.items, recipes]); const [selected, setSelected] = useState<string[]>([]);
