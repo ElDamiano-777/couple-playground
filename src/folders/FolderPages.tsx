@@ -1,7 +1,7 @@
 import { Symbol, type SymbolName } from '../ui/Symbol';
 import './folders.css';
 
-export type FolderPage = `folders` | `home` | `shopping` | `recipes` | `calendar` | `pets` | `children` | `wishlist` | `places`;
+export type FolderPage = `folders` | `home` | `shopping` | `recipes` | `meals` | `calendar` | `pets` | `children` | `wishlist` | `places`;
 type Navigate = (page: FolderPage) => void;
 
 export function HomeNavigation({ page, navigate }: { page: FolderPage; navigate: Navigate }) {
@@ -11,6 +11,7 @@ export function HomeNavigation({ page, navigate }: { page: FolderPage; navigate:
       {([
         { page: `shopping`, title: `Shopping`, icon: `shopping` },
         { page: `recipes`, title: `Recipes`, icon: `recipe` },
+        { page: `meals`, title: `Meals`, icon: `plans` },
         { page: `calendar`, title: `Calendar`, icon: `calendar` },
         { page: `children`, title: `Children`, icon: `family` },
         { page: `pets`, title: `Pets`, icon: `pet` },
@@ -24,6 +25,7 @@ export function FolderPages({ page, navigate }: { page: FolderPage; navigate: Na
   const cards: { page: FolderPage; title: string; detail: string; icon: SymbolName; color: string }[] = [
     { page: `home`, title: `Home`, detail: `Shopping, recipes, children and pets`, icon: `home`, color: `violet` },
     { page: `calendar`, title: `Calendar`, detail: `Google calendars you choose to share`, icon: `calendar`, color: `sage` },
+    { page: `meals`, title: `Meals`, detail: `Plan the week and shop from recipes`, icon: `plans`, color: `peach` },
     { page: `wishlist`, title: `Wishlist`, detail: `Your wishes, in one place`, icon: `wishlist`, color: `peach` },
     { page: `places`, title: `Places`, detail: `Places to remember together`, icon: `pin`, color: `sage` },
   ];

@@ -11,8 +11,10 @@ grant usage on schema public, auth to anon, authenticated;
 grant execute on function auth.uid() to anon, authenticated;
 \ir ../migrations/20261101020000_shared_shopping.sql
 \ir ../migrations/20261101021000_account_deletion.sql
+\ir ../migrations/20261101070000_folder_entries.sql
 \ir ../migrations/20261105010000_prevent_duplicate_active_shopping_items.sql
 \ir ../migrations/20261105020000_google_calendar_readonly.sql
+\ir ../migrations/20261105030000_shared_meal_plan.sql
 insert into auth.users values
  ('00000000-0000-4000-8000-000000000001'),
  ('00000000-0000-4000-8000-000000000002'),
@@ -26,6 +28,10 @@ do $$ begin
  exception when insufficient_privilege then null; end;
  begin insert into public.google_calendar_preferences(user_id, calendar_id) values (auth.uid(), 'private'); raise exception 'TEST FAILED';
  exception when insufficient_privilege then null; end;
+end $$;
+select public.save_meal_plan_item(null::uuid, date '2026-11-02', 0::smallint, 'Dinner', null::uuid, 'Synthetic meal');
+do $$ begin
+ if (select count(*) from public.meal_plan_items) <> 1 then raise exception 'Meal plan save failed'; end if;
 end $$;
 select public.create_household_invitation() as invitation \gset
 select public.create_household_invitation() as replacement \gset

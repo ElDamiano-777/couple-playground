@@ -25,7 +25,7 @@ export function transport() {
     id: string; household_id: string; kind: string; name: string;
     animal_type: string | null; birth_date: string | null; created_by: string; created_at: string;
   };
-  type EntryRow = { id: string; household_id: string; kind: string; title: string; notes: string; created_by: string; created_at: string };
+  type EntryRow = { id: string; household_id: string; kind: string; title: string; notes: string; created_by: string; created_at: string; recipe_ingredients?: string; recipe_instructions?: string };
   let entryRows: EntryRow[] = [];
   let failEntrySave = false;
   let delayedEntryWrite: Promise<void> | null = null;
@@ -35,6 +35,7 @@ export function transport() {
   let petFoods: any[] = [];
   let petDislikes: any[] = [];
   let favorites: any[] = [];
+  let mealPlans: any[] = [];
   let failFamilySave = false;
   let familyRequests = 0;
   let delayedFamilyRead: Promise<void> | null = null;
@@ -138,6 +139,17 @@ export function transport() {
       }
       if (url.pathname.endsWith(`/rpc/current_household`))
         return reply(homeFor(user));
+      if (url.pathname.endsWith(`/rpc/save_meal_plan_item`)) {
+        const household = homeFor(user);
+        if (!household) return reply({ message: `Forbidden` }, 403);
+        const existing = data.p_id ? mealPlans.find(item => item.id === data.p_id && item.household_id === household) : null;
+        const title = data.p_recipe_id ? entryRows.find(item => item.id === data.p_recipe_id)?.title || `Saved recipe` : String(data.p_title || ``).trim();
+        if (!title) return reply({ message: `Enter a meal name` }, 400);
+        mealPlans = mealPlans.filter(item => item.id === existing?.id || !(item.household_id === household && item.week_start === data.p_week_start && item.day_index === data.p_day_index && item.meal_slot === data.p_meal_slot));
+        const row = { id: existing?.id ?? crypto.randomUUID(), household_id: household, week_start: data.p_week_start, day_index: data.p_day_index, meal_slot: data.p_meal_slot, recipe_id: data.p_recipe_id ?? null, title, created_by: existing?.created_by ?? user, created_at: existing?.created_at ?? new Date().toISOString() };
+        mealPlans = [...mealPlans.filter(item => item.id !== row.id), row];
+        return reply(row);
+      }
       if (url.pathname.endsWith(`/rpc/create_household`)) {
         members = [user];
         return reply(home);
@@ -190,6 +202,16 @@ export function transport() {
           entryRows = entryRows.filter((row) => row.id !== id);
           return reply({ id });
         }
+      }
+      if (url.pathname === `/rest/v1/meal_plan_items`) {
+        const household = homeFor(user);
+        if (!household) return reply({ message: `Forbidden` }, 403);
+        const week = url.searchParams.get(`week_start`)?.replace(`eq.`, ``);
+        if (method === `GET`) return reply(mealPlans.filter(item => item.household_id === household && (!week || item.week_start === week)));
+        const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
+        const row = mealPlans.find(item => item.id === id && item.household_id === household);
+        if (!row) return reply({ message: `Not found` }, 404);
+        if (method === `DELETE`) { mealPlans = mealPlans.filter(item => item !== row); return reply({ id }); }
       }
       if ([`/rest/v1/pet_details`, `/rest/v1/pet_food`, `/rest/v1/pet_dislikes`].includes(url.pathname)) {
         const household = homeFor(user);
@@ -337,6 +359,7 @@ export function transport() {
   return {
     attach,
     seedLegacyRecipe: (title: string, notes: string, source?: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes, created_by: pocMasha, created_at: new Date().toISOString(), ...(source ? { recipe_source_url: source } : {}) }); },
+    seedRecipe: (title: string, ingredients: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes: '', recipe_ingredients: ingredients, recipe_instructions: '', created_by: pocMasha, created_at: new Date().toISOString() }); },
     failNextEntrySave: () => { failEntrySave = true; },
     delayEntryWrites: () => { delayedEntryWrite = new Promise<void>((resolve) => { releaseEntryWrite = resolve; }); },
     releaseEntryWrites: () => { releaseEntryWrite?.(); delayedEntryWrite = null; releaseEntryWrite = null; },
