@@ -6,7 +6,7 @@ import { useSharedShopping, type ShoppingItem } from './shared/useSharedShopping
 import { useFamilyProfiles } from './family/useFamilyProfiles';
 import { useFolderEntries } from './collections/useFolderEntries';
 import { extractSharedUrl } from './collections/recipeImport';
-import { useMealPlan } from './meals/useMealPlan';
+import { monday, useMealPlan } from './meals/useMealPlan';
 import { useHouseholdTasks } from './tasks/useHouseholdTasks';
 import GlobalSearch from './search/GlobalSearch';
 
@@ -156,6 +156,7 @@ export default function App() {
   }
 
   function navigate(next: Page) {
+    if (next === `folders`) meals.setWeekStart(monday());
     if (next === `home` || next === `shopping`) setShoppingCategory(null);
     if (next === `children`) family.setKind(`child`);
     if (next === `pets`) family.setKind(`pet`);

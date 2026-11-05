@@ -31,7 +31,9 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
   try {
     await login(first, 'Masha'); await login(second, 'Damian');
     await expect(first.getByText('All caught up! Your shopping list is empty.')).toBeVisible();
+    await expect(first.locator('.us-shopping')).not.toHaveClass(/dashboard-active/);
     await add(first, 'Synthetic apples', 'Home', 'Organic');
+    await expect(first.locator('.us-shopping')).toHaveClass(/dashboard-active/);
     await add(first, 'Synthetic pet food', 'Pets', 'For: First pet · Brand: Example');
     await add(first, 'Synthetic wipes', 'Kids', 'Two packs');
     const categories = first.getByRole('group', { name: 'Shopping categories' });

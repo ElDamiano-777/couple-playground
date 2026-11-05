@@ -12,7 +12,7 @@ export default function UsShopping({ state, onCategory, onSignIn }: { state: Sha
   const active = state.items.filter(item => !item.bought);
   const purchased = state.items.filter(item => item.bought);
   useEffect(() => { if (!undoItem) return; const timer = window.setTimeout(() => setUndoItem(null), 5000); return () => clearTimeout(timer); }, [undoItem]);
-  return <section className="dashboard-card us-shopping" aria-labelledby="us-shopping-title">
+  return <section className={`dashboard-card us-shopping${active.length ? ' dashboard-active' : ''}`} aria-labelledby="us-shopping-title">
     <div className="us-shopping-heading"><h2 id="us-shopping-title">Shopping</h2>{state.household && <span>{active.length} to buy</span>}</div>
     {!state.authReady || state.loading ? <p role="status">Opening your shopping list…</p> : !state.session || !state.household ? <><p>{state.session ? 'Connect your home to see your shared list.' : 'Sign in to see your shared shopping list.'}</p><button className="text-action" onClick={onSignIn}>{state.session ? 'Connect home' : 'Sign in'} →</button></> : <>
       <div className="us-shopping-shortcuts" role="group" aria-label="Shopping categories">{(['Home', 'Pets', 'Kids'] as const).map(category => <button key={category} onClick={() => onCategory(category)}><span>{category}</span><strong>{active.filter(item => item.category === category).length}</strong></button>)}</div>

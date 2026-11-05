@@ -372,3 +372,11 @@
 .quick-pet-food-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px;margin:6px 0;text-align:left;border:1px solid #ead9ef;border-radius:14px;background:#fff}
 .quick-pet-food-item[aria-pressed=true]{border-color:#8040be;background:#f3e8f9}
 .quick-pet-food-item .favorite-copy{flex:1;min-width:0}
+
+/* Dashboard states keep open work visible without changing its shared data. */
+.dashboard-card.dashboard-active{background:#f1e4fa;border-color:#bf92db;box-shadow:0 3px 12px #74439913}
+.dashboard-card.dashboard-overdue{border-color:#d58c82;background:#fae8e5;box-shadow:inset 4px 0 #d67e73}
+.task-dashboard .dashboard-count{margin:7px 0;color:#6d3d85;font-weight:700;font-size:13px}
+.dashboard-task-title{display:block;margin-top:7px;font-size:16px;overflow-wrap:anywhere}
+.task-dashboard .dashboard-task-meta{font-size:13px;margin:5px 0 0;overflow-wrap:anywhere}
+.dashboard-warning{color:#a9443e}

@@ -11,7 +11,7 @@ import Recipes from './collections/Recipes';
 import type { FolderEntriesState } from './collections/useFolderEntries';
 import Calendar from './calendar/Calendar';
 import MealPlanner from './meals/MealPlanner';
-import { activeMealSlots, type MealPlanState } from './meals/useMealPlan';
+import { activeMealSlots, localDate, monday, type MealPlanState } from './meals/useMealPlan';
 import Tasks from './tasks/Tasks';
 import type { HouseholdTasksState } from './tasks/useHouseholdTasks';
 import Expenses from './expenses/Expenses';
@@ -49,10 +49,23 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   </section>;
 
   if (page === `folders`) {
-    const todayIndex = (new Date().getDay() + 6) % 7;
-    const todayMeals = meals.items.filter(item => item.day_index === todayIndex && activeMealSlots.includes(item.meal_slot));
-    const openTasks = tasks.items.filter(task => !task.completed_at);
-    return <section className="preview-page"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}<UsShopping state={shopping} onCategory={onShoppingCategory} onSignIn={() => navigate(`shopping`)} /><button className="dashboard-card meal-dashboard" onClick={() => navigate(`meals`)}><h2>Today’s dinner</h2>{todayMeals.length ? <p>{todayMeals.map(item => item.title).join(' · ')}</p> : <p>No dinner planned for today.</p>}</button><button className="dashboard-card meal-dashboard" onClick={() => navigate(`tasks`)}><h2>Upcoming tasks</h2>{openTasks.length ? <p>{openTasks.slice(0, 3).map(task => task.title).join(' · ')}</p> : <p>No open tasks.</p>}</button><div className="dashboard-card"><h2>Saved together</h2><p>{collections.entries.filter(entry => entry.kind === `wish`).length} wishes · {collections.entries.filter(entry => entry.kind === `place`).length} places · {collections.entries.filter(entry => entry.kind === `recipe`).length} recipes</p></div></section>;
+    const now = new Date();
+    const today = localDate(now);
+    const todayIndex = (now.getDay() + 6) % 7;
+    const todayMeals = meals.items.filter(item => item.week_start === monday(now) && item.day_index === todayIndex && activeMealSlots.includes(item.meal_slot));
+    const upcoming = new Date(now); upcoming.setDate(upcoming.getDate() + 7);
+    const soon = localDate(upcoming);
+    const taskRank = (task: (typeof tasks.items)[number]) => task.due_date && task.due_date < today ? 0 : task.priority === 'high' && task.due_date && task.due_date <= soon ? 1 : 2;
+    const openTasks = tasks.items.filter(task => !task.completed_at).sort((a, b) => taskRank(a) - taskRank(b) || (a.due_date ?? '9999-99-99').localeCompare(b.due_date ?? '9999-99-99') || a.created_at.localeCompare(b.created_at));
+    const nextTask = openTasks[0];
+    const overdue = !!nextTask?.due_date && nextTask.due_date < today;
+    const assignee = nextTask && { masha: 'Masha', damian: 'Damian', both: 'Both' }[nextTask.assignee];
+    const priority = nextTask && { high: 'High', normal: 'Normal', low: 'Low' }[nextTask.priority];
+    const due = nextTask?.due_date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${nextTask.due_date}T12:00:00`)) : 'No due date';
+    return <section className="preview-page"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}
+      <button className={`dashboard-card meal-dashboard task-dashboard${openTasks.length ? ' dashboard-active' : ''}${overdue ? ' dashboard-overdue' : ''}`} onClick={() => navigate(`tasks`)}><h2>Upcoming tasks</h2>{nextTask ? <><p className="dashboard-count">{openTasks.length} {openTasks.length === 1 ? 'task' : 'tasks'} to do{overdue && <span className="dashboard-warning"> · Overdue</span>}</p><strong className="dashboard-task-title">{nextTask.title}</strong><p className="dashboard-task-meta">{assignee} · {nextTask.due_date ? `Due ${due}` : due} · {priority} priority</p></> : <p>No open tasks.</p>}</button>
+      <button className={`dashboard-card meal-dashboard${todayMeals.length ? ' dashboard-active' : ''}`} onClick={() => navigate(`meals`)}><h2>Today’s dinner</h2>{todayMeals.length ? <p>{todayMeals.map(item => item.title).join(' · ')}</p> : <p>No dinner planned for today.</p>}</button>
+      <UsShopping state={shopping} onCategory={onShoppingCategory} onSignIn={() => navigate(`shopping`)} /><div className="dashboard-card"><h2>Saved together</h2><p>{collections.entries.filter(entry => entry.kind === `wish`).length} wishes · {collections.entries.filter(entry => entry.kind === `place`).length} places · {collections.entries.filter(entry => entry.kind === `recipe`).length} recipes</p></div></section>;
   }
 
   return <div className="household-preview">
