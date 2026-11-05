@@ -8,8 +8,9 @@ import { useFolderEntries } from './collections/useFolderEntries';
 import { extractSharedUrl } from './collections/recipeImport';
 import { useMealPlan } from './meals/useMealPlan';
 import { useHouseholdTasks } from './tasks/useHouseholdTasks';
+import GlobalSearch from './search/GlobalSearch';
 
-type Page = HouseholdPage | `notes` | `more` | `welcome`;
+type Page = HouseholdPage | `notes` | `more` | `welcome` | `search`;
 type Profile = `masha` | `damian`;
 const profileKey = `together.profile.v1`;
 const shareKey = `together.recipe-share`;
@@ -168,14 +169,14 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: `instant` });
   }
 
-  const homePages: Page[] = [`home`, `shopping`, `recipes`, `children`, `pets`];
+  const homePages: Page[] = [`home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`];
   const activeFolder = homePages.includes(page) ? `home` : [`notes`, `welcome`, `activity`].includes(page) ? `more` : page;
 
   return <div className="app">
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="header">
       <a className="wordmark" href={config.basePath} aria-label="Together — Us" onClick={event => { event.preventDefault(); navigate(`folders`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
-      <div className="header-tools">{profile && <><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Help and settings" onClick={() => navigate(`more`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}<span className="edition"><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</span></div>
+      <div className="header-tools">{profile && <><button aria-label="Search Together" onClick={() => navigate(`search`)}>⌕</button><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Help and settings" onClick={() => navigate(`more`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}<span className="edition"><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</span></div>
     </header>
 
     {!online && <div className="notice" role="status">You’re offline. You can still save notes on this phone.</div>}
@@ -258,7 +259,7 @@ export default function App() {
       {page === `more` && <section className="inner-page">
         <p className="eyebrow">MAKE IT YOURS</p>
         <h1>More<span>.</span></h1>
-        <div className="more-shortcuts" aria-label="More sections"><button className="start-card" onClick={() => navigate(`notes`)}><Icon name="note" /><strong>Personal notes</strong><Icon name="arrow" /></button><button className="start-card create-card" onClick={() => navigate(`activity`)}><Symbol name="bell" /><strong>Example updates</strong><Icon name="arrow" /></button></div>
+        <div className="more-shortcuts" aria-label="More sections"><button className="start-card" onClick={() => navigate(`search`)}><Icon name="spark" /><strong>Search Together</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`notes`)}><Icon name="note" /><strong>Personal notes</strong><Icon name="arrow" /></button><button className="start-card create-card" onClick={() => navigate(`activity`)}><Symbol name="bell" /><strong>Example updates</strong><Icon name="arrow" /></button></div>
         <p className="intro">You don’t need to know about computers. Just tell your agent what you’d like to change.</p>
         <div className="help-card"><span className="card-icon"><Icon name="spark" /></span><h2>Say it in your own words</h2><p>Open your chat with your agent, tap the microphone on your keyboard, and describe your idea. After making the change, your agent will send you the app link and tell you where to find it.</p><blockquote>“I’d love a shared list of date ideas here.”</blockquote><p className="muted">You can speak Russian, English or German.</p></div>
         <div className="help-card"><span className="card-icon peach"><Icon name="home" /></span><h2>Add it to your iPhone</h2><p>Open this app in Safari. Tap Share, then Add to Home Screen. Now you’ll have your own little app icon.</p></div>
@@ -267,6 +268,7 @@ export default function App() {
         <div className="local-label"><span />This is a little demo. Notes stay in this browser and aren’t shared with your partner yet.</div>
         <p className="small-print">Clearing your browser data also removes these local notes. Other people using the same browser can read them.</p>
       </section>}
+      {page === `search` && <GlobalSearch shopping={shopping} collections={collections} tasks={tasks} localNotes={notes} onClose={() => navigate(`folders`)} />}
       </>}
     </main>
 

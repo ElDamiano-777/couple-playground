@@ -27,6 +27,7 @@
 @media (max-width: 540px) {
   .folder-tile { padding: 18px; }
   .folder-grid { gap: 12px; }
-  .home-sections button { flex-direction: column; gap: 5px; font-size: 14px; }
+  .home-sections { display:flex; overflow-x:auto; scroll-snap-type:x proximity; padding:5px; -webkit-overflow-scrolling:touch; }
+  .home-sections button { flex:0 0 92px; flex-direction: column; gap: 5px; font-size: 14px; scroll-snap-align:start; }
   .home-sections svg { width: 20px; height: 20px; }
 }

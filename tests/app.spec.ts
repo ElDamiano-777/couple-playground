@@ -159,7 +159,7 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await page.setViewportSize({ width: 320, height: 740 });
   await enterAs(page);
   const nav = mainNavigation(page);
-  const noOverflow = async () => expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const noOverflow = async (section = 'page') => expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${section} must not create horizontal page overflow`).toBe(true);
   await expect(nav.getByRole(`button`)).toHaveText([`Places`, `Home`, `Us`, `Wishlist`, `More`]);
   for (const button of await nav.getByRole(`button`).all()) {
     const box = await button.boundingBox();
@@ -168,15 +168,15 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await nav.getByRole(`button`, { name: `Us`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `Us.`, exact: true })).toBeVisible();
   await nav.getByRole(`button`, { name: `Home`, exact: true }).click();
+  await expect(nav.getByRole(`button`, { name: `Home`, exact: true })).toHaveAttribute(`aria-current`, `page`);
   const sections = page.getByRole(`navigation`, { name: `Home sections`, exact: true });
-  await expect(sections.getByRole(`button`)).toHaveText([`Shopping`, `Recipes`, `Children`, `Pets`]);
+  await expect(sections.getByRole(`button`)).toHaveText([`Shopping`, `Recipes`, `Meals`, `Tasks`, `Expenses`, `Partner notes`, `Calendar`, `Children`, `Pets`]);
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
-  for (const name of [`Recipes`, `Children`, `Pets`, `Shopping`]) {
+  for (const name of [`Recipes`, `Meals`, `Tasks`, `Children`, `Pets`, `Shopping`]) {
     await sections.getByRole(`button`, { name, exact: true }).click();
     await expect(page.getByRole(`heading`, { name: name === `Recipes` ? `Our Recipes.` : `${name}.`, exact: true })).toBeVisible();
     await expect(sections.getByRole(`button`, { name, exact: true })).toHaveAttribute(`aria-current`, `page`);
-    await expect(nav.getByRole(`button`, { name: `Home`, exact: true })).toHaveAttribute(`aria-current`, `page`);
-    await noOverflow();
+    await noOverflow(name);
   }
   await openChildren(page);
   await page.getByRole(`button`, { name: `Sign in to Family`, exact: true }).click();
@@ -186,7 +186,7 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
     await expect(page.getByRole(`heading`, { name: `${name}.`, exact: true })).toBeVisible();
     await page.getByRole(`button`, { name: `Sign in through Shopping`, exact: true }).click();
     await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
-    await noOverflow();
+    await noOverflow(name);
   }
   await nav.getByRole(`button`, { name: `More`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `More.`, exact: true })).toBeVisible();
