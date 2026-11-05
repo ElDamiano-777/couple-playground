@@ -2,3 +2,13 @@
 .meal-dashboard{display:block;width:100%;margin:16px 0;text-align:left;color:#33283c;cursor:pointer}.meal-dashboard h2{font-size:22px}.meal-dashboard p{margin:9px 0 0;color:#62516e;line-height:1.5}
 
 .meal-day{min-height:0}.meal-detail{max-width:760px;margin:auto}.meal-detail .recipe-detail-copy h1,.meal-custom-detail h1{font-size:clamp(28px,7vw,36px);overflow-wrap:anywhere}.meal-custom-detail{padding:20px;border:1px solid #ead9ef;border-radius:22px;background:#fffaf3}.meal-custom-detail p{color:#62516e}.meal-edit-dinner{margin-top:16px;min-height:48px}.meal-slot,.meal-day{min-width:0}
+
+/* Keep dinner rows compact while retaining comfortable touch targets. */
+.meal-card strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.3}
+@media(max-width:760px){
+  .meal-week{gap:8px}
+  .meal-day{padding:10px 12px}
+  .meal-day h2{margin-bottom:6px}
+  .meal-slot{grid-template-columns:54px minmax(0,1fr);align-items:center;gap:8px;margin:0}
+  .meal-card,.meal-empty{min-height:44px;padding:8px 10px}
+}

@@ -35,7 +35,10 @@ test('meal planner selects a recipe and reviews its quantities before adding to 
 test('phone layout uses English dates and navigates weeks in the local timezone', async ({ browser }) => {
   for (const viewport of [{ width: 390, height: 844 }, { width: 360, height: 800 }]) {
     const context = await browser.newContext({ viewport, locale: 'de-DE', timezoneId: 'Pacific/Auckland', serviceWorkers: 'block' });
-    const server = transport(); await server.attach(context);
+    const server = transport();
+    const longName = 'A very long dinner recipe with roasted vegetables and herbs and a wonderful sauce for the whole family to enjoy together';
+    server.seedRecipe(longName, '200 g pasta', { instructions: 'Cook the pasta.' });
+    await server.attach(context);
     const page = await context.newPage();
     await page.clock.setFixedTime(new Date('2026-03-29T23:30:00Z'));
     await page.goto('./');
@@ -55,6 +58,27 @@ test('phone layout uses English dates and navigates weeks in the local timezone'
     await page.getByLabel('Custom meal name').fill('Toast');
     await page.getByRole('button', { name: 'Save meal' }).click();
     await expect(page.getByText('Toast', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: '+ Add meal' }).nth(0).click();
+    await page.getByLabel('Saved recipe').selectOption({ label: longName });
+    await page.getByRole('button', { name: 'Save meal' }).click();
+    const longCard = page.locator('.meal-card').filter({ hasText: longName });
+    const titleSize = await longCard.locator('strong').evaluate(element => {
+      const style = getComputedStyle(element);
+      return { height: element.getBoundingClientRect().height, lineHeight: parseFloat(style.lineHeight), clamp: style.webkitLineClamp, clipped: element.scrollHeight > element.clientHeight };
+    });
+    expect(titleSize.clamp).toBe('2');
+    expect(titleSize.height).toBeLessThanOrEqual(titleSize.lineHeight * 2 + 1);
+    expect(titleSize.clipped).toBe(true);
+    expect((await page.locator('.meal-day').first().boundingBox())!.height).toBeLessThan(110);
+    await longCard.click();
+    await expect(page.locator('.recipe-detail h1')).toHaveText(longName);
+    await expect(page.locator('.recipe-detail')).toContainText('Cook the pasta.');
+    await page.getByRole('button', { name: '← Meals' }).click();
+    const shopping = page.getByRole('button', { name: 'Create Shopping List' });
+    await shopping.scrollIntoViewIfNeeded();
+    const shoppingBox = await shopping.boundingBox();
+    const navBox = await mainNavigation(page).boundingBox();
+    expect(shoppingBox!.y + shoppingBox!.height).toBeLessThanOrEqual(navBox!.y);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await context.close();
   }
