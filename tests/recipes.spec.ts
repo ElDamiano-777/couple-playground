@@ -102,6 +102,22 @@ test('recipe cards clamp long titles and hide missing cooking times', async ({ p
   await expect(card.locator('strong')).toHaveCSS('-webkit-line-clamp', '4');
 });
 
+test('manual recipe editor keeps recipe fields visible and editable', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: '+ Add Recipe manually' }).click();
+  await page.getByLabel('Recipe name').fill('Manual pasta');
+  await page.getByLabel('Ingredients').fill('200 g pasta\n1 tomato');
+  await page.getByLabel('Instructions').fill('Cook pasta.\nAdd tomato.');
+  await page.getByLabel('Original link').fill('https://example.com/manual-pasta');
+  await page.getByLabel('Notes (optional)').fill('Family favourite.');
+  await expect(page.getByLabel('Original caption (optional)')).toBeVisible();
+  await page.getByRole('button', { name: 'Save recipe' }).click();
+  await page.locator('.recipe-card').filter({ hasText: 'Manual pasta' }).click();
+  await expect(page.locator('.recipe-detail')).toContainText('200 g pasta');
+  await expect(page.locator('.recipe-detail')).toContainText('Cook pasta.');
+});
+
 test('imported recipes are reviewed, saved and shared, with a link-only fallback', async ({ browser }) => {
   test.setTimeout(120000);
   const server = transport();
