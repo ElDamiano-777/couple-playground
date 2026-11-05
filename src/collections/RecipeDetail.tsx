@@ -25,7 +25,23 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
   const [choices, setChoices] = useState<Ingredient[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [message, setMessage] = useState('');
-  function openShopping() { setChoices(ingredients); setSelected(ingredients.map((_, index) => index)); setMessage(''); setSelecting(true); }
+  const [duplicateActions, setDuplicateActions] = useState<Record<number, 'skip' | 'update'>>({});
+  const duplicateFor = (item: Ingredient) => shopping.items.find(row => !row.bought && row.category === 'Home' && row.name.trim().toLowerCase() === shoppingIngredient(item).name.trim().toLowerCase());
+  function openShopping() { setChoices(ingredients); setSelected(ingredients.map((_, index) => index)); setDuplicateActions({}); setMessage(''); setSelecting(true); void shopping.refresh(); }
+  const selectedChoices = selected.map(index => {
+    const item = choices[index]; const duplicate = duplicateFor(item);
+    return { ...shoppingIngredient(item), quantity: item.quantity, existingId: duplicate?.id ?? null, existingNotes: duplicate?.notes ?? '', action: duplicate ? duplicateActions[index] ?? 'skip' : 'add' as const };
+  });
+  const uniqueChoices = selectedChoices.reduce<typeof selectedChoices>((all, item) => {
+    if (item.action === 'skip') return all;
+    const existing = all.find(other => other.name.trim().toLowerCase() === item.name.trim().toLowerCase());
+    if (existing) { existing.notes = [existing.notes, item.notes].filter(Boolean).join('\n'); existing.quantity = [existing.quantity, item.quantity].filter(Boolean).join('; '); }
+    else all.push({ ...item });
+    return all;
+  }, []);
+  const addedCount = uniqueChoices.filter(item => item.action === 'add').length;
+  const updatedCount = uniqueChoices.filter(item => item.action === 'update' && item.quantity).length;
+  const skippedCount = selectedChoices.filter(item => item.action === 'skip').length;
   function toggle(value: number, values: number[], update: (values: number[]) => void) { update(values.includes(value) ? values.filter(item => item !== value) : [...values, value]); }
   return <>
     <button className="text-action recipe-back" onClick={onBack}>{backLabel}</button>
@@ -55,9 +71,9 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
     </article>
     {selecting && <div className="recipe-shopping-overlay"><section className="recipe-shopping-sheet" role="dialog" aria-modal="true" aria-labelledby="recipe-shopping-title">
       <div className="recipe-shopping-head"><div className="recipe-shopping-title-row"><h2 id="recipe-shopping-title">Add to Shopping</h2><button type="button" className="text-action" aria-label="Close Add to Shopping" disabled={shopping.busy} onClick={() => setSelecting(false)}>Close</button></div><p>Choose ingredients for your shared Home list.</p></div>
-      <div className="recipe-shopping-list">{choices.map((item, index) => <label className="recipe-ingredient" key={index}><input type="checkbox" checked={selected.includes(index)} disabled={shopping.busy} onChange={() => toggle(index, selected, setSelected)} />{item.quantity && <strong className="recipe-quantity">{item.quantity} </strong>}<span className="recipe-ingredient-name">{item.name}</span></label>)}</div>
+      <div className="recipe-shopping-list"><div className="recipe-select-actions"><button type="button" disabled={shopping.busy} onClick={() => setSelected(choices.map((_, index) => index))}>Select all</button><button type="button" disabled={shopping.busy} onClick={() => setSelected([])}>Deselect all</button></div>{choices.map((item, index) => { const duplicate = duplicateFor(item); return <div className="recipe-shopping-choice" key={index}><label className="recipe-ingredient"><input type="checkbox" checked={selected.includes(index)} disabled={shopping.busy} onChange={() => toggle(index, selected, setSelected)} />{item.quantity && <strong className="recipe-quantity">{item.quantity} </strong>}<span className="recipe-ingredient-name">{item.name}</span></label>{duplicate && selected.includes(index) && <div className="recipe-duplicate"><p>Already in Home Shopping{duplicate.notes ? `: ${duplicate.notes}` : '.'}</p><label>For {item.name}<select value={duplicateActions[index] ?? 'skip'} disabled={shopping.busy} onChange={event => setDuplicateActions(previous => ({ ...previous, [index]: event.target.value as 'skip' | 'update' }))}><option value="skip">Skip existing item</option>{item.quantity && <option value="update">Update recipe quantity to {item.quantity}</option>}</select></label>{!item.quantity ? <small>No quantity was provided in this recipe.</small> : duplicateActions[index] === 'update' && <small>The recipe quantity is saved separately; quantities are not added together.</small>}</div>}</div>; })}</div>
       {shopping.error && <p className="feedback error-message" role="alert">{shopping.error}</p>}
-      <div className="recipe-shopping-footer"><button className="primary" type="button" disabled={shopping.busy || !selected.length || !online} onClick={() => { void shopping.addRecipeIngredients(selected.map(index => shoppingIngredient(choices[index]))).then(success => { if (success) { setSelecting(false); setMessage(`${selected.length} ${selected.length === 1 ? 'ingredient' : 'ingredients'} added to your shared Home list.`); } }); }}>{shopping.busy ? 'Adding…' : `Add ${selected.length} ${selected.length === 1 ? 'item' : 'items'}`}</button></div>
+      <div className="recipe-shopping-footer"><button className="primary" type="button" disabled={shopping.busy || !selected.length || !online} onClick={() => { void shopping.addRecipeSelection(uniqueChoices).then(success => { if (success) { setSelecting(false); setMessage([addedCount ? `${addedCount} ${addedCount === 1 ? 'ingredient' : 'ingredients'} added` : '', updatedCount ? `${updatedCount} ${updatedCount === 1 ? 'quantity' : 'quantities'} updated` : '', skippedCount ? `${skippedCount} skipped` : ''].filter(Boolean).join(' · ') + ' in your shared Home list.'); } }); }}>{shopping.busy ? 'Adding…' : `Add ${selected.length} ${selected.length === 1 ? 'item' : 'items'}`}</button></div>
     </section></div>}
   </>;
 }

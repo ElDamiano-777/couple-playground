@@ -384,6 +384,7 @@ export function transport() {
     attach,
     seedLegacyRecipe: (title: string, notes: string, source?: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes, created_by: pocMasha, created_at: new Date().toISOString(), ...(source ? { recipe_source_url: source } : {}) }); },
     seedRecipe: (title: string, ingredients: string, details: { instructions?: string; photo?: string } = {}) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes: '', recipe_ingredients: ingredients, recipe_instructions: details.instructions || '', ...(details.photo ? { recipe_image_url: details.photo } : {}), created_by: pocMasha, created_at: new Date().toISOString() }); },
+    seedShopping: (name: string, notes: string, bought = false) => { rows.push({ id: crypto.randomUUID(), household_id: pocHome, name, notes, category: 'Home', bought, created_by: pocMasha, created_at: new Date().toISOString() } as Row); },
     seedMeal: (week: string, slot: string, title: string) => { mealPlans.push({ id: crypto.randomUUID(), household_id: pocHome, week_start: week, day_index: 0, meal_slot: slot, recipe_id: null, title, created_at: new Date().toISOString() }); },
     meals: () => mealPlans.map(item => ({ ...item })),
     failNextEntrySave: () => { failEntrySave = true; },

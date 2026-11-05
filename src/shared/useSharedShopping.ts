@@ -35,6 +35,8 @@ function friendlyError(error: unknown): string {
     /Error sending confirmation email/i.test(text)
   )
     return `Your confirmation email couldn’t be sent. Please ask Damian to finish email delivery, then try again.`;
+  if (text === `Recipe shopping list changed`) return `Your shopping list changed. Review the updated items and try again.`;
+  if (text === `Recipe shopping incomplete`) return `Some changes may have been saved. Review the list before trying again.`;
   if (text === `Pet food details are too long`) return `This pet food has too many details to add. Please shorten its notes first.`;
   if (text === `Unknown POC username`)
     return `Use masha or damian as your username.`;
@@ -369,6 +371,53 @@ export function useSharedShopping() {
       setItems(previous => [...result.data as ShoppingItem[], ...previous]);
       setNotice(`${newIngredients.length} ${newIngredients.length === 1 ? `item` : `items`} added to your shared list.`);
     });
+  const addRecipeSelection = (selection: { name: string; notes: string; quantity: string; existingId: string | null; existingNotes: string; action: 'add' | 'skip' | 'update' }[]) =>
+    perform(async () => {
+      if (!household || !navigator.onLine) throw new Error(`Offline`);
+      const current = await supabase.from(`shopping_items`).select(`*`).eq(`household_id`, household);
+      if (current.error) throw current.error;
+      const active = (current.data as ShoppingItem[]).filter(item => item.category === `Home` && !item.bought);
+      const seen = new Set<string>();
+      const additions: typeof selection = [];
+      const updates: { item: ShoppingItem; notes: string }[] = [];
+      for (const choice of selection) {
+        const key = itemKey(`Home`, choice.name);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const match = active.find(item => itemKey(`Home`, item.name) === key);
+        if ((match?.id ?? null) !== choice.existingId || (match && match.notes !== choice.existingNotes)) {
+          await refresh();
+          throw new Error(`Recipe shopping list changed`);
+        }
+        if (!match && choice.action === `add`) additions.push(choice);
+        else if (match && choice.action === `update` && choice.quantity) {
+          const line = `Recipe quantity: ${choice.quantity}`;
+          const lines = (match.notes || ``).split('\n').filter(part => !/^Recipe quantity: /i.test(part));
+          const notes = [...lines.filter(Boolean), line].join('\n');
+          if (notes.length > 20000) throw new Error(`Pet food details are too long`);
+          updates.push({ item: match, notes });
+        }
+      }
+      if (!additions.length && !updates.length) return;
+      let wrote = false;
+      try {
+        for (const update of updates) {
+          const result = await supabase.from(`shopping_items`).update({ notes: update.notes }).eq(`id`, update.item.id).eq(`household_id`, household).eq(`bought`, false).eq(`notes`, update.item.notes).select().single();
+          if (result.error || !result.data) throw result.error ?? new Error(`Shopping item changed`);
+          wrote = true;
+        }
+        if (additions.length) {
+          const result = await supabase.from(`shopping_items`).insert(additions.map(item => ({ household_id: household, category: `Home`, name: item.name, notes: item.notes }))).select();
+          if (result.error || !result.data) throw result.error ?? new Error(`No saved items`);
+          wrote = true;
+        }
+      } catch (error) {
+        await refresh();
+        if (wrote) throw new Error(`Recipe shopping incomplete`);
+        throw error;
+      }
+      await refresh();
+    });
   const addPetFood = (food: PetFoodForShopping) =>
     perform(async () => {
       if (!household || !navigator.onLine) throw new Error(`Offline`);
@@ -508,6 +557,7 @@ export function useSharedShopping() {
     addQuick,
     addQuickAll,
     addRecipeIngredients,
+    addRecipeSelection,
     addPetFood,
     edit,
     startEdit: (item: ShoppingItem) => setEdit({ id: item.id, name: item.name, notes: item.notes ?? ``, category: item.category }),

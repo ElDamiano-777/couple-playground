@@ -88,3 +88,5 @@
 .recipe-import-preview h4{margin:12px 0 4px;font-size:14px}
 .recipe-import-preview ul,.recipe-import-preview ol{margin:0;padding-left:20px;font-size:14px;line-height:1.55}
 .recipe-import-preview p{font-size:14px;margin:8px 0 0}
+
+.recipe-select-actions{display:flex;gap:16px;align-items:center;padding:4px 0}.recipe-select-actions button{min-height:40px;background:transparent;color:#733c91;font-weight:700;font-size:13px}.recipe-duplicate{margin:0 0 10px 30px;padding:10px;border-radius:12px;background:#f3e8fa;color:#62516e;font-size:13px;overflow-wrap:anywhere}.recipe-duplicate p{white-space:pre-wrap;margin:0 0 8px;line-height:1.4}.recipe-duplicate label{display:grid;gap:4px}.recipe-duplicate select{min-height:44px;width:100%;border:1px solid #d6b8e6;border-radius:10px;background:#fffaf3;padding:8px;color:#33283c;font:inherit}.recipe-duplicate small{display:block;margin-top:6px}

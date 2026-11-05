@@ -135,3 +135,49 @@ test('dinner details, editing, moving and removal preserve other meal data', asy
   await expect(page.getByText('Synthetic pasta', { exact: true })).toBeVisible();
   await expect(page.getByText('Synthetic soup', { exact: true })).toBeVisible();
 });
+
+
+test('planned dinner ingredients offer duplicate choices and sync to the other phone', async ({ browser }) => {
+  const server = transport();
+  server.seedRecipe('Dinner with rice', '200 g pasta\n1 cup rice\n2 limes');
+  server.seedShopping('pasta', 'Brand: Favourite · whole wheat');
+  server.seedShopping('rice', 'Brand: Favourite · Size: 1 kg');
+  server.seedShopping('limes', 'Old purchase', true);
+  const first = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  const second = await browser.newContext({ viewport: { width: 360, height: 800 }, serviceWorkers: 'block' });
+  await server.attach(first); await server.attach(second);
+  const a = await first.newPage(), b = await second.newPage();
+  try {
+    for (const [page, name] of [[a, 'Masha'], [b, 'Damian']] as const) {
+      await page.goto('./'); await page.getByRole('button', { name, exact: true }).click();
+      await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+      await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+    }
+    await openShopping(a); await a.getByRole('button', { name: 'Meals', exact: true }).click();
+    await a.getByRole('button', { name: '+ Add meal' }).first().click();
+    await a.getByLabel('Saved recipe').selectOption({ label: 'Dinner with rice' });
+    await a.getByRole('button', { name: 'Save meal' }).click();
+    await a.getByRole('button', { name: /Dinner with rice/ }).click();
+    await a.getByRole('button', { name: '+ Add ingredients to Shopping' }).click();
+    const dialog = a.getByRole('dialog', { name: 'Add to Shopping' });
+    await expect(dialog.getByLabel('For rice')).toBeVisible();
+    await expect(dialog.getByLabel('For pasta')).toHaveValue('skip');
+    await dialog.getByRole('button', { name: 'Deselect all' }).click();
+    await expect(dialog.getByRole('checkbox', { checked: true })).toHaveCount(0);
+    await dialog.getByRole('button', { name: 'Select all', exact: true }).click();
+    await expect(dialog.getByRole('checkbox', { checked: true })).toHaveCount(3);
+    await dialog.getByLabel('For rice').selectOption('update');
+    await dialog.getByRole('button', { name: 'Add 3 items' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(a.getByRole('status')).toContainText('1 ingredient added · 1 quantity updated · 1 skipped');
+    await mainNavigation(b).getByRole('button', { name: 'Us', exact: true }).click();
+    await b.evaluate(() => window.dispatchEvent(new Event('focus')));
+    const rice = b.locator('.us-shopping-item').filter({ hasText: 'rice' });
+    await expect(rice).toContainText('Brand: Favourite · Size: 1 kg');
+    await expect(rice).toContainText('Recipe quantity: 1 cup');
+    await expect(b.locator('.us-shopping-item').filter({ hasText: 'pasta' })).toContainText('whole wheat');
+    await expect(b.locator('.us-shopping-item:not(.is-bought)').filter({ hasText: 'limes' })).toContainText('2');
+    expect(await b.locator('.us-shopping-item').filter({ hasText: 'pasta' }).count()).toBe(1);
+    expect(await b.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await first.close(); await second.close(); }
+});
