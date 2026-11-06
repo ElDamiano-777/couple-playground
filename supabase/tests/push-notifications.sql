@@ -15,6 +15,7 @@ create function cron.schedule(job_name text, schedule text, command text) return
 
 \ir ../migrations/20261104010000_web_push_notifications.sql
 \ir ../migrations/20261106020000_fix_push_http_dispatch.sql
+\ir ../migrations/20261106030000_task_push_events.sql
 insert into vault.decrypted_secrets values ('together_push_delivery_token', 'test-token');
 
 insert into auth.users values
@@ -29,12 +30,14 @@ insert into public.shopping_items(household_id, name, category) values(public.cu
 select set_config('request.jwt.claim.sub', '50000000-0000-4000-8000-000000000002', false);
 select public.join_household(:'code');
 update public.shopping_items set bought = true where id = :'coffee';
+insert into public.household_tasks(household_id, title) values(public.current_household(), 'Take out trash');
 
 reset role;
 do $$ begin
   if (select count(*) from public.push_events where kind = 'item_added' and item_name = 'Coffee') <> 1 then raise exception 'Item-add event missing'; end if;
   if (select count(*) from public.push_events where kind = 'item_purchased' and item_name = 'Coffee' and actor_id = '50000000-0000-4000-8000-000000000002') <> 1 then raise exception 'Purchase event missing or wrong actor'; end if;
-  if (select count(*) from net.calls where body ->> 'mode' = 'event') <> 2 then raise exception 'Push dispatch was not requested for both events'; end if;
+  if (select count(*) from public.push_events where kind = 'task_added' and item_name = 'Take out trash' and actor_id = '50000000-0000-4000-8000-000000000002') <> 1 then raise exception 'Task event missing or wrong actor'; end if;
+  if (select count(*) from net.calls where body ->> 'mode' = 'event') <> 3 then raise exception 'Push dispatch was not requested for all events'; end if;
 end $$;
 
 set role authenticated;

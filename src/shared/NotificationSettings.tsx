@@ -101,14 +101,14 @@ export default function NotificationSettings({ active }: { active: boolean }) {
   if (!active) return null;
   return <section className="notification-settings" aria-labelledby="notification-settings-title">
     <h2 id="notification-settings-title">Notifications</h2>
-    <p>Receive Shopping updates from your partner, even while Together is closed.</p>
+    <p>Receive Shopping and task updates from your partner, even while Together is closed.</p>
     {!supported ? <p className="feedback error-message">This browser does not support Web Push. Use Together from your iPhone or Android Home Screen.</p>
       : loading ? <p role="status">Checking notification settings…</p>
         : <>
           <div className="notification-device-row"><span>{enabled ? 'Enabled on this device' : 'Not enabled on this device'}</span><button className="text-action" type="button" disabled={saving || (!enabled && !publicKey)} onClick={() => { void (enabled ? disable() : enable()); }}>{saving ? 'Please wait…' : enabled ? 'Disable' : 'Enable notifications'}</button></div>
           <fieldset disabled={!enabled || saving}>
             <legend>Choose what you receive</legend>
-            <label><input type="checkbox" checked={preferences.new_item_enabled} onChange={event => setPreferences(current => ({ ...current, new_item_enabled: event.target.checked }))} /> New Shopping items</label>
+            <label><input type="checkbox" checked={preferences.new_item_enabled} onChange={event => setPreferences(current => ({ ...current, new_item_enabled: event.target.checked }))} /> New Shopping items and tasks</label>
             <label><input type="checkbox" checked={preferences.purchased_enabled} onChange={event => setPreferences(current => ({ ...current, purchased_enabled: event.target.checked }))} /> Purchased items</label>
             <label><input type="checkbox" checked={preferences.reminder_enabled} onChange={event => setPreferences(current => ({ ...current, reminder_enabled: event.target.checked }))} /> Weekly Shopping reminder</label>
             {preferences.reminder_enabled && <div className="notification-reminder-time"><label>Day<select value={preferences.reminder_weekday} onChange={event => setPreferences(current => ({ ...current, reminder_weekday: Number(event.target.value) }))}>{weekdays.map((day, index) => <option value={index} key={day}>{day}</option>)}</select></label><label>Time<input type="time" value={preferences.reminder_time} onChange={event => setPreferences(current => ({ ...current, reminder_time: event.target.value }))} /></label></div>}

@@ -1,7 +1,7 @@
 import webpush from 'npm:web-push@3.6.7';
 import { createClient } from 'npm:@supabase/supabase-js@2.118.0';
 
-type Event = { id: string; household_id: string; actor_id: string | null; kind: 'item_added' | 'item_purchased'; item_name: string; created_at: string; processed_at: string | null };
+type Event = { id: string; household_id: string; actor_id: string | null; kind: 'item_added' | 'item_purchased' | 'task_added'; item_name: string; created_at: string; processed_at: string | null };
 type Subscription = { id: string; user_id: string; endpoint: string; p256dh: string; auth: string };
 type Preferences = { user_id: string; household_id: string; new_item_enabled: boolean; purchased_enabled: boolean; reminder_enabled: boolean; reminder_weekday: number; reminder_time: string; timezone: string };
 
@@ -33,6 +33,12 @@ async function send(subscription: Subscription, deliveryId: string, title: strin
   }
 }
 
+function eventMessage(event: Event) {
+  if (event.kind === 'task_added') return `Your partner added the task ${event.item_name}.`;
+  if (event.kind === 'item_added') return `Your partner added ${event.item_name} to Shopping.`;
+  return `Your partner marked ${event.item_name} as purchased.`;
+}
+
 async function processEvent(event: Event) {
   if (event.processed_at) return;
   const members = await admin.from('household_members').select('user_id').eq('household_id', event.household_id).neq('user_id', event.actor_id ?? '00000000-0000-0000-0000-000000000000');
@@ -40,12 +46,12 @@ async function processEvent(event: Event) {
   for (const member of members.data ?? []) {
     const pref = await admin.from('notification_preferences').select('*').eq('user_id', member.user_id).maybeSingle();
     if (pref.error || !pref.data) continue;
-    const enabled = event.kind === 'item_added' ? pref.data.new_item_enabled : pref.data.purchased_enabled;
+    const enabled = event.kind === 'item_purchased' ? pref.data.purchased_enabled : pref.data.new_item_enabled;
     if (!enabled) continue;
     const subscriptions = await admin.from('push_subscriptions').select('*').eq('user_id', member.user_id);
     for (const subscription of subscriptions.data as Subscription[] ?? []) {
       const deliveryId = await reserve(`event:${event.id}:subscription:${subscription.id}`, { event_id: event.id, recipient_id: member.user_id, subscription_id: subscription.id, kind: event.kind });
-      if (deliveryId) await send(subscription, deliveryId, 'Together', event.kind === 'item_added' ? `Your partner added ${event.item_name} to Shopping.` : `Your partner marked ${event.item_name} as purchased.`);
+      if (deliveryId) await send(subscription, deliveryId, 'Together', eventMessage(event));
     }
   }
   await admin.from('push_events').update({ processed_at: new Date().toISOString() }).eq('id', event.id).is('processed_at', null);

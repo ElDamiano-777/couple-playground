@@ -10,7 +10,7 @@ The hosted project is `lyewmhtufesdccisqmin`; only the public project URL and pu
 
 ## Web Push owner configuration
 
-`20261104010000_web_push_notifications.sql` records Shopping additions and completed purchases server-side. It creates private subscriptions, preference, event and delivery tables, then calls the `push-delivery` Edge Function. The function excludes the actor, reads the recipient's household membership at delivery time, respects individual preferences and stores one delivery key per event/device. It removes endpoints that return HTTP 404 or 410. The minute schedule also evaluates weekly reminders in the member's selected IANA timezone and only when unpurchased items still exist. Delivery logs are deleted after 30 days.
+`20261104010000_web_push_notifications.sql` records Shopping additions and completed purchases server-side; `20261106030000_task_push_events.sql` adds newly created household tasks, covered by the "new items" preference. It creates private subscriptions, preference, event and delivery tables, then calls the `push-delivery` Edge Function. The function excludes the actor, reads the recipient's household membership at delivery time, respects individual preferences and stores one delivery key per event/device. It removes endpoints that return HTTP 404 or 410. The minute schedule also evaluates weekly reminders in the member's selected IANA timezone and only when unpurchased items still exist. Delivery logs are deleted after 30 days.
 
 Before enabling the feature in production, a Supabase Owner or Administrator must:
 
