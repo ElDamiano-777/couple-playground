@@ -169,9 +169,10 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await expect(page.getByRole(`heading`, { name: `Us.`, exact: true })).toBeVisible();
   await nav.getByRole(`button`, { name: `Home`, exact: true }).click();
   await expect(nav.getByRole(`button`, { name: `Home`, exact: true })).toHaveAttribute(`aria-current`, `page`);
+  await expect(page.getByRole(`navigation`, { name: `Home sections` })).toHaveCount(0);
+  await nav.getByRole(`button`, { name: `Shopping`, exact: true }).click();
   const sections = page.getByRole(`navigation`, { name: `Home sections`, exact: true });
   await expect(sections.getByRole(`button`)).toHaveText([`Shopping`, `Recipes`, `Meals`, `Tasks`, `Expenses`, `Partner notes`, `Calendar`, `Children`, `Pets`]);
-  await nav.getByRole(`button`, { name: `Shopping`, exact: true }).click();
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
   for (const name of [`Recipes`, `Meals`, `Tasks`, `Children`, `Pets`, `Shopping`]) {
     await sections.getByRole(`button`, { name, exact: true }).click();

@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { transport, pocPassword } from './helpers/sharedTransport';
-import { mainNavigation, openHome } from './navigation';
+import { mainNavigation, openShopping } from './navigation';
 
 test.use({ serviceWorkers: 'block' });
 async function login(page: Page, name: 'Masha' | 'Damian') {
@@ -10,7 +10,7 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 }
 async function recipes(page: Page) {
-  await openHome(page);
+  await openShopping(page);
   await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Recipes', exact: true }).click();
 }
 
@@ -69,7 +69,7 @@ test('recipes with photos and filters are shared across phones and existing note
     await expect(b.locator('.recipe-card').filter({ hasText: 'Older recipe updated' })).toBeVisible();
     await mainNavigation(b).getByRole('button', { name: 'Us', exact: true }).click();
     await expect(b.getByRole('heading', { name: 'Us.' })).toBeVisible();
-    await mainNavigation(b).getByRole('button', { name: 'Home', exact: true }).click();
+    await mainNavigation(b).getByRole('button', { name: 'Shopping', exact: true }).click();
     await b.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Recipes', exact: true }).click();
     await expect(b.locator('.recipe-card')).toHaveCount(2);
   } finally { await first.close(); await second.close(); }

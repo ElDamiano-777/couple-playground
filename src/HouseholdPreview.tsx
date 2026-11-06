@@ -56,7 +56,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     <div className="notification-note"><Symbol name="bell" /><p>Phone notifications aren’t connected yet. We’ll set them up after your shared space is ready.</p></div>
   </section>;
 
-  if (page === `home`) return <><Dashboard key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} navigate={navigate} shopping={shopping} meals={meals} tasks={tasks} onShoppingCategory={onShoppingCategory} onDinner={meal => { setDinnerToOpen(meal); navigate('meals'); }} onPlan={meal => { setDinnerToPlan(meal); navigate('meals'); }} onTask={task => { setTaskToOpen(task); navigate('tasks'); }} onAddTask={() => { setAddTask(true); navigate('tasks'); }} /><HomeNavigation page="home" navigate={navigate} /></>;
+  if (page === `home`) return <Dashboard key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} navigate={navigate} shopping={shopping} meals={meals} tasks={tasks} onShoppingCategory={onShoppingCategory} onDinner={meal => { setDinnerToOpen(meal); navigate('meals'); }} onPlan={meal => { setDinnerToPlan(meal); navigate('meals'); }} onTask={task => { setTaskToOpen(task); navigate('tasks'); }} onAddTask={() => { setAddTask(true); navigate('tasks'); }} />;
 
   if (page === `folders`) {
     const pets = family.profiles.filter(item => item.kind === 'pet').map(item => item.name);

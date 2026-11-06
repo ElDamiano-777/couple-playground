@@ -19,14 +19,13 @@ test('meal planner selects a recipe and reviews its quantities before adding to 
   await expect(page.getByText('Synthetic pasta', { exact: true })).toBeVisible();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
   await expect(page.getByRole('button', { name: /Tonight’s dinner/ })).toBeVisible();
-  await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
   await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Meals', exact: true }).click();
   await page.getByRole('button', { name: 'Create Shopping List', exact: true }).click();
   await expect(page.getByText('200 g pasta', { exact: true })).toBeVisible();
   await expect(page.getByText('1 lime', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Add 2 ingredients', exact: true }).click();
-  await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
-  await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Shopping', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
   await page.getByRole('group', { name: 'Shopping categories' }).getByRole('button', { name: /Home/ }).click();
   await expect(page.getByText('pasta', { exact: true })).toBeVisible();
   await expect(page.getByText('200 g', { exact: true })).toBeVisible();
