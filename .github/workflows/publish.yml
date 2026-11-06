@@ -55,7 +55,7 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.check.outputs.app == 'true'
     needs: check
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     permissions:
       contents: read
       pages: write
