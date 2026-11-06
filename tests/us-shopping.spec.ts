@@ -92,11 +92,11 @@ test('dashboard shopping preview expands and links to Shopping', async ({ page, 
   const server = transport();
   for (const name of ['Eggs', 'Milk', 'Bread', 'Rice', 'Pasta', 'Tea']) server.seedShopping(name, '');
   await server.attach(context); await login(page, 'Masha');
-  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(5);
-  await page.getByRole('button', { name: 'Show all 6 items' }).click();
+  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
+  await page.getByRole('button', { name: 'Show all (6)' }).click();
   await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(6);
   await page.getByRole('button', { name: 'Show less' }).click();
-  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(5);
+  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
   await page.locator('.us-shopping-heading').getByRole('button', { name: 'Shopping', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Shopping.' })).toBeVisible();
 });

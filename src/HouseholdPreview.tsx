@@ -98,7 +98,7 @@ function Dashboard({ navigate, shopping, meals, tasks, onShoppingCategory, onDin
   const planDinner = () => { if (dinnerReady) onPlan(dinner ?? { day_index: todayIndex, meal_slot: 'Dinner' }); };
   return <section className="preview-page home-dashboard"><h1>Home<span>.</span></h1><p className="page-intro">Everything important, all in one place.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}
     <div className="dashboard-sections">
-      <section className={`dashboard-card task-dashboard${openTasks.length ? ' dashboard-active' : ''}${openTasks[0]?.due_date && openTasks[0].due_date < today ? ' dashboard-overdue' : ''}`} aria-labelledby="dashboard-tasks-title">
+      <section className={`dashboard-card task-dashboard${openTasks.length ? ' dashboard-active' : ' task-dashboard-empty'}${openTasks[0]?.due_date && openTasks[0].due_date < today ? ' dashboard-overdue' : ''}`} aria-labelledby="dashboard-tasks-title">
         <div className="home-card-header"><h2 id="dashboard-tasks-title"><span className="dashboard-icon"><Symbol name="plans" /></span>Upcoming tasks</h2><button className="home-view-all" onClick={() => navigate('tasks')}>View all</button></div>
         {openTasks.length ? <div className="home-task-list">{openTasks.slice(0, 2).map(task => <button className="home-task" key={task.id} onClick={() => onTask(task)}><strong>{task.title}</strong><TaskBadges task={task} /></button>)}</div> : <p className="home-empty">No open tasks.</p>}
       </section>
