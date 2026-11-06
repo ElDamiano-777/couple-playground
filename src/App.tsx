@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import config from '../app.config.json';
 import HouseholdPreview, { Symbol, type HouseholdPage } from './HouseholdPreview';
 import { readNotes, saveNotes, type Note } from './storage';
@@ -48,9 +48,10 @@ export default function App() {
   const meals = useMealPlan({ userId: shopping.session?.user.id, household: shopping.household });
   const tasks = useHouseholdTasks({ userId: shopping.session?.user.id, household: shopping.household });
   const [sharedRecipe, setSharedRecipe] = useState<string | null>(readSharedRecipe);
-  const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : new URLSearchParams(window.location.search).has(`calendar`) ? `calendar` : `folders`);
+  const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : new URLSearchParams(window.location.search).has(`calendar`) ? `calendar` : `home`);
   const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
+  const waitingForSignIn = useRef(false);
   const [profileSaved, setProfileSaved] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
   const [addingNote, setAddingNote] = useState(false);
@@ -128,14 +129,24 @@ export default function App() {
     catch { setProfileSaved(false); }
   }, [shopping.pocUsername]);
 
+  useEffect(() => {
+    if (!waitingForSignIn.current || !shopping.session) return;
+    waitingForSignIn.current = false;
+    if (sharedRecipe) setPage('recipes');
+    else setPage(new URLSearchParams(window.location.search).has('calendar') ? 'calendar' : 'home');
+  }, [shopping.session, sharedRecipe]);
+
   async function chooseProfile(value: Profile) {
+    let needsSignIn = !shopping.session;
     if (shopping.session && shopping.session.user.email !== `${value}@poc.together.invalid`) {
       if ((family.dirty || collections.dirty) && !window.confirm(`Change name and discard unfinished entries? Your saved items stay in your home.`)) return;
       if (!await shopping.signOut()) return;
+      needsSignIn = true;
     }
     shopping.setUsername(value);
     shopping.setPassword(``);
-    setPage(`shopping`);
+    waitingForSignIn.current = needsSignIn;
+    setPage(needsSignIn ? `shopping` : `home`);
     try { localStorage.setItem(profileKey, value); setProfileSaved(true); }
     catch { setProfileSaved(false); }
     setProfile(value);
@@ -156,7 +167,7 @@ export default function App() {
   }
 
   function navigate(next: Page) {
-    if (next === `folders`) meals.setWeekStart(monday());
+    if (next === `home`) meals.setWeekStart(monday());
     if (next === `home` || next === `shopping`) setShoppingCategory(null);
     if (next === `children`) family.setKind(`child`);
     if (next === `pets`) family.setKind(`pet`);
@@ -165,18 +176,18 @@ export default function App() {
     if (next === `tasks`) { /* Tasks refresh themselves while the household is open. */ }
     if (next === `wishlist`) collections.setKind(`wish`);
     if (next === `places`) collections.setKind(`place`);
-    setPage(next === `home` ? `shopping` : next);
+    setPage(next);
     if (!loadFailed) setMessage(``);
     window.scrollTo({ top: 0, behavior: `instant` });
   }
 
-  const homePages: Page[] = [`home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`];
-  const activeFolder = homePages.includes(page) ? `home` : [`notes`, `welcome`, `activity`].includes(page) ? `more` : page;
+  const homePages: Page[] = [`home`, `recipes`, `meals`, `tasks`, `expenses`, `calendar`, `children`];
+  const activeFolder = homePages.includes(page) ? `home` : [`pets`, `partner-notes`, `wishlist`].includes(page) ? `folders` : [`notes`, `welcome`, `activity`, `search`].includes(page) ? `more` : page;
 
   return <div className="app">
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="header">
-      <a className="wordmark" href={config.basePath} aria-label="Together — Us" onClick={event => { event.preventDefault(); navigate(`folders`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
+      <a className="wordmark" href={config.basePath} aria-label="Together — Home" onClick={event => { event.preventDefault(); navigate(`home`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
       <div className="header-tools">{profile && <><button aria-label="Search Together" onClick={() => navigate(`search`)}>⌕</button><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Help and settings" onClick={() => navigate(`more`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}<span className="edition"><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</span></div>
     </header>
 
@@ -269,13 +280,13 @@ export default function App() {
         <div className="local-label"><span />This is a little demo. Notes stay in this browser and aren’t shared with your partner yet.</div>
         <p className="small-print">Clearing your browser data also removes these local notes. Other people using the same browser can read them.</p>
       </section>}
-      {page === `search` && <GlobalSearch shopping={shopping} collections={collections} tasks={tasks} localNotes={notes} onClose={() => navigate(`folders`)} />}
+      {page === `search` && <GlobalSearch shopping={shopping} collections={collections} tasks={tasks} localNotes={notes} onClose={() => navigate(`home`)} />}
       </>}
     </main>
 
     <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>
     {profile && <nav className="bottom-nav" aria-label="Main navigation" lang="en">
-      {([{ id: `places`, icon: `pin`, label: `Places` }, { id: `home`, icon: `home`, label: `Home` }, { id: `folders`, icon: `heart`, label: `Us` }, { id: `wishlist`, icon: `wishlist`, label: `Wishlist` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={`${item.id === `folders` ? `nav-us ` : ``}${activeFolder === item.id ? `active` : ``}`} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
+      {([{ id: `home`, icon: `home`, label: `Home` }, { id: `folders`, icon: `heart`, label: `Us` }, { id: `shopping`, icon: `shopping`, label: `Shopping` }, { id: `places`, icon: `pin`, label: `Places` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={`${item.id === `folders` ? `nav-us ` : ``}${activeFolder === item.id ? `active` : ``}`} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
     </nav>}
   </div>;
 }

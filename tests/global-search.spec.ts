@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openShoppingCategory } from './navigation';
+import { mainNavigation, openShoppingCategory } from './navigation';
 import { pocPassword, transport } from './helpers/sharedTransport';
 
 test.use({ serviceWorkers: 'block' });
@@ -11,6 +11,7 @@ test('global search finds a recipe, shopping item, task and local note without l
   await page.getByRole('button', { name: 'Masha', exact: true }).click();
   await page.getByLabel('Password', { exact: true }).fill(pocPassword);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
   await openShoppingCategory(page, 'Home');
   await page.getByRole('button', { name: '✦ Quick Add' }).click();
   await page.getByRole('button', { name: 'Milk', exact: true }).click();

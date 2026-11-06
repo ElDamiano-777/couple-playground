@@ -11,7 +11,7 @@ test(`personal welcome, navigation and narrow-screen layout work without script 
   const errors: string[] = [];
   page.on(`pageerror`, error => errors.push(error.message));
   await enterAs(page);
-  await expect(page.getByRole(`heading`, { name: `Shopping.`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `Home.`, exact: true })).toBeVisible();
   await expect(page.locator(`html`)).toHaveAttribute(`lang`, `en`);
   await page.getByRole(`button`, { name: `Help and settings`, exact: true }).click();
   await expect(page.getByRole(`heading`, { name: `Say it in your own words` })).toBeVisible();
@@ -20,7 +20,7 @@ test(`personal welcome, navigation and narrow-screen layout work without script 
   await expect(page.locator(`.welcome-hero`)).toHaveAttribute(`lang`, `en`);
   await expect(page.getByRole(`link`, { name: `Open ChatGPT`, exact: true })).toHaveAttribute(`href`, `https://chatgpt.com/codex/cloud`);
   await openHome(page);
-  await expect(page.getByRole(`heading`, { name: `Shopping.`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `Home.`, exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
 });
@@ -124,7 +124,7 @@ test(`name choice is local, remembers the selection and can be changed`, async (
   await expect(page.getByText(`Hi, Damian`)).toBeVisible();
   await page.reload();
   await expect(page.getByText(`Hi, Damian`)).toBeVisible();
-  await expect(page.getByRole(`heading`, { name: `Us.`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `Home.`, exact: true })).toBeVisible();
   await page.getByRole(`button`, { name: `Help and settings`, exact: true }).click();
   await page.getByRole(`button`, { name: `Change name` }).click();
   await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
@@ -151,7 +151,7 @@ test(`unknown name prompts for a choice and storage failure still permits entry`
   await expect(page.getByRole(`heading`, { name: `Who’s here?` })).toBeVisible();
   await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
   await openHome(page);
-  await expect(page.getByRole(`heading`, { name: `Shopping.`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`heading`, { name: `Home.`, exact: true })).toBeVisible();
   await expect(page.getByText(`We couldn’t save your name on this device. You can still use the app.`)).toBeVisible();
 });
 
@@ -160,7 +160,7 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await enterAs(page);
   const nav = mainNavigation(page);
   const noOverflow = async (section = 'page') => expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${section} must not create horizontal page overflow`).toBe(true);
-  await expect(nav.getByRole(`button`)).toHaveText([`Places`, `Home`, `Us`, `Wishlist`, `More`]);
+  await expect(nav.getByRole(`button`)).toHaveText([`Home`, `Us`, `Shopping`, `Places`, `More`]);
   for (const button of await nav.getByRole(`button`).all()) {
     const box = await button.boundingBox();
     expect(box && box.width >= 44 && box.height >= 44 && box.x >= 0 && box.x + box.width <= 320).toBe(true);
@@ -171,6 +171,7 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await expect(nav.getByRole(`button`, { name: `Home`, exact: true })).toHaveAttribute(`aria-current`, `page`);
   const sections = page.getByRole(`navigation`, { name: `Home sections`, exact: true });
   await expect(sections.getByRole(`button`)).toHaveText([`Shopping`, `Recipes`, `Meals`, `Tasks`, `Expenses`, `Partner notes`, `Calendar`, `Children`, `Pets`]);
+  await nav.getByRole(`button`, { name: `Shopping`, exact: true }).click();
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
   for (const name of [`Recipes`, `Meals`, `Tasks`, `Children`, `Pets`, `Shopping`]) {
     await sections.getByRole(`button`, { name, exact: true }).click();
@@ -182,7 +183,8 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await page.getByRole(`button`, { name: `Sign in to Family`, exact: true }).click();
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
   for (const name of [`Wishlist`, `Places`]) {
-    await nav.getByRole(`button`, { name, exact: true }).click();
+    if (name === `Wishlist`) { await nav.getByRole(`button`, { name: `Us`, exact: true }).click(); await page.getByRole(`button`, { name: /Wishlist/ }).click(); }
+    else await nav.getByRole(`button`, { name, exact: true }).click();
     await expect(page.getByRole(`heading`, { name: `${name}.`, exact: true })).toBeVisible();
     await page.getByRole(`button`, { name: `Sign in through Shopping`, exact: true }).click();
     await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();

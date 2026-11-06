@@ -41,7 +41,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   const [dinnerToPlan, setDinnerToPlan] = useState<MealPlanItem | { day_index: number; meal_slot: MealSlot } | null>(null);
   const [taskToOpen, setTaskToOpen] = useState<HouseholdTask | null>(null);
   const [addTask, setAddTask] = useState(false);
-  useEffect(() => { if (page === `folders`) { setDinnerToOpen(null); setDinnerToPlan(null); setTaskToOpen(null); setAddTask(false); } }, [page]);
+  useEffect(() => { if (page === `home`) { setDinnerToOpen(null); setDinnerToPlan(null); setTaskToOpen(null); setAddTask(false); } }, [page]);
   if (page === `activity`) return <section className="preview-page">
     <button className="text-action" onClick={() => navigate(`folders`)}>← Us</button>
     <p className="eyebrow">KEEPING EACH OTHER IN THE LOOP</p>
@@ -56,7 +56,16 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     <div className="notification-note"><Symbol name="bell" /><p>Phone notifications aren’t connected yet. We’ll set them up after your shared space is ready.</p></div>
   </section>;
 
-  if (page === `folders`) return <Dashboard key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} navigate={navigate} shopping={shopping} meals={meals} tasks={tasks} onShoppingCategory={onShoppingCategory} onDinner={meal => { setDinnerToOpen(meal); navigate('meals'); }} onPlan={meal => { setDinnerToPlan(meal); navigate('meals'); }} onTask={task => { setTaskToOpen(task); navigate('tasks'); }} onAddTask={() => { setAddTask(true); navigate('tasks'); }} />;
+  if (page === `home`) return <><Dashboard key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} navigate={navigate} shopping={shopping} meals={meals} tasks={tasks} onShoppingCategory={onShoppingCategory} onDinner={meal => { setDinnerToOpen(meal); navigate('meals'); }} onPlan={meal => { setDinnerToPlan(meal); navigate('meals'); }} onTask={task => { setTaskToOpen(task); navigate('tasks'); }} onAddTask={() => { setAddTask(true); navigate('tasks'); }} /><HomeNavigation page="home" navigate={navigate} /></>;
+
+  if (page === `folders`) {
+    const pets = family.profiles.filter(item => item.kind === 'pet').map(item => item.name);
+    return <section className="preview-page couple-page"><p className="eyebrow">A LITTLE SPACE FOR TWO</p><h1>Us<span>.</span></h1><p className="page-intro">A cozy place for the things you share.</p>
+      <div className="couple-grid"><button className="couple-card couple-people" onClick={() => navigate('partner-notes')}><span className="dashboard-icon"><Symbol name="heart" /></span><strong>Masha &amp; Damian</strong><small>Little notes for each other</small><span className="couple-link">Open partner notes →</span></button>
+      <button className="couple-card couple-pets" onClick={() => navigate('pets')}><span className="dashboard-icon"><Symbol name="pet" /></span><strong>Pets</strong><small>{pets.length ? pets.join(' · ') : 'Your pets, together'}</small><span className="couple-link">View pets →</span></button>
+      <div className="couple-card couple-memories"><span className="dashboard-icon"><Symbol name="folder" /></span><strong>Shared Memories</strong><small>A little space for memories, coming later.</small></div>
+      <button className="couple-card couple-wishlist" onClick={() => navigate('wishlist')}><span className="dashboard-icon"><Symbol name="wishlist" /></span><strong>Wishlist</strong><small>Wishes you save together</small><span className="couple-link">Open wishlist →</span></button></div></section>;
+  }
 
   return <div className="household-preview">
     {[`home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`].includes(page) && <HomeNavigation page={page} navigate={navigate} />}
@@ -87,7 +96,7 @@ function Dashboard({ navigate, shopping, meals, tasks, onShoppingCategory, onDin
   const openShopping = () => { if (!shopping.session || !shopping.household) navigate('shopping'); else setAddingShopping(true); };
   const dinnerReady = !!shopping.household && !shopping.loading && !meals.loading && !meals.error && meals.weekStart === monday(now);
   const planDinner = () => { if (dinnerReady) onPlan(dinner ?? { day_index: todayIndex, meal_slot: 'Dinner' }); };
-  return <section className="preview-page home-dashboard"><h1>Us<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}
+  return <section className="preview-page home-dashboard"><h1>Home<span>.</span></h1><p className="page-intro">Your shared space at a glance.</p>{shopping.isPoc && <p className="notice">POC test space. Don’t enter sensitive personal information.</p>}
     <div className="dashboard-sections">
       <section className={`dashboard-card task-dashboard${openTasks.length ? ' dashboard-active' : ''}${openTasks[0]?.due_date && openTasks[0].due_date < today ? ' dashboard-overdue' : ''}`} aria-labelledby="dashboard-tasks-title">
         <div className="home-card-header"><h2 id="dashboard-tasks-title"><span className="dashboard-icon"><Symbol name="plans" /></span>Upcoming tasks</h2><button className="home-view-all" onClick={() => navigate('tasks')}>View all</button></div>

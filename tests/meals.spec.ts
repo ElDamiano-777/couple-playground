@@ -17,7 +17,7 @@ test('meal planner selects a recipe and reviews its quantities before adding to 
   await page.getByLabel('Saved recipe').selectOption({ label: 'Synthetic pasta' });
   await page.getByRole('button', { name: 'Save meal', exact: true }).click();
   await expect(page.getByText('Synthetic pasta', { exact: true })).toBeVisible();
-  await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
   await expect(page.getByRole('button', { name: /Tonight’s dinner/ })).toBeVisible();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
   await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Meals', exact: true }).click();
@@ -170,7 +170,7 @@ test('planned dinner ingredients offer duplicate choices and sync to the other p
     await dialog.getByRole('button', { name: 'Add 3 items' }).click();
     await expect(dialog).toHaveCount(0);
     await expect(a.getByRole('status')).toContainText('1 ingredient added · 1 quantity updated · 1 skipped');
-    await mainNavigation(b).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(b).getByRole('button', { name: 'Home', exact: true }).click();
     await b.evaluate(() => window.dispatchEvent(new Event('focus')));
     const rice = b.locator('.us-shopping-item').filter({ hasText: 'rice' });
     await expect(rice).toContainText('Brand: Favourite · Size: 1 kg');

@@ -31,7 +31,7 @@ test('dashboard Quick Add shares selections, favorite photos and pet association
     await expect(first.getByAltText('Food packaging preview')).toBeVisible();
     await first.getByRole('button', { name: 'Save food' }).click();
     await expect(first.getByText('Example dinner', { exact: true })).toBeVisible();
-    await mainNavigation(first).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(first).getByRole('button', { name: 'Home', exact: true }).click();
     await expect(first.locator('.shopping-dashboard')).toContainText('0 items to buy');
     await first.getByRole('button', { name: 'Add shopping item', exact: true }).click();
     await first.getByRole('button', { name: '+ Add favorite' }).click();
@@ -84,7 +84,7 @@ test('dashboard Quick Add shares selections, favorite photos and pet association
     await expect(dashboardFood.locator('img')).toHaveAttribute('src', foodPhoto!);
     await expect(dashboardFood).toContainText('For: Example pet');
     await expect(first.locator('.us-shopping-item').filter({ hasText: 'Eggs' })).toContainText('Quantity: 6');
-    await mainNavigation(second).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(second).getByRole('button', { name: 'Home', exact: true }).click();
     await second.evaluate(() => window.dispatchEvent(new Event('focus')));
     await second.getByText('Manage shopping here').click();
     await second.getByRole('button', { name: 'Show all 5 items' }).click();

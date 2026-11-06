@@ -18,7 +18,7 @@ test('shared tasks support assignment, due date, completion and restore on iPhon
   await page.getByRole('button', { name: 'Assigned to Partner', exact: true }).click(); await expect(page.getByText('Synthetic laundry', { exact: true })).toBeVisible();
   await page.getByLabel('Complete Synthetic laundry').click(); await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Undo', exact: true }).click(); await expect(page.getByLabel('Complete Synthetic laundry')).toBeVisible();
-  await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click(); await expect(page.getByRole('heading', { name: 'Upcoming tasks' })).toBeVisible(); await expect(page.getByText('Synthetic laundry', { exact: true })).toBeVisible();
+  await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click(); await expect(page.getByRole('heading', { name: 'Upcoming tasks' })).toBeVisible(); await expect(page.getByText('Synthetic laundry', { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -36,7 +36,7 @@ test('dashboard highlights and orders active tasks and reflects changes on phone
     await page.clock.setFixedTime(new Date('2026-03-30T12:00:00Z'));
     await page.goto('./'); await page.getByRole('button', { name: 'Masha', exact: true }).click();
     await page.getByLabel('Password', { exact: true }).fill(pocPassword); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
     const card = page.locator('.task-dashboard');
     await expect(card.locator('.home-task')).toHaveCount(2);
     await expect(card).toContainText('Older overdue');
@@ -50,7 +50,7 @@ test('dashboard highlights and orders active tasks and reflects changes on phone
     await expect(page.locator('.shopping-dashboard')).not.toHaveClass(/dashboard-active/);
     await card.getByRole('button', { name: 'View all' }).click();
     await page.getByLabel('Complete Older overdue').click();
-    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
     await expect(card.locator('.home-task')).toHaveCount(2);
     await expect(card).toContainText('Urgent soon');
     await expect(card.locator('.home-task').first().locator('.badge-assignee')).toHaveText('Both');
@@ -61,16 +61,16 @@ test('dashboard highlights and orders active tasks and reflects changes on phone
     await page.locator('.task-main').filter({ hasText: 'Urgent soon' }).click();
     await page.getByRole('dialog', { name: 'Edit task' }).getByLabel('Task', { exact: true }).fill('Updated urgent task');
     await page.getByRole('button', { name: 'Save task' }).click();
-    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
     await expect(card).toContainText('Updated urgent task');
     await card.getByRole('button', { name: 'View all' }).click();
     page.once('dialog', dialog => dialog.accept());
     await page.getByRole('button', { name: 'Delete Updated urgent task' }).click();
-    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
     await expect(card).toContainText('Normal soon');
     await card.getByRole('button', { name: 'View all' }).click();
     await page.getByLabel('Complete Normal soon').click();
-    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
     await expect(card).toContainText('No open tasks.');
     await expect(card).not.toHaveClass(/dashboard-active/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -91,7 +91,7 @@ test('task badges show English dates, priorities and overdue state on narrow pho
     await page.clock.setFixedTime(new Date('2026-03-30T12:00:00Z'));
     await page.goto('./'); await page.getByRole('button', { name: 'Masha', exact: true }).click();
     await page.getByLabel('Password', { exact: true }).fill(pocPassword); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-    await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
     const dashboard = page.locator('.task-dashboard');
     await expect(dashboard.locator('.home-task').first().locator('.task-badge')).toHaveCount(3);
     await expect(dashboard.locator('.home-task').first().locator('.badge-due')).toHaveAttribute('aria-label', 'Overdue 28 Mar');

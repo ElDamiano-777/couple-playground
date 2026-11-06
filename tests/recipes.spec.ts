@@ -68,7 +68,10 @@ test('recipes with photos and filters are shared across phones and existing note
     await b.getByRole('button', { name: '← Our Recipes' }).click();
     await expect(b.locator('.recipe-card').filter({ hasText: 'Older recipe updated' })).toBeVisible();
     await mainNavigation(b).getByRole('button', { name: 'Us', exact: true }).click();
-    await expect(b.getByText(/2 recipes/)).toBeVisible();
+    await expect(b.getByRole('heading', { name: 'Us.' })).toBeVisible();
+    await mainNavigation(b).getByRole('button', { name: 'Home', exact: true }).click();
+    await b.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Recipes', exact: true }).click();
+    await expect(b.locator('.recipe-card')).toHaveCount(2);
   } finally { await first.close(); await second.close(); }
 });
 
@@ -278,8 +281,9 @@ test('recipe details separate ingredients, notes and steps and add chosen items 
     });
     expect(geometry.overflow).toBe(false);
     expect(geometry.bottom).toBeLessThanOrEqual(geometry.navTop);
-    await mainNavigation(second).getByRole('button', { name: 'Us', exact: true }).click();
+    await mainNavigation(second).getByRole('button', { name: 'Home', exact: true }).click();
     await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await second.getByText('Manage shopping here').click();
     const row = second.locator('.us-shopping-item').filter({ hasText: 'butter' });
     await expect(row).toContainText('Home');
     await expect(row).toContainText('2 tbsp');
