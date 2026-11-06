@@ -6,10 +6,10 @@ Zusammenarbeit basiert auf authentifizierten Haushaltsmitgliedern statt lokal ge
 
 ## Umfang
 
-- [ ] Haushaltsmitglieder mit sicherem Anzeigenamen verfügbar machen.
-- [ ] Bestehende Masha-/Damian-POC-Mitglieder ohne Datenverlust übernehmen.
+- [x] Haushaltsmitglieder mit sicherem Anzeigenamen verfügbar machen.
+- [x] Bestehende Masha-/Damian-POC-Mitglieder ohne Datenverlust übernehmen.
 - [ ] Task-Zuweisung auf echte Mitglieds-IDs vorbereiten.
-- [ ] Änderungen an Shopping, Recipes, Meals und Tasks zeitnah auf geöffneten Partner-Geräten aktualisieren.
+- [x] Änderungen an Shopping, Recipes, Meals und Tasks zeitnah auf geöffneten Partner-Geräten aktualisieren.
 
 ## Nicht enthalten
 
@@ -18,11 +18,13 @@ Zusammenarbeit basiert auf authentifizierten Haushaltsmitgliedern statt lokal ge
 
 ## Verifikation
 
-- [ ] Unverbundene Konten können keine Haushaltsdaten oder Mitgliedszuordnungen lesen.
+- [x] Unverbundene Konten können keine Haushaltsdaten oder Mitgliedszuordnungen lesen.
 - [ ] Zwei Haushaltsmitglieder sehen dieselbe Änderung ohne manuelles Neuladen.
-- [ ] Bestehende POC-Daten bleiben sichtbar.
+- [x] Bestehende POC-Daten bleiben sichtbar.
 
 ## Entscheidungen
 
-- [ ] Namen sind eine Darstellung aus sicherer Mitgliedszuordnung, nie eine Berechtigung.
+- [x] Namen sind eine Darstellung aus sicherer Mitgliedszuordnung, nie eine Berechtigung.
+
+Test: `python3 scripts/test-database.py` am 06.11.2026; Produktions-Gegenprobe mit zwei Geräten bleibt offen.
 

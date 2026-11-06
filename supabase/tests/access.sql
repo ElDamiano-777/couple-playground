@@ -3,7 +3,7 @@
 create role anon;
 create role authenticated;
 create schema auth;
-create table auth.users(id uuid primary key);
+create table auth.users(id uuid primary key, email text, raw_user_meta_data jsonb not null default '{}'::jsonb);
 create function auth.uid() returns uuid language sql stable as $$
  select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
 $$;
@@ -17,6 +17,7 @@ grant execute on function auth.uid() to anon, authenticated;
 \ir ../migrations/20261105030000_shared_meal_plan.sql
 \ir ../migrations/20261105040000_shared_household_tasks.sql
 \ir ../migrations/20261105050000_shared_expenses_and_partner_notes.sql
+\ir ../migrations/20261106010000_household_members_and_realtime.sql
 insert into auth.users values
  ('00000000-0000-4000-8000-000000000001'),
  ('00000000-0000-4000-8000-000000000002'),

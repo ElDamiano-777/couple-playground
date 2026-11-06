@@ -103,8 +103,12 @@ export function useFolderEntries({
     document.addEventListener(`visibilitychange`, focus);
     window.addEventListener(`online`, network);
     window.addEventListener(`offline`, network);
+    const channel = household ? supabase.channel(`together-folders-${household}`)
+      .on(`postgres_changes`, { event: `*`, schema: `public`, table: `folder_entries`, filter: `household_id=eq.${household}` }, () => { void sync(); })
+      .subscribe() : null;
     return () => {
       active = false;
+      if (channel) void supabase.removeChannel(channel);
       clearInterval(timer);
       window.removeEventListener(`focus`, focus);
       document.removeEventListener(`visibilitychange`, focus);

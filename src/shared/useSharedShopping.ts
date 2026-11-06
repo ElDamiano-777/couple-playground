@@ -228,6 +228,14 @@ export function useSharedShopping() {
     };
   }, [userId, refresh]);
 
+  useEffect(() => {
+    if (!household) return;
+    const channel = supabase.channel(`together-shopping-${household}`)
+      .on(`postgres_changes`, { event: `*`, schema: `public`, table: `shopping_items`, filter: `household_id=eq.${household}` }, () => { void refresh(); })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [household, refresh]);
+
   async function perform(action: () => Promise<void>) {
     if (mutationPending.current) return false;
     mutationPending.current = true;

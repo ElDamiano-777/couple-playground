@@ -14,6 +14,11 @@ export function useHouseholdTasks({ userId, household }: { userId?: string; hous
     catch { setError(failure); } finally { setLoading(false); }
   }, [household, userId]);
   useEffect(() => { void refresh(); const timer = window.setInterval(() => { if (!document.hidden) void refresh(); }, 15000); const focus = () => { if (!document.hidden) void refresh(); }; window.addEventListener('focus', focus); document.addEventListener('visibilitychange', focus); return () => { clearInterval(timer); window.removeEventListener('focus', focus); document.removeEventListener('visibilitychange', focus); }; }, [refresh]);
+  useEffect(() => {
+    if (!household) return;
+    const channel = supabase.channel(`together-tasks-${household}`).on('postgres_changes', { event: '*', schema: 'public', table: 'household_tasks', filter: `household_id=eq.${household}` }, () => { void refresh(); }).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [household, refresh]);
   const save = async (draft: { id?: string; title: string; assignee: TaskAssignee; dueDate: string; priority: TaskPriority }) => {
     if (!household || busy || !navigator.onLine || !draft.title.trim()) return false;
     setBusy(true); setError(''); setNotice('');

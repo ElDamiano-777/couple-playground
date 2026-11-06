@@ -32,6 +32,11 @@ export function useMealPlan({ userId, household }: { userId?: string; household:
     window.addEventListener('focus', focus); document.addEventListener('visibilitychange', focus);
     return () => { clearInterval(timer); window.removeEventListener('focus', focus); document.removeEventListener('visibilitychange', focus); };
   }, [refresh]);
+  useEffect(() => {
+    if (!household) return;
+    const channel = supabase.channel(`together-meals-${household}`).on('postgres_changes', { event: '*', schema: 'public', table: 'meal_plan_items', filter: `household_id=eq.${household}` }, () => { void refresh(); }).subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [household, refresh]);
   const save = async (item: { id?: string; dayIndex: number; mealSlot: MealSlot; recipeId: string | null; title: string }) => {
     if (!household || busy || !navigator.onLine) return false;
     setBusy(true); setError(''); setNotice('');
