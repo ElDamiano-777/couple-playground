@@ -11,7 +11,7 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
   await expect(page.locator('.shopping-dashboard')).toBeVisible();
 }
 async function add(page: Page, name: string, category: string, details: string) {
-  await page.getByRole('button', { name: 'Add shopping item', exact: true }).click();
+  await page.getByRole('button', { name: '+ Add item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: category }).click();
   await page.getByRole('button', { name: '+ Custom item' }).click();
   await page.getByLabel('Custom product').fill(name);
@@ -70,7 +70,7 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
 test('an unsuccessful dashboard addition keeps its draft when navigating', async ({ page, context }) => {
   const server = transport(); await server.attach(context);
   await login(page, 'Masha');
-  await page.getByRole('button', { name: 'Add shopping item', exact: true }).click();
+  await page.getByRole('button', { name: '+ Add item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
   await page.getByRole('button', { name: '+ Custom item' }).click();
   await page.getByLabel('Custom product').fill('Unfinished dashboard item');
@@ -82,7 +82,7 @@ test('an unsuccessful dashboard addition keeps its draft when navigating', async
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
-  await page.getByRole('button', { name: 'Add shopping item', exact: true }).click();
+  await page.getByRole('button', { name: '+ Add item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await expect(page.locator('.quick-selection').getByLabel('Details (optional)')).toHaveValue('Keep these details');
@@ -90,11 +90,11 @@ test('an unsuccessful dashboard addition keeps its draft when navigating', async
 
 test('dashboard shopping preview expands and links to Shopping', async ({ page, context }) => {
   const server = transport();
-  for (const name of ['Eggs', 'Milk', 'Bread', 'Rice', 'Pasta', 'Tea']) server.seedShopping(name, '');
+  for (const name of ['Eggs', 'Milk', 'Bread', 'Rice', 'Pasta', 'Tea', 'Salt', 'Oil', 'Coffee', 'Apples']) server.seedShopping(name, '');
   await server.attach(context); await login(page, 'Masha');
   await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
-  await page.getByRole('button', { name: 'Show all (6)' }).click();
-  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(6);
+  await page.getByRole('button', { name: 'Show all (10)' }).click();
+  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(10);
   await page.getByRole('button', { name: 'Show less' }).click();
   await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
   await page.locator('.us-shopping-heading').getByRole('button', { name: 'Shopping', exact: true }).click();
