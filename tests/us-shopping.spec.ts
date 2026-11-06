@@ -8,19 +8,19 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
   await page.getByLabel('Password', { exact: true }).fill(pocPassword);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
-  await expect(page.locator('.us-shopping-heading > span')).toBeVisible();
-  const heading = page.locator('.us-shopping-heading button');
-  if (await heading.getAttribute('aria-expanded') === 'false') await heading.click();
-  await expect(page.getByRole('group', { name: 'Shopping categories' })).toBeVisible();
+  await expect(page.locator('.shopping-dashboard')).toBeVisible();
 }
 async function add(page: Page, name: string, category: string, details: string) {
-  await page.getByRole('button', { name: '+ Add shopping item' }).click();
+  await page.getByRole('button', { name: 'Add shopping item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: category }).click();
   await page.getByRole('button', { name: '+ Custom item' }).click();
   await page.getByLabel('Custom product').fill(name);
   await page.locator('.quick-custom').getByRole('button', { name: 'Add', exact: true }).click();
   await page.locator('.quick-selection').getByLabel('Details (optional)').fill(details);
   await page.getByRole('button', { name: 'Add 1 item' }).click();
+  const manage = page.locator('.home-manage-shopping');
+  await expect(manage).toBeVisible();
+  if (await manage.getAttribute('open') === null) await manage.locator('summary').click();
   await expect(page.locator('.us-shopping-item').filter({ hasText: name })).toBeVisible();
 }
 
@@ -33,8 +33,8 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
   const first = await a.newPage(), second = await b.newPage();
   try {
     await login(first, 'Masha'); await login(second, 'Damian');
-    await expect(first.getByText('All caught up! Your shopping list is empty.')).toBeVisible();
-    await expect(first.locator('.us-shopping')).not.toHaveClass(/dashboard-active/);
+    await expect(first.locator('.shopping-dashboard')).toContainText('0 items to buy');
+    await expect(first.locator('.shopping-dashboard')).not.toHaveClass(/dashboard-active/);
     await add(first, 'Synthetic apples', 'Home', 'Organic');
     await expect(first.locator('.us-shopping')).toHaveClass(/dashboard-active/);
     await add(first, 'Synthetic pet food', 'Pets', 'For: First pet · Brand: Example');
@@ -46,6 +46,7 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
     await expect(first.locator('.us-shopping-item').filter({ hasText: 'Synthetic pet food' })).toContainText('First pet');
     expect(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await second.getByText('Manage shopping here').click();
     await expect(second.locator('.us-shopping-item')).toHaveCount(3);
     await second.locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' }).getByRole('checkbox').click();
     await expect(second.locator('.us-shopping-list').first().locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' })).toHaveCount(0);
@@ -59,11 +60,13 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
     await expect(purchased).toBeChecked();
     await purchased.click(); await expect(first.getByRole('checkbox', { name: 'Mark Synthetic apples as purchased' })).not.toBeChecked();
     await mainNavigation(first).getByRole('button', { name: 'Us', exact: true }).click();
+    await first.getByText('Manage shopping here').click();
     await expect(first.locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' })).toBeVisible();
     await first.getByRole('group', { name: 'Shopping categories' }).getByRole('button', { name: /Pets/ }).click();
     await expect(first.getByRole('heading', { name: 'Pets shopping' })).toBeVisible();
     await expect(first.getByText('Synthetic pet food', { exact: true })).toBeVisible();
     await mainNavigation(first).getByRole('button', { name: 'Us', exact: true }).click();
+    await first.getByText('Manage shopping here').click();
     await first.getByRole('group', { name: 'Shopping categories' }).getByRole('button', { name: /Kids/ }).click();
     await expect(first.getByRole('heading', { name: 'Kids shopping' })).toBeVisible();
     await expect(first.getByText('Synthetic wipes', { exact: true })).toBeVisible();
@@ -73,7 +76,7 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
 test('an unsuccessful dashboard addition keeps its draft when navigating', async ({ page, context }) => {
   const server = transport(); await server.attach(context);
   await login(page, 'Masha');
-  await page.getByRole('button', { name: '+ Add shopping item' }).click();
+  await page.getByRole('button', { name: 'Add shopping item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
   await page.getByRole('button', { name: '+ Custom item' }).click();
   await page.getByLabel('Custom product').fill('Unfinished dashboard item');
@@ -85,8 +88,7 @@ test('an unsuccessful dashboard addition keeps its draft when navigating', async
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
-  await page.locator('.us-shopping-heading button').click();
-  await page.getByRole('button', { name: '+ Add shopping item' }).click();
+  await page.getByRole('button', { name: 'Add shopping item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await expect(page.locator('.quick-selection').getByLabel('Details (optional)')).toHaveValue('Keep these details');
@@ -96,11 +98,12 @@ test('dashboard shopping preview expands and links to Shopping', async ({ page, 
   const server = transport();
   for (const name of ['Eggs', 'Milk', 'Bread', 'Rice']) server.seedShopping(name, '');
   await server.attach(context); await login(page, 'Masha');
+  await page.getByText('Manage shopping here').click();
   await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
   await page.getByRole('button', { name: 'Show all 4 items' }).click();
   await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(4);
   await page.getByRole('button', { name: 'Show less' }).click();
   await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
-  await page.getByRole('button', { name: 'Shopping', exact: true }).click();
+  await page.locator('.us-shopping-heading').getByRole('button', { name: 'Shopping', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Shopping.' })).toBeVisible();
 });

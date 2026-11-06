@@ -18,7 +18,7 @@ test('meal planner selects a recipe and reviews its quantities before adding to 
   await page.getByRole('button', { name: 'Save meal', exact: true }).click();
   await expect(page.getByText('Synthetic pasta', { exact: true })).toBeVisible();
   await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Today’s dinner' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Tonight’s dinner/ })).toBeVisible();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
   await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Meals', exact: true }).click();
   await page.getByRole('button', { name: 'Create Shopping List', exact: true }).click();

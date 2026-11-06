@@ -11,11 +11,11 @@ type MealState = { weekStart: string; setWeekStart: (value: string) => void; ite
 const shiftedDay = (week: string, days: number) => { const date = new Date(`${week}T12:00:00`); date.setDate(date.getDate() + days); return date; };
 const dayName = (week: string, index: number) => new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }).format(shiftedDay(week, index));
 const weekShift = (week: string, amount: number) => localDate(shiftedDay(week, amount * 7));
-export default function MealPlanner({ plan, recipes, shopping, initialMeal = null }: { initialMeal?: MealPlanItem | null; plan: MealState; recipes: FolderEntry[]; shopping: SharedShoppingState }) {
-  const [editing, setEditing] = useState<MealPlanItem | { day_index: number; meal_slot: MealSlot } | null>(null);
+export default function MealPlanner({ plan, recipes, shopping, initialMeal = null, initialPlan = null }: { initialMeal?: MealPlanItem | null; initialPlan?: MealPlanItem | { day_index: number; meal_slot: MealSlot } | null; plan: MealState; recipes: FolderEntry[]; shopping: SharedShoppingState }) {
+  const [editing, setEditing] = useState<MealPlanItem | { day_index: number; meal_slot: MealSlot } | null>(initialPlan);
   const [viewing, setViewing] = useState<MealPlanItem | null>(initialMeal);
   const viewedRecipe = viewing?.recipe_id ? recipes.find(recipe => recipe.id === viewing.recipe_id) : null;
-  const [recipeId, setRecipeId] = useState(''); const [custom, setCustom] = useState('');
+  const [recipeId, setRecipeId] = useState(initialPlan && 'id' in initialPlan ? initialPlan.recipe_id ?? '' : ''); const [custom, setCustom] = useState(initialPlan && 'id' in initialPlan && !initialPlan.recipe_id ? initialPlan.title : '');
   const [shoppingOpen, setShoppingOpen] = useState(false); const ingredients = useMemo(() => plannedIngredients(plan.items.filter(item => activeMealSlots.includes(item.meal_slot)), recipes), [plan.items, recipes]); const [selected, setSelected] = useState<string[]>([]);
   const openEditor = (item: MealPlanItem | { day_index: number; meal_slot: MealSlot }) => { setEditing(item); setRecipeId('id' in item && item.recipe_id ? item.recipe_id : ''); setCustom('id' in item && !item.recipe_id ? item.title : ''); };
   const save = async () => { if (!editing) return; const occupied = plan.items.find(item => item.day_index === editing.day_index && item.meal_slot === editing.meal_slot && (!('id' in editing) || item.id !== editing.id)); if (occupied && !window.confirm(`Replace the dinner planned for ${dayName(plan.weekStart, editing.day_index)}?`)) return; const success = await plan.save({ id: 'id' in editing ? editing.id : undefined, dayIndex: editing.day_index, mealSlot: editing.meal_slot, recipeId: recipeId || null, title: custom }); if (success) setEditing(null); };

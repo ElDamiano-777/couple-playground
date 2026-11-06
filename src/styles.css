@@ -417,3 +417,34 @@
 .preview-page .dinner-dashboard,.preview-page .saved-dashboard{padding:13px 16px}
 .us-shopping-heading{align-items:center}
 .shopping-expand-indicator{font:700 17px/1 sans-serif;color:#527456}
+
+/* Compact overview; full sections remain available from each shortcut. */
+.home-dashboard .page-intro{margin:8px 0 12px;line-height:1.4}
+.home-dashboard .notice{margin:8px 0 12px;padding:8px 12px;font-size:12px;line-height:1.4}
+.home-dashboard .dashboard-sections{gap:9px}
+.home-dashboard .dashboard-card{padding:12px 14px;border-radius:19px}
+.home-card-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.home-card-header h2{font-size:20px}
+.home-view-all{flex:none;min-height:44px;padding:8px;background:transparent;color:#62347d;font-size:13px;font-weight:700}
+.home-task-list{display:grid;gap:6px;margin-top:5px}
+.home-task{width:100%;min-width:0;padding:9px 10px;border-radius:12px;background:#ffffff9c;color:#3b2c43;text-align:left}
+.home-task strong{display:block;overflow-wrap:anywhere;font-size:14px;line-height:1.3}
+.home-task .task-badges{margin-top:5px}
+.home-empty{margin:4px 0 0;color:#6c5c75;font-size:13px}
+.home-shortcut{display:flex;align-items:center;gap:11px;width:100%;min-height:68px;text-align:left;color:#3b2c43}
+.home-shortcut-copy{display:grid;gap:4px;min-width:0;flex:1}
+.home-shortcut-copy strong{font:600 20px/1.2 Georgia,serif}
+.home-shortcut-copy small{color:#5e5264;font-size:13px;overflow-wrap:anywhere}
+.home-arrow{font-size:27px;line-height:1;color:#846c86}
+.preview-page .shopping-dashboard{background:#eef6eb;border-color:#b9d2b3}
+.preview-page .shopping-dashboard.dashboard-active{background:#dcecd8;border-color:#8fb889}
+.shopping-dashboard .dashboard-icon{background:#cce0c7;color:#3f6946}
+.home-quick-actions{padding:3px 0 0}
+.home-quick-actions h2{font-size:18px;margin:0 0 7px}
+.home-quick-actions>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.home-quick-actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:60px;padding:7px 4px;border:1px solid #dec9e7;border-radius:14px;background:#fffaf3;color:#633583;font-size:12px;font-weight:700;line-height:1.2}
+.home-quick-actions button span{font-size:20px;line-height:1}
+.home-view-all:focus-visible,.home-task:focus-visible,.home-shortcut:focus-visible,.home-quick-actions button:focus-visible{outline:3px solid #8040be;outline-offset:3px}
+.home-dashboard .shopping-dashboard{padding:0 14px}
+.home-manage-shopping summary{min-height:44px;padding:12px 2px;color:#416b48;font-size:13px;font-weight:700;cursor:pointer}
+.home-manage-shopping .us-shopping{margin:0 0 12px;background:#f8fbf6;box-shadow:none}

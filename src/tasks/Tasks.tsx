@@ -5,8 +5,8 @@ import TaskBadges from './TaskBadges';
 
 type Viewer = 'masha' | 'damian'; type Filter = 'all' | 'mine' | 'partner' | 'completed';
 const empty = (viewer: Viewer) => ({ title: '', assignee: viewer as TaskAssignee, dueDate: '', priority: 'normal' as TaskPriority });
-export default function Tasks({ state, viewer }: { state: HouseholdTasksState; viewer: Viewer }) {
-  const [filter, setFilter] = useState<Filter>('all'); const [editing, setEditing] = useState<HouseholdTask | null>(null); const [adding, setAdding] = useState(false); const [draft, setDraft] = useState(empty(viewer)); const [undo, setUndo] = useState<HouseholdTask | null>(null);
+export default function Tasks({ state, viewer, initialTask = null, initialAdd = false }: { state: HouseholdTasksState; viewer: Viewer; initialTask?: HouseholdTask | null; initialAdd?: boolean }) {
+  const [filter, setFilter] = useState<Filter>('all'); const [editing, setEditing] = useState<HouseholdTask | null>(initialTask); const [adding, setAdding] = useState(initialAdd || !!initialTask); const [draft, setDraft] = useState(() => initialTask ? { title: initialTask.title, assignee: initialTask.assignee, dueDate: initialTask.due_date ?? '', priority: initialTask.priority } : empty(viewer)); const [undo, setUndo] = useState<HouseholdTask | null>(null);
   const partner = viewer === 'masha' ? 'damian' : 'masha';
   const visible = useMemo(() => state.items.filter(task => filter === 'completed' ? !!task.completed_at : filter === 'mine' ? !task.completed_at && (task.assignee === viewer || task.assignee === 'both') : filter === 'partner' ? !task.completed_at && (task.assignee === partner || task.assignee === 'both') : !task.completed_at), [filter, partner, state.items, viewer]);
   const begin = (task?: HouseholdTask) => { setEditing(task ?? null); setDraft(task ? { title: task.title, assignee: task.assignee, dueDate: task.due_date ?? '', priority: task.priority } : empty(viewer)); setAdding(true); };

@@ -32,9 +32,8 @@ test('dashboard Quick Add shares selections, favorite photos and pet association
     await first.getByRole('button', { name: 'Save food' }).click();
     await expect(first.getByText('Example dinner', { exact: true })).toBeVisible();
     await mainNavigation(first).getByRole('button', { name: 'Us', exact: true }).click();
-    await expect(first.locator('.us-shopping-heading > span')).toHaveText('0 items');
-    await first.locator('.us-shopping-heading button').click();
-    await first.getByRole('button', { name: '+ Add shopping item' }).click();
+    await expect(first.locator('.shopping-dashboard')).toContainText('0 items to buy');
+    await first.getByRole('button', { name: 'Add shopping item', exact: true }).click();
     await first.getByRole('button', { name: '+ Add favorite' }).click();
     await first.getByRole('button', { name: '+ Enter a custom product' }).click();
     await first.getByLabel('Product name').fill('Favorite tea');
@@ -78,6 +77,7 @@ test('dashboard Quick Add shares selections, favorite photos and pet association
     expect(rows.find(row => row.name === 'Example dinner')?.pet_food_id).toBeTruthy();
     expect(rows.map(row => row.category).sort()).toEqual(['Home', 'Home', 'Kids', 'Pets', 'Pets']);
     expect(rows.every(row => row.photo === undefined)).toBe(true);
+    await first.getByText('Manage shopping here').click();
     await first.getByRole('button', { name: 'Show all 5 items' }).click();
     await expect(first.locator('.us-shopping-item').filter({ hasText: 'Favorite tea' }).locator('img')).toHaveAttribute('src', favoritePhoto!);
     const dashboardFood = first.locator('.us-shopping-item').filter({ hasText: 'Example dinner' });
@@ -86,6 +86,7 @@ test('dashboard Quick Add shares selections, favorite photos and pet association
     await expect(first.locator('.us-shopping-item').filter({ hasText: 'Eggs' })).toContainText('Quantity: 6');
     await mainNavigation(second).getByRole('button', { name: 'Us', exact: true }).click();
     await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await second.getByText('Manage shopping here').click();
     await second.getByRole('button', { name: 'Show all 5 items' }).click();
     await expect(second.locator('.us-shopping-item')).toHaveCount(5);
     await expect(second.locator('.us-shopping-item').filter({ hasText: 'Example dinner' }).locator('img')).toHaveAttribute('src', foodPhoto!);
