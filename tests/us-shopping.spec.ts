@@ -18,6 +18,9 @@ async function add(page: Page, name: string, category: string, details: string) 
   await page.locator('.quick-custom').getByRole('button', { name: 'Add', exact: true }).click();
   await page.locator('.quick-selection').getByLabel('Details (optional)').fill(details);
   await page.getByRole('button', { name: 'Add 1 item' }).click();
+  const manage = page.locator('.home-manage-shopping');
+  await expect(manage).toBeVisible();
+  if (await manage.getAttribute('open') === null) await manage.locator('summary').click();
   await expect(page.locator('.us-shopping-item').filter({ hasText: name })).toBeVisible();
 }
 
@@ -30,7 +33,7 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
   const first = await a.newPage(), second = await b.newPage();
   try {
     await login(first, 'Masha'); await login(second, 'Damian');
-    await expect(first.locator('.shopping-dashboard')).toContainText('0 items');
+    await expect(first.locator('.shopping-dashboard')).toContainText('0 items to buy');
     await expect(first.locator('.shopping-dashboard')).not.toHaveClass(/dashboard-active/);
     await add(first, 'Synthetic apples', 'Home', 'Organic');
     await expect(first.locator('.us-shopping')).toHaveClass(/dashboard-active/);
@@ -43,6 +46,7 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
     await expect(first.locator('.us-shopping-item').filter({ hasText: 'Synthetic pet food' })).toContainText('First pet');
     expect(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await second.getByText('Manage shopping here').click();
     await expect(second.locator('.us-shopping-item')).toHaveCount(3);
     await second.locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' }).getByRole('checkbox').click();
     await expect(second.locator('.us-shopping-list').first().locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' })).toHaveCount(0);
@@ -56,11 +60,13 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
     await expect(purchased).toBeChecked();
     await purchased.click(); await expect(first.getByRole('checkbox', { name: 'Mark Synthetic apples as purchased' })).not.toBeChecked();
     await mainNavigation(first).getByRole('button', { name: 'Home', exact: true }).click();
+    await first.getByText('Manage shopping here').click();
     await expect(first.locator('.us-shopping-item').filter({ hasText: 'Synthetic apples' })).toBeVisible();
     await first.getByRole('group', { name: 'Shopping categories' }).getByRole('button', { name: /Pets/ }).click();
     await expect(first.getByRole('heading', { name: 'Pets shopping' })).toBeVisible();
     await expect(first.getByText('Synthetic pet food', { exact: true })).toBeVisible();
     await mainNavigation(first).getByRole('button', { name: 'Home', exact: true }).click();
+    await first.getByText('Manage shopping here').click();
     await first.getByRole('group', { name: 'Shopping categories' }).getByRole('button', { name: /Kids/ }).click();
     await expect(first.getByRole('heading', { name: 'Kids shopping' })).toBeVisible();
     await expect(first.getByText('Synthetic wipes', { exact: true })).toBeVisible();
@@ -90,13 +96,14 @@ test('an unsuccessful dashboard addition keeps its draft when navigating', async
 
 test('dashboard shopping preview expands and links to Shopping', async ({ page, context }) => {
   const server = transport();
-  for (const name of ['Eggs', 'Milk', 'Bread', 'Rice', 'Pasta', 'Tea']) server.seedShopping(name, '');
+  for (const name of ['Eggs', 'Milk', 'Bread', 'Rice']) server.seedShopping(name, '');
   await server.attach(context); await login(page, 'Masha');
-  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(5);
-  await page.getByRole('button', { name: 'Show all 6 items' }).click();
-  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(6);
+  await page.getByText('Manage shopping here').click();
+  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
+  await page.getByRole('button', { name: 'Show all 4 items' }).click();
+  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(4);
   await page.getByRole('button', { name: 'Show less' }).click();
-  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(5);
+  await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
   await page.locator('.us-shopping-heading').getByRole('button', { name: 'Shopping', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Shopping.' })).toBeVisible();
 });

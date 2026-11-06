@@ -445,7 +445,7 @@
 .home-quick-actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:60px;padding:7px 4px;border:1px solid #dec9e7;border-radius:14px;background:#fffaf3;color:#633583;font-size:12px;font-weight:700;line-height:1.2}
 .home-quick-actions button span{font-size:20px;line-height:1}
 .home-view-all:focus-visible,.home-task:focus-visible,.home-shortcut:focus-visible,.home-quick-actions button:focus-visible{outline:3px solid #8040be;outline-offset:3px}
-.home-dashboard .shopping-dashboard{padding:0}
+.home-dashboard .shopping-dashboard{padding:0 14px}
 .home-manage-shopping summary{min-height:44px;padding:12px 2px;color:#416b48;font-size:13px;font-weight:700;cursor:pointer}
 .home-manage-shopping .us-shopping{margin:0 0 12px;background:#f8fbf6;box-shadow:none}
 
