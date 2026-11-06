@@ -6,12 +6,16 @@
 create schema vault;
 create table vault.decrypted_secrets(name text primary key, decrypted_secret text not null);
 create schema net;
-create function net.http_post(url text, headers jsonb, body jsonb) returns bigint language sql as $$select 1::bigint$$;
+create table net.calls(body jsonb);
+-- Same parameter list as the hosted pg_net function; calls are recorded for assertions.
+create function net.http_post(url text, body jsonb default '{}', params jsonb default '{}', headers jsonb default '{"Content-Type": "application/json"}', timeout_milliseconds integer default 5000) returns bigint language plpgsql as $$begin insert into net.calls values (body); return 1; end$$;
 create schema cron;
 create table cron.job(jobname text);
 create function cron.schedule(job_name text, schedule text, command text) returns bigint language sql as $$select 1::bigint$$;
 
 \ir ../migrations/20261104010000_web_push_notifications.sql
+\ir ../migrations/20261106020000_fix_push_http_dispatch.sql
+insert into vault.decrypted_secrets values ('together_push_delivery_token', 'test-token');
 
 insert into auth.users values
   ('50000000-0000-4000-8000-000000000001'),
@@ -30,6 +34,7 @@ reset role;
 do $$ begin
   if (select count(*) from public.push_events where kind = 'item_added' and item_name = 'Coffee') <> 1 then raise exception 'Item-add event missing'; end if;
   if (select count(*) from public.push_events where kind = 'item_purchased' and item_name = 'Coffee' and actor_id = '50000000-0000-4000-8000-000000000002') <> 1 then raise exception 'Purchase event missing or wrong actor'; end if;
+  if (select count(*) from net.calls where body ->> 'mode' = 'event') <> 2 then raise exception 'Push dispatch was not requested for both events'; end if;
 end $$;
 
 set role authenticated;
