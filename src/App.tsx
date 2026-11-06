@@ -284,7 +284,7 @@ export default function App() {
       </>}
     </main>
 
-    <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>
+    {page !== `home` && <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>}
     {profile && <nav className="bottom-nav" aria-label="Main navigation" lang="en">
       {([{ id: `home`, icon: `home`, label: `Home` }, { id: `folders`, icon: `heart`, label: `Us` }, { id: `shopping`, icon: `shopping`, label: `Shopping` }, { id: `places`, icon: `pin`, label: `Places` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={`${item.id === `folders` ? `nav-us ` : ``}${activeFolder === item.id ? `active` : ``}`} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
     </nav>}

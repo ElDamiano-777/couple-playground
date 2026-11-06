@@ -12,3 +12,7 @@
   .meal-slot{grid-template-columns:54px minmax(0,1fr);align-items:center;gap:8px;margin:0}
   .meal-card,.meal-empty{min-height:44px;padding:8px 10px}
 }
+.meal-card{display:flex;align-items:center;gap:8px}.meal-card-copy{flex:1;min-width:0}.meal-card-arrow{flex:none;color:#76518a;font-size:21px;line-height:1}
+.meal-menu{display:grid;gap:8px;width:min(500px,100%);max-height:calc(100dvh - 36px);overflow:auto;padding:20px;border-radius:22px;background:#fffaf3;box-shadow:0 12px 50px #2d193d40}
+.meal-menu-name{margin:0 0 4px;color:#62516e;overflow-wrap:anywhere}.meal-menu>button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;padding:10px 14px;border-radius:13px;background:#f0e1f8;color:#60367a;text-align:left;font-weight:700}.meal-menu>button span{font-size:21px}.meal-menu>button.meal-menu-remove{background:#fae9e5;color:#914b45}.meal-menu-hint{margin:0 4px;color:#706078;font-size:12px;line-height:1.4}
+@media(max-width:760px){.meal-menu{max-height:calc(100dvh - env(safe-area-inset-top));padding:18px 18px calc(18px + env(safe-area-inset-bottom));border-radius:23px 23px 0 0}}

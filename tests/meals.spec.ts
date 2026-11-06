@@ -70,6 +70,7 @@ test('phone layout uses English dates and navigates weeks in the local timezone'
     expect(titleSize.clipped).toBe(true);
     expect((await page.locator('.meal-day').first().boundingBox())!.height).toBeLessThan(110);
     await longCard.click();
+    await page.getByRole('button', { name: 'View recipe' }).click();
     await expect(page.locator('.recipe-detail h1')).toHaveText(longName);
     await expect(page.locator('.recipe-detail')).toContainText('Cook the pasta.');
     await page.getByRole('button', { name: '← Meals' }).click();
@@ -108,6 +109,7 @@ test('dinner details, editing, moving and removal preserve other meal data', asy
   await page.getByRole('button', { name: 'Save meal' }).click();
   const before = server.meals();
   await page.getByRole('button', { name: /Synthetic pasta/ }).click();
+  await page.getByRole('button', { name: 'View recipe' }).click();
   await expect(page.locator('.recipe-detail')).toContainText('200 g pasta');
   await expect(page.locator('.recipe-detail')).toContainText('Boil pasta.');
   await expect(page.locator('.recipe-detail img')).toHaveAttribute('src', 'https://example.com/pasta.jpg');
@@ -118,14 +120,16 @@ test('dinner details, editing, moving and removal preserve other meal data', asy
   await page.getByRole('button', { name: 'Save meal' }).click();
   await expect(page.locator('.meal-day').nth(1)).toContainText('Synthetic soup');
   await page.getByRole('button', { name: /Synthetic soup/ }).click();
+  await page.getByRole('button', { name: 'View recipe' }).click();
   await expect(page.locator('.recipe-detail')).toContainText('1 carrot');
   await page.getByRole('button', { name: 'Edit dinner' }).click();
   await page.getByLabel('Saved recipe').selectOption('');
   await page.getByLabel('Custom meal name').fill('A very long custom dinner name for our family');
   await page.getByRole('button', { name: 'Save meal' }).click();
   await page.getByRole('button', { name: /A very long custom dinner/ }).click();
-  await expect(page.locator('.meal-custom-detail')).toContainText('A very long custom dinner name');
-  await page.getByRole('button', { name: 'Edit dinner' }).click();
+  await expect(page.getByRole('dialog', { name: 'Dinner options' })).toContainText('A very long custom dinner name');
+  await expect(page.getByRole('button', { name: 'View recipe' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Change dinner' }).click();
   await page.getByRole('button', { name: 'Remove', exact: true }).click();
   await expect(page.getByRole('button', { name: /A very long custom dinner/ })).toHaveCount(0);
   expect(server.meals().map(item => item.title).sort()).toEqual(['Existing breakfast', 'Existing lunch']);
@@ -157,6 +161,7 @@ test('planned dinner ingredients offer duplicate choices and sync to the other p
     await a.getByLabel('Saved recipe').selectOption({ label: 'Dinner with rice' });
     await a.getByRole('button', { name: 'Save meal' }).click();
     await a.getByRole('button', { name: /Dinner with rice/ }).click();
+    await a.getByRole('button', { name: 'View recipe' }).click();
     await a.getByRole('button', { name: '+ Add ingredients to Shopping' }).click();
     const dialog = a.getByRole('dialog', { name: 'Add to Shopping' });
     await expect(dialog.getByLabel('For rice')).toBeVisible();
@@ -178,5 +183,47 @@ test('planned dinner ingredients offer duplicate choices and sync to the other p
     await expect(b.locator('.us-shopping-item:not(.is-bought)').filter({ hasText: 'limes' })).toContainText('2');
     expect(await b.locator('.us-shopping-item').filter({ hasText: 'pasta' }).count()).toBe(1);
     expect(await b.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await first.close(); await second.close(); }
+});
+
+
+test('dinner menu changes and removes the plan without deleting the shared recipe', async ({ browser }) => {
+  const server = transport(); server.seedRecipe('Roast vegetables', '2 carrots', { instructions: 'Roast until tender.' });
+  server.seedRecipe('Lentil soup', '1 cup lentils');
+  const first = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  const second = await browser.newContext({ viewport: { width: 360, height: 800 }, serviceWorkers: 'block' });
+  await server.attach(first); await server.attach(second);
+  const a = await first.newPage(), b = await second.newPage();
+  try {
+    for (const [page, name] of [[a, 'Masha'], [b, 'Damian']] as const) {
+      await page.goto('./'); await page.getByRole('button', { name, exact: true }).click();
+      await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+      await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+      await openShopping(page); await page.getByRole('button', { name: 'Meals', exact: true }).click();
+    }
+    await a.locator('.meal-day').first().getByRole('button', { name: '+ Add meal' }).click();
+    await a.getByLabel('Saved recipe').selectOption({ label: 'Roast vegetables' });
+    await a.getByRole('button', { name: 'Save meal' }).click();
+    await a.getByRole('button', { name: /Roast vegetables/ }).click();
+    const menu = a.getByRole('dialog', { name: 'Dinner options' });
+    await expect(menu.getByRole('button', { name: 'View recipe' })).toBeEnabled();
+    await menu.getByRole('button', { name: 'View recipe' }).click();
+    await expect(a.locator('.recipe-detail')).toContainText('Roast until tender.');
+    await a.getByRole('button', { name: '← Meals' }).click();
+    await a.getByRole('button', { name: /Roast vegetables/ }).click();
+    await menu.getByRole('button', { name: 'Change dinner' }).click();
+    await expect(a.getByLabel('Day')).toHaveValue('0');
+    await a.getByLabel('Saved recipe').selectOption({ label: 'Lentil soup' });
+    await a.getByRole('button', { name: 'Save meal' }).click();
+    await b.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(b.getByRole('button', { name: /Lentil soup/ })).toBeVisible();
+    await a.getByRole('button', { name: /Lentil soup/ }).click();
+    await menu.getByRole('button', { name: 'Remove from plan' }).click();
+    await expect(a.locator('.meal-day').first().getByRole('button', { name: '+ Add meal' })).toBeVisible();
+    await b.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(b.locator('.meal-day').first().getByRole('button', { name: '+ Add meal' })).toBeVisible();
+    await a.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Recipes' }).click();
+    await expect(a.locator('.recipe-card').filter({ hasText: 'Roast vegetables' })).toBeVisible();
+    await expect(a.locator('.recipe-card').filter({ hasText: 'Lentil soup' })).toBeVisible();
   } finally { await first.close(); await second.close(); }
 });

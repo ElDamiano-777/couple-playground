@@ -18,6 +18,8 @@ test('compact home opens task details and reuses all three shared forms on phone
     await page.goto('./'); await page.getByRole('button', { name: 'Masha', exact: true }).click();
     await page.getByLabel('Password', { exact: true }).fill(pocPassword); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
+    await expect(page.getByText('Everything important, all in one place.')).toBeVisible();
+    await expect(page.getByText('Little things bring us closer.')).toHaveCount(0);
     const sections = page.locator('.dashboard-sections > *');
     await expect(sections).toHaveCount(4);
     await expect(sections.nth(0)).toContainText('Upcoming tasks');
