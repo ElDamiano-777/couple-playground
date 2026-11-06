@@ -54,6 +54,8 @@
 .header-tools>button{display:grid;place-items:center;width:44px;height:44px;background:transparent;color:#75489b;border-radius:50%}
 .header-tools>button:hover{background:#ead4fa}
 .header-tools .edition{margin-left:10px}
+.header-profile{border:0;background:transparent;cursor:pointer;padding:8px;border-radius:12px}.header-profile:hover{background:#ead4fa}
+.settings-page{display:grid;gap:18px}.settings-page>.intro{margin:0}.settings-card{background:#fffcf6;border:1px solid #d9bfe7;border-radius:22px;padding:22px}.settings-card h2{font-size:24px}.settings-card p{color:#62516e;line-height:1.65;margin:10px 0 16px}.settings-page .notification-settings{margin:0}
 .household-preview{padding-top:24px}
 .preview-label{display:flex;align-items:center;gap:15px;padding:12px 16px;border:1px solid #e9cca6;border-radius:12px;background:#f9e7cb;color:#65523d}
 .preview-label>span{font-size:11px;letter-spacing:1.4px;font-weight:700;white-space:nowrap}

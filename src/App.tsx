@@ -9,8 +9,9 @@ import { extractSharedUrl } from './collections/recipeImport';
 import { monday, useMealPlan } from './meals/useMealPlan';
 import { useHouseholdTasks } from './tasks/useHouseholdTasks';
 import GlobalSearch from './search/GlobalSearch';
+import Settings from './settings/Settings';
 
-type Page = HouseholdPage | `notes` | `more` | `welcome` | `search`;
+type Page = HouseholdPage | `notes` | `more` | `welcome` | `search` | `settings`;
 type Profile = `masha` | `damian`;
 const profileKey = `together.profile.v1`;
 const shareKey = `together.recipe-share`;
@@ -188,7 +189,7 @@ export default function App() {
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="header">
       <a className="wordmark" href={config.basePath} aria-label="Together — Home" onClick={event => { event.preventDefault(); navigate(`home`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
-      <div className="header-tools">{profile && <><button aria-label="Search Together" onClick={() => navigate(`search`)}>⌕</button><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Help and settings" onClick={() => navigate(`more`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}<span className="edition"><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</span></div>
+      <div className="header-tools">{profile && <><button aria-label="Search Together" onClick={() => navigate(`search`)}>⌕</button><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Settings" onClick={() => navigate(`settings`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}<button className="edition header-profile" aria-label="Open settings" onClick={() => profile && navigate(`settings`)}><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</button></div>
     </header>
 
     {!online && <div className="notice" role="status">You’re offline. You can still save notes on this phone.</div>}
@@ -210,6 +211,7 @@ export default function App() {
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
       {([`folders`, `home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
+      {page === `settings` && profile && <Settings name={profile === `masha` ? `Masha` : `Damian`} notificationsActive={!!shopping.household} poc={shopping.isPoc} busy={shopping.busy} onChangeName={() => { setProfile(null); setPage(`folders`); window.scrollTo({ top: 0, behavior: `instant` }); }} onDeleteAccount={() => { if (window.confirm(`Permanently delete your account? This cannot be undone.`)) void shopping.deleteAccount(); }} />}
       {page === `welcome` && <>
         <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">
@@ -274,9 +276,7 @@ export default function App() {
         <div className="more-shortcuts" aria-label="More sections"><button className="start-card" onClick={() => navigate(`recipes`)}><Symbol name="recipe" /><strong>Recipes</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`meals`)}><Symbol name="plans" /><strong>Meals</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`tasks`)}><Symbol name="plans" /><strong>Tasks</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`expenses`)}><Symbol name="plans" /><strong>Expenses</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`wishlist`)}><Symbol name="wishlist" /><strong>Wishlist</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`search`)}><Icon name="spark" /><strong>Search Together</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`notes`)}><Icon name="note" /><strong>Personal notes</strong><Icon name="arrow" /></button><button className="start-card create-card" onClick={() => navigate(`activity`)}><Symbol name="bell" /><strong>Example updates</strong><Icon name="arrow" /></button></div>
         <p className="intro">You don’t need to know about computers. Just tell your agent what you’d like to change.</p>
         <div className="help-card"><span className="card-icon"><Icon name="spark" /></span><h2>Say it in your own words</h2><p>Open your chat with your agent, tap the microphone on your keyboard, and describe your idea. After making the change, your agent will send you the app link and tell you where to find it.</p><blockquote>“I’d love a shared list of date ideas here.”</blockquote><p className="muted">You can speak Russian, English or German.</p></div>
-        <div className="help-card"><span className="card-icon peach"><Icon name="home" /></span><h2>Add it to your iPhone</h2><p>Open this app in Safari. Tap Share, then Add to Home Screen. Now you’ll have your own little app icon.</p></div>
         <div className="help-card"><h2>A note for you</h2><button className="primary" onClick={() => navigate(`welcome`)}>Read your welcome</button></div>
-        <div className="help-card"><h2>Your name</h2><p>Currently: {profile === `masha` ? `Masha` : `Damian`}</p><button className="primary" onClick={() => { setProfile(null); setPage(`folders`); window.scrollTo({ top: 0, behavior: `instant` }); }}>Change name</button></div>
         <div className="local-label"><span />This is a little demo. Notes stay in this browser and aren’t shared with your partner yet.</div>
         <p className="small-print">Clearing your browser data also removes these local notes. Other people using the same browser can read them.</p>
       </section>}

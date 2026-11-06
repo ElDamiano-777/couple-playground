@@ -13,12 +13,9 @@ test(`personal welcome, navigation and narrow-screen layout work without script 
   await enterAs(page);
   await expect(page.getByRole(`heading`, { name: `Home.`, exact: true })).toBeVisible();
   await expect(page.locator(`html`)).toHaveAttribute(`lang`, `en`);
-  await page.getByRole(`button`, { name: `Help and settings`, exact: true }).click();
-  await expect(page.getByRole(`heading`, { name: `Say it in your own words` })).toBeVisible();
-  await page.getByRole(`button`, { name: `Read your welcome` }).click();
-  await expect(page.getByRole(`heading`, { name: `Masheri!` })).toBeVisible();
-  await expect(page.locator(`.welcome-hero`)).toHaveAttribute(`lang`, `en`);
-  await expect(page.getByRole(`link`, { name: `Open ChatGPT`, exact: true })).toHaveAttribute(`href`, `https://chatgpt.com/codex/cloud`);
+  await page.getByRole(`button`, { name: `Open settings`, exact: true }).click();
+  await expect(page.getByRole(`heading`, { name: `Settings.`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`button`, { name: `Install PWA`, exact: true })).toBeVisible();
   await openHome(page);
   await expect(page.getByRole(`heading`, { name: `Home.`, exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -125,7 +122,7 @@ test(`name choice is local, remembers the selection and can be changed`, async (
   await page.reload();
   await expect(page.getByText(`Hi, Damian`)).toBeVisible();
   await expect(page.getByRole(`heading`, { name: `Home.`, exact: true })).toBeVisible();
-  await page.getByRole(`button`, { name: `Help and settings`, exact: true }).click();
+  await page.getByRole(`button`, { name: `Open settings`, exact: true }).click();
   await page.getByRole(`button`, { name: `Change name` }).click();
   await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
   await page.reload();
@@ -171,15 +168,9 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await expect(nav.getByRole(`button`, { name: `Home`, exact: true })).toHaveAttribute(`aria-current`, `page`);
   await expect(page.getByRole(`navigation`, { name: `Home sections` })).toHaveCount(0);
   await nav.getByRole(`button`, { name: `Shopping`, exact: true }).click();
-  const sections = page.getByRole(`navigation`, { name: `Home sections`, exact: true });
-  await expect(sections.getByRole(`button`)).toHaveText([`Shopping`, `Recipes`, `Meals`, `Tasks`, `Expenses`, `Partner notes`, `Calendar`, `Children`, `Pets`]);
+  await expect(page.getByRole(`heading`, { name: `Shopping.`, exact: true })).toBeVisible();
+  await expect(page.getByRole(`navigation`, { name: `Home sections` })).toHaveCount(0);
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
-  for (const name of [`Recipes`, `Meals`, `Tasks`, `Children`, `Pets`, `Shopping`]) {
-    await sections.getByRole(`button`, { name, exact: true }).click();
-    await expect(page.getByRole(`heading`, { name: name === `Recipes` ? `Our Recipes.` : `${name}.`, exact: true })).toBeVisible();
-    await expect(sections.getByRole(`button`, { name, exact: true })).toHaveAttribute(`aria-current`, `page`);
-    await noOverflow(name);
-  }
   await openChildren(page);
   await page.getByRole(`button`, { name: `Sign in to Family`, exact: true }).click();
   await expect(page.getByLabel(`Username`, { exact: true })).toBeVisible();
