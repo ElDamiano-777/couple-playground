@@ -44,3 +44,19 @@ Hält unpersönlich fest, was die Nutzerin mit der App erreichen will und was da
 1. Die gemeinsame Einkaufsliste im echten Alltag auf beiden iPhones benutzen.
 2. Aus ihrer Rückmeldung das Produktbild füllen und den nächsten kleinen Wunsch finden.
 3. Für Damian, nicht für die Nutzerin: PWA-Installation, Update und einen vollständigen Auftrag vom iPhone prüfen.
+
+## Push- und Synchronisierungsziel
+
+- Beide Mitglieder eines Haushalts sehen Änderungen an Einkäufen, Rezepten, Mahlzeiten und Tasks ohne manuelles Neuladen.
+- Jede Person entscheidet pro Gerät selbst über Shopping- und Task-Benachrichtigungen.
+- Shopping meldet neue und gekaufte Artikel nur dem Partner; wöchentliche Erinnerungen gehen nur bei offenen Einkäufen an die aktivierte Person.
+- Tasks können einer Person oder beiden zugewiesen werden, optional mit Uhrzeit. Erinnerungen sind 1 Stunde, 1 Tag oder 1 Woche vor Fälligkeit möglich und enden bei Erledigung.
+- Zuordnung erfolgt über authentifizierte Haushaltsmitglieder, nicht über fest verdrahtete Namen. Masha und Damian bleiben bestehende POC-Konten.
+- Nichtziel: Standortdaten, Push für eigene Aktionen, externe oder kostenpflichtige Dienste.
+
+## Push-Phasen
+
+1. Sichere Haushaltsmitglieds-Zuordnung und zuverlässige automatische Synchronisierung.
+2. Shopping-Push auf beiden Geräten, inklusive Zustellungs- und Erinnerungsprüfung.
+3. Task-Push, Fälligkeitszeit und Erinnerungen.
+4. Echter iPhone-/Samsung-Endtest mit geschlossener App.
