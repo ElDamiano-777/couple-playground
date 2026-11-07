@@ -4,6 +4,7 @@ import { lineCost, recipeCost } from '../src/pricing/recipeCost';
 test('estimates ingredient lines from amounts and units', () => {
   expect(lineCost('250 g Nudeln (Reisnudeln)').cost).toBeCloseTo(0.645, 2);
   expect(lineCost('3 Zehe/n Knoblauch (klein geschnitten)').cost).toBeCloseTo(0.207, 2);
+  expect(lineCost('3 Knoblauchzehe(n) (in Scheiben geschnitten)').cost).toBeCloseTo(0.207, 2);
   expect(lineCost('1 Dose/n Kokosmilch').cost).toBeCloseTo(1.49, 2);
   expect(lineCost('1/2 Zwiebel').cost).toBeCloseTo(0.125, 3);
   expect(lineCost('2 Becher Sahne').cost).toBeCloseTo(1.98, 2);

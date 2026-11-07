@@ -72,7 +72,8 @@ export const products: Product[] = [
   // Vegetables and fruit
   p('Onion', ['zwiebel'], 1, 'pc', 0.25, { pieceG: 90 }),
   p('Shallot', ['schalotte'], 1, 'pc', 0.3, { pieceG: 30 }),
-  p('Garlic', ['knoblauch', 'knoblauchzehe'], 1, 'pc', 0.69, { pieceG: 50, use: { zehe: 0.1, zehen: 0.1, knolle: 1 } }),
+  p('Garlic clove', ['knoblauchzehe'], 10, 'pc', 0.69),
+  p('Garlic', ['knoblauch'], 1, 'pc', 0.69, { pieceG: 50, use: { zehe: 0.1, zehen: 0.1, knolle: 1 } }),
   p('Spring onions', ['frühlingszwiebel'], 1, 'pc', 0.99, { use: { bund: 1 } }),
   p('Carrot', ['möhre', 'karotte'], 1000, 'g', 1.29, { pieceG: 80 }),
   p('Potatoes', ['kartoffel'], 1000, 'g', 1.79, { pieceG: 100 }),
