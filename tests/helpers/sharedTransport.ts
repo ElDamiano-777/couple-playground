@@ -187,11 +187,12 @@ export function transport() {
           return reply({ message: `Synthetic entry storage failure` }, 503);
         }
         if (method === `POST`) {
-          if (data.household_id !== household) return reply({ message: `Forbidden` }, 403);
-          const row = { ...data, id: crypto.randomUUID(), created_by: user, created_at: new Date().toISOString() } as EntryRow;
-          entryRows.push(row);
+          const items = Array.isArray(data) ? data : [data];
+          if (items.some((item) => item.household_id !== household)) return reply({ message: `Forbidden` }, 403);
+          const rows = items.map((item) => ({ ...item, id: crypto.randomUUID(), created_by: user, created_at: new Date().toISOString() }) as EntryRow);
+          entryRows.push(...rows);
           if (delayedEntryWrite) await delayedEntryWrite;
-          return reply(row, 201);
+          return reply(Array.isArray(data) ? rows : rows[0], 201);
         }
         const id = url.searchParams.get(`id`)?.replace(`eq.`, ``);
         const row = entryRows.find((row) => row.id === id && row.household_id === household);

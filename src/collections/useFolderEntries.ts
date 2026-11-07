@@ -156,6 +156,23 @@ export function useFolderEntries({
       setNotice(`Added to your shared folder.`);
     });
   }
+  // Saves several imported recipes at once, e.g. a whole cookbook pasted as links.
+  function addRecipes(drafts: Partial<Draft>[]) {
+    if (drafts.length === 0) return;
+    return perform(async () => {
+      const rows = drafts.map((draft) => ({
+        household_id: household, kind: `recipe`, title: (draft.title ?? ``).trim().slice(0, 150), notes: draft.notes ?? ``,
+        recipe_category: draft.recipe_category || null, preparation_minutes: draft.preparation_minutes ? Number(draft.preparation_minutes) : null,
+        recipe_source_url: draft.recipe_source_url || null, recipe_image_url: draft.recipe_image_url || null, recipe_servings: draft.recipe_servings || null,
+        recipe_caption: draft.recipe_caption ?? ``, recipe_ingredients: draft.recipe_ingredients ?? ``, recipe_instructions: draft.recipe_instructions ?? ``,
+      }));
+      const result = await supabase.from(`folder_entries`).insert(rows).select();
+      if (result.error || !result.data) throw result.error ?? new Error(`No saved entries`);
+      if (!isCurrent()) return;
+      setEntries((previous) => [...previous, ...(result.data as FolderEntry[])]);
+      setNotice(`Added ${result.data.length} recipes to your shared folder.`);
+    });
+  }
   function saveEdit() {
     if (!edit) return;
     if (!valid(edit)) { setError(validationMessage); return; }
@@ -199,7 +216,7 @@ export function useFolderEntries({
     cancelEdit: () => {
       if (window.confirm(`Discard unfinished changes to this entry?`)) setEdits((previous) => ({ ...previous, [kind]: null }));
     },
-    add, saveEdit, remove,
+    add, addRecipes, saveEdit, remove,
   };
 }
 export type FolderEntriesState = ReturnType<typeof useFolderEntries>;

@@ -10,8 +10,8 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 }
 async function recipes(page: Page) {
-  await openShopping(page);
-  await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Recipes', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
+  await page.getByLabel('More sections').getByRole('button', { name: 'Recipes' }).click();
 }
 
 test('recipes with photos and filters are shared across phones and existing notes survive', async ({ browser }) => {
@@ -738,4 +738,25 @@ test('a shared Instagram link and copied caption survive navigation until the pr
   await expect(page.getByLabel('Recipe name')).toHaveValue('Apple pancakes');
   await expect(page.getByLabel('Original link')).toHaveValue(source);
   expect(await page.evaluate(() => sessionStorage.getItem('together.recipe-share'))).toBeNull();
+});
+
+test('several pasted links import and save as recipes at once, skipping ones already saved', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => {
+    const name = route.request().url().split('/').pop();
+    const json = { '@type': 'Recipe', name: `Soup ${name} von someone`, recipeIngredient: ['1 Zwiebel'], recipeInstructions: ['Kochen.'] };
+    return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<script type="application/ld+json">${JSON.stringify(json)}</script>` });
+  });
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://www.chefkoch.de/rezepte/1/a.html https://www.chefkoch.de/rezepte/2/b.html');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByText('2 saved')).toBeVisible();
+  await expect(page.locator('.recipe-card')).toHaveCount(2);
+  await expect(page.locator('.recipe-card').first()).toContainText('Soup a.html');
+  await expect(page.locator('.recipe-card').first()).not.toContainText('someone');
+  await page.getByLabel('Recipe link').fill('https://www.chefkoch.de/rezepte/1/a.html https://www.chefkoch.de/rezepte/3/c.html');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByText('1 saved, 1 already there')).toBeVisible();
+  await expect(page.locator('.recipe-card')).toHaveCount(3);
 });
