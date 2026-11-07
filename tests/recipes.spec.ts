@@ -760,3 +760,21 @@ test('several pasted links import and save as recipes at once, skipping ones alr
   await expect(page.getByText('1 saved, 1 already there')).toBeVisible();
   await expect(page.locator('.recipe-card')).toHaveCount(3);
 });
+
+test('a recipe shows its estimated cost and per-ingredient prices', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  await context.route('https://r.jina.ai/**', route => {
+    const json = { '@type': 'Recipe', name: 'Pasta test', recipeYield: '4 Portionen', recipeIngredient: ['500 g Penne', '2 Eier', 'Salz'], recipeInstructions: ['Kochen.'] };
+    return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' }, body: `<script type="application/ld+json">${JSON.stringify(json)}</script>` });
+  });
+  await login(page, 'Masha'); await recipes(page);
+  await page.getByRole('button', { name: 'Import from Link' }).click();
+  await page.getByLabel('Recipe link').fill('https://example.com/a https://example.com/b');
+  await page.getByRole('button', { name: 'Preview recipe' }).click();
+  await expect(page.getByText('2 saved')).toBeVisible();
+  await page.locator('form.recipe-form').getByRole('button', { name: 'Close' }).click();
+  await page.locator('.recipe-card').first().click();
+  await expect(page.locator('.recipe-meta')).toContainText('≈ 1,99 € · 0,50 € / serving');
+  await expect(page.locator('.recipe-price')).toHaveCount(2);
+  await expect(page.locator('.recipe-ingredient').filter({ hasText: 'Penne' }).locator('.recipe-price')).toContainText('1,29');
+});

@@ -5,12 +5,14 @@ import { Symbol } from '../ui/Symbol';
 import { publicUrl, recipeSourceUrl } from './recipeImport';
 import { captionSections } from './captionRecipe';
 import { ingredientDetails, instructionSteps, shoppingIngredient, type Ingredient } from './recipeDetails';
+import { euro, lineCost, recipeCost } from '../pricing/recipeCost';
 
 export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelete, busy, online, backLabel = '← Our Recipes' }: {
   recipe: FolderEntry; shopping: SharedShoppingState; onBack: () => void; onEdit?: () => void; onDelete?: () => void; busy: boolean; online: boolean; backLabel?: string;
 }) {
   const parsed = ingredientDetails(recipe.recipe_ingredients || '');
   const ingredients = parsed.ingredients.filter(item => !item.heading);
+  const cost = ingredients.length ? recipeCost(ingredients.map(item => item.text), recipe.recipe_servings) : null;
   const steps = instructionSteps(recipe.recipe_instructions || '');
   const caption = recipe.recipe_caption ? captionSections(recipe.recipe_caption) : null;
   const comparable = (value: string) => value.replace(/\s+/g, ' ').trim();
@@ -30,7 +32,8 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
   function openShopping() { setChoices(ingredients); setSelected(ingredients.map((_, index) => index)); setDuplicateActions({}); setMessage(''); setSelecting(true); void shopping.refresh(); }
   const selectedChoices = selected.map(index => {
     const item = choices[index]; const duplicate = duplicateFor(item);
-    return { ...shoppingIngredient(item), quantity: item.quantity, existingId: duplicate?.id ?? null, existingNotes: duplicate?.notes ?? '', action: duplicate ? duplicateActions[index] ?? 'skip' : 'add' as const };
+    const base = shoppingIngredient(item); const product = lineCost(item.text).product;
+    return { ...base, notes: [base.notes, product && !product.staple ? `Pack ≈ ${euro(product.price)}` : ''].filter(Boolean).join(' · '), quantity: item.quantity, existingId: duplicate?.id ?? null, existingNotes: duplicate?.notes ?? '', action: duplicate ? duplicateActions[index] ?? 'skip' : 'add' as const };
   });
   const uniqueChoices = selectedChoices.reduce<typeof selectedChoices>((all, item) => {
     if (item.action === 'skip') return all;
@@ -49,14 +52,14 @@ export default function RecipeDetail({ recipe, shopping, onBack, onEdit, onDelet
       <div className="recipe-image">{photo ? <img src={photo} referrerPolicy="no-referrer" alt="" /> : <span aria-hidden="true"><Symbol name="recipe" /></span>}</div>
       <div className="recipe-detail-copy">
         <h1>{recipe.title}</h1>
-        <div className="recipe-meta">{recipe.recipe_category && <span>{recipe.recipe_category}</span>}{recipe.preparation_minutes && <span>{recipe.preparation_minutes} min</span>}{recipe.recipe_servings && <span>Yield: {recipe.recipe_servings}</span>}</div>
+        <div className="recipe-meta">{recipe.recipe_category && <span>{recipe.recipe_category}</span>}{recipe.preparation_minutes && <span>{recipe.preparation_minutes} min</span>}{recipe.recipe_servings && <span>Yield: {recipe.recipe_servings}</span>}{cost && cost.total > 0 && <span title="Rough estimate from typical supermarket prices">≈ {euro(cost.total)}{cost.perServing ? ` · ${euro(cost.perServing)} / serving` : ''}{cost.missing ? ` · ${cost.missing} without price` : ''}</span>}</div>
         {linkOnly && <div className="recipe-link-only"><Symbol name="recipe" /><h2>Saved recipe link</h2><p>Open the original to see this recipe.</p>{source && <a className="primary" href={source} target={social ? undefined : "_blank"} rel="noopener noreferrer">Open Original ↗</a>}</div>}
         {ingredients.length > 0 && <section className="recipe-details-section" aria-labelledby="recipe-ingredients-heading">
           <div className="recipe-section-header"><div><h2 id="recipe-ingredients-heading">Ingredients</h2><p>Check off ingredients as you cook.</p></div></div>
           <div className="recipe-ingredient-list">{(() => { let index = -1; return parsed.ingredients.map((item, position) => {
             if (item.heading) return <h3 className="recipe-ingredient-heading" key={position}>{item.name}</h3>;
             index += 1; const current = index;
-            return <label className="recipe-ingredient" key={position}><input type="checkbox" checked={checked.includes(current)} onChange={() => toggle(current, checked, setChecked)} />{item.quantity && <strong className="recipe-quantity">{item.quantity} </strong>}<span className="recipe-ingredient-name">{item.name}</span></label>;
+            return <label className="recipe-ingredient" key={position}><input type="checkbox" checked={checked.includes(current)} onChange={() => toggle(current, checked, setChecked)} />{item.quantity && <strong className="recipe-quantity">{item.quantity} </strong>}<span className="recipe-ingredient-name">{item.name}</span>{!!cost?.lines[current]?.cost && <small className="recipe-price">≈ {euro(cost.lines[current].cost!)}</small>}</label>;
           }); })()}</div>
           <button className="recipe-shopping-button" type="button" disabled={busy || shopping.busy || !online} onClick={openShopping}>+ Add ingredients to Shopping</button>
           {message && <p className="feedback" role="status">{message}</p>}
