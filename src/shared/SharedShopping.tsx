@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { euro, packPrice } from '../pricing/recipeCost';
 import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
 import QuickAdd from "./QuickAdd";
 import { Symbol } from "../ui/Symbol";
@@ -366,6 +367,12 @@ export default function SharedShopping({
                 Refresh
               </button>
             </div>
+            {(() => {
+              const open = state.items.filter(item => item.category === filter && !item.bought).map(item => packPrice(item.name));
+              const total = open.reduce<number>((sum, price) => sum + (price ?? 0), 0);
+              const unpriced = open.filter(price => price === null).length;
+              return total > 0 ? <p className="shopping-total">Estimated total: <strong>≈ {euro(total)}</strong>{unpriced ? ` · ${unpriced} without price` : ''}</p> : null;
+            })()}
             {!state.items.some(item => item.category === filter) && (
               <p className="page-intro">
                 Your list is empty. Add the first thing you need.

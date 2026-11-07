@@ -1,3 +1,4 @@
+import { ingredientDetails } from '../collections/recipeDetails';
 import { products, type Product } from './productPrices';
 
 export type PricedLine = { product: Product | null; cost: number | null; staple: boolean };
@@ -82,6 +83,18 @@ export function recipeCost(ingredientTexts: string[], servings: string | null): 
   const total = lines.reduce((sum, line) => sum + (line.cost ?? 0), 0);
   const count = servingCount(servings);
   return { total, perServing: count ? total / count : null, missing: lines.filter(line => line.cost === null).length, lines };
+}
+
+/** Cost of a saved recipe, or null when it has no ingredients. */
+export function recipeEntryCost(recipe: { recipe_ingredients: string | null; recipe_servings: string | null }): RecipeCost | null {
+  const texts = ingredientDetails(recipe.recipe_ingredients || '').ingredients.filter(item => !item.heading).map(item => item.text);
+  return texts.length ? recipeCost(texts, recipe.recipe_servings) : null;
+}
+
+/** Price of one pack of a shopping item such as "Milk", or null when unknown or a home staple. */
+export function packPrice(name: string): number | null {
+  const product = findProduct(name.toLowerCase());
+  return product && !product.staple ? product.price : null;
 }
 
 export const euro = (value: number) => value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });

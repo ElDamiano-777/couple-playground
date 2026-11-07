@@ -778,3 +778,18 @@ test('a recipe shows its estimated cost and per-ingredient prices', async ({ pag
   await expect(page.locator('.recipe-price')).toHaveCount(2);
   await expect(page.locator('.recipe-ingredient').filter({ hasText: 'Penne' }).locator('.recipe-price')).toContainText('1,29');
 });
+
+test('estimated prices show on recipe cards, the weekly meal plan and the shopping list', async ({ page, context }) => {
+  const server = transport(); server.seedRecipe('Synthetic pasta', '500 g Penne\n2 Eier'); server.seedShopping('Milch', '');
+  await server.attach(context);
+  await login(page, 'Masha'); await recipes(page);
+  await expect(page.locator('.recipe-card-price')).toContainText('≈ 1,99 €');
+  await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Meals', exact: true }).click();
+  await page.getByRole('button', { name: '+ Add meal', exact: true }).first().click();
+  await page.getByLabel('Saved recipe').selectOption({ label: 'Synthetic pasta' });
+  await page.getByRole('button', { name: 'Save meal', exact: true }).click();
+  await expect(page.locator('.meal-week-cost')).toContainText('≈ 1,99 €');
+  await openShopping(page);
+  await page.getByRole('group', { name: 'Shopping categories' }).getByRole('button', { name: /Home/ }).click();
+  await expect(page.locator('.shopping-total')).toContainText('≈ 1,19 €');
+});
