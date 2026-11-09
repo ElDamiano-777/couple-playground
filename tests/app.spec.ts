@@ -157,7 +157,7 @@ test(`bottom navigation and compact home sections remain usable on a narrow iPho
   await enterAs(page);
   const nav = mainNavigation(page);
   const noOverflow = async (section = 'page') => expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${section} must not create horizontal page overflow`).toBe(true);
-  await expect(nav.getByRole(`button`)).toHaveText([`Home`, `Us`, `Shopping`, `Places`, `More`]);
+  await expect(nav.getByRole(`button`)).toHaveText([`Home`, `Shopping`, `Us`, `Places`, `More`]);
   for (const button of await nav.getByRole(`button`).all()) {
     const box = await button.boundingBox();
     expect(box && box.width >= 44 && box.height >= 44 && box.x >= 0 && box.x + box.width <= 320).toBe(true);

@@ -15,7 +15,7 @@ test('Home starts the app and Us opens the couple space on a phone', async ({ pa
   await expect(page.getByRole('navigation', { name: 'Home sections' })).toHaveCount(0);
   await expect(page.locator('.home-dashboard')).toContainText('Shared task');
   const nav = mainNavigation(page);
-  await expect(nav.getByRole('button')).toHaveText(['Home', 'Us', 'Shopping', 'Places', 'More']);
+  await expect(nav.getByRole('button')).toHaveText(['Home', 'Shopping', 'Us', 'Places', 'More']);
   await expect(nav.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
   await nav.getByRole('button', { name: 'Us', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Us.' })).toBeVisible();
@@ -29,8 +29,9 @@ test('Home starts the app and Us opens the couple space on a phone', async ({ pa
   await expect(page.getByRole('heading', { name: 'Pets.' })).toBeVisible();
   await nav.getByRole('button', { name: 'Shopping', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Shopping.' })).toBeVisible();
-  for (const name of ['Recipes', 'Meals', 'Tasks', 'Expenses']) {
-    await expect(page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name, exact: true })).toBeVisible();
+  await nav.getByRole('button', { name: 'More', exact: true }).click();
+  for (const name of ['Recipes', 'Meals', 'Tasks', 'Expenses', 'Wishlist']) {
+    await expect(page.locator('.more-shortcuts').getByRole('button', { name, exact: true })).toBeVisible();
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.reload(); await expect(page.getByRole('heading', { name: 'Home.' })).toBeVisible();

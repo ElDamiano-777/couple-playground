@@ -13,14 +13,15 @@ export async function openShopping(page: Page) {
 }
 
 export async function openChildren(page: Page, add = false) {
-  await openShopping(page);
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
+  await page.locator('.more-shortcuts').getByRole('button', { name: 'Tasks', exact: true }).click();
   await page.getByRole('navigation', { name: 'Home sections', exact: true }).getByRole('button', { name: 'Children', exact: true }).click();
   if (add) await page.getByRole('button', { name: 'Add child', exact: true }).click();
 }
 
 export async function openPets(page: Page) {
-  await openShopping(page);
-  await page.getByRole('navigation', { name: 'Home sections', exact: true }).getByRole('button', { name: 'Pets', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Us', exact: true }).click();
+  await page.locator('.couple-page').getByRole('button', { name: /Pets/ }).click();
 }
 
 export async function closeAddForm(page: Page) {

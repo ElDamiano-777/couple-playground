@@ -464,3 +464,9 @@
 .couple-pets{background:#f8e5d9;border-color:#edcbb9}.couple-pets .dashboard-icon{background:#f2cfbb;color:#8d523b}
 .couple-memories{background:#eaf4f7;border-color:#cfe1e7}.couple-memories .dashboard-icon{background:#cfe4eb;color:#416a7a}
 .couple-wishlist{background:#eef5e9;border-color:#d3e3ce}.couple-wishlist .dashboard-icon{background:#d4e8ce;color:#4b714c}
+
+/* Keep the greeting in its own row within the narrow mobile header. */
+@media(max-width:760px){
+  .header-tools{padding-bottom:20px}
+  .header-tools > .header-profile{right:0;bottom:0;width:max-content;height:20px;min-height:0;margin:0;padding:0 4px}
+}
