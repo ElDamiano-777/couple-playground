@@ -31,8 +31,9 @@ test('reactions are shared and favorites stay private on phones', async ({ brows
   await expect(ownLetter.getByRole('button', { name: 'Add to favorites' })).toBeVisible();
   await letter.getByRole('button', { name: 'React with Laugh' }).click(); await expect(letter).toContainText('You 😂');
   await letter.getByRole('button', { name: 'React with Laugh' }).click(); await expect(letter).not.toContainText('You 😂');
+  await letter.getByRole('button', { name: 'React with Love' }).click(); await expect(letter).toContainText('You 🥰');
   await otherDevice.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))); await otherDevice.getByRole('button', { name: 'Favorites', exact: true }).click();
-  await expect(otherDevice.getByText('A shared letter')).toBeVisible(); await otherDevice.reload(); await mainNavigation(otherDevice).getByRole('button', { name: 'Us', exact: true }).click(); await otherDevice.getByRole('button', { name: /Open love notes/ }).click(); await otherDevice.getByRole('button', { name: 'Favorites', exact: true }).click(); await expect(otherDevice.getByText('A shared letter')).toBeVisible();
+  await expect(otherDevice.getByText('A shared letter')).toBeVisible(); await otherDevice.reload(); await mainNavigation(otherDevice).getByRole('button', { name: 'Us', exact: true }).click(); await otherDevice.getByRole('button', { name: /Open love notes/ }).click(); await otherDevice.getByRole('button', { name: 'Favorites', exact: true }).click(); await expect(otherDevice.getByText('A shared letter')).toBeVisible(); await expect(otherDevice.locator('.note-open')).toContainText('You 🥰');
   await letter.getByRole('button', { name: 'Remove from favorites' }).click(); await expect(masha.getByText('Your favorite letters will appear here.')).toBeVisible();
   for (const page of pages) expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await Promise.all(contexts.map(context => context.close()));

@@ -44,7 +44,7 @@ test('personal and scheduled photos stay sealed and save atomically on mobile', 
   await sender.getByLabel('Schedule a surprise 💌').check();
   const later = await sender.evaluate(() => { const d = new Date(Date.now() + 600000), p = (n: number) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; });
   await sender.getByLabel('Delivery date and time').fill(later); await sender.getByLabel('Partner note').fill('A future photo');
-  await sender.getByRole('button', { name: 'Schedule', exact: true }).click(); await expect(sender.locator('.scheduled-surprise')).toContainText('A future photo');
+  await sender.getByRole('button', { name: 'Schedule', exact: true }).click(); await sender.locator('.scheduled-notes summary').click(); await expect(sender.locator('.scheduled-surprise')).toContainText('A future photo');
   await sender.locator('.scheduled-surprise').getByRole('button', { name: 'Edit' }).click(); await expect(sender.getByAltText('Photo 1 preview')).toBeVisible();
   await sender.getByRole('button', { name: 'Remove photo 1' }).click();
   await sender.getByLabel('Add photos').setInputFiles([picture('another.png'), picture('extra.png')]); await expect(sender.getByAltText('Photo 2 preview')).toBeVisible();
