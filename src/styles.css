@@ -481,7 +481,7 @@
 .home-dashboard .us-shopping .purchased-list summary::after{content:'';width:8px;height:8px;flex:none;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:0 4px 4px}
 .home-dashboard .us-shopping .purchased-list[open] summary::after{transform:rotate(225deg);margin:4px 4px 0}
 
-.our-time{margin:14px 0 12px;padding:17px;border:1px solid #dbc3e8;border-radius:20px;background:#f2e7f8;color:#493154}
+.our-time{margin:14px 0 12px;padding:17px;border:1px solid #e8b8a7;border-radius:20px;background:#fbe2d9;color:#493154}
 .our-time-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .our-time h2{margin:0;font:600 21px/1.2 Georgia,serif}.our-time p{margin:9px 0;font-size:14px;line-height:1.4}
 .our-time .our-time-duration{font-weight:700;font-size:16px;color:#663b82}.our-time .our-time-since{font-size:12px;color:#706176}
