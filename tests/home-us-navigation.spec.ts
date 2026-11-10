@@ -19,7 +19,7 @@ test('Home starts the app and Us opens the couple space on a phone', async ({ pa
   await expect(nav.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
   await nav.getByRole('button', { name: 'Us', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Us.' })).toBeVisible();
-  await expect(page.locator('.couple-page')).toContainText('Masha & Damian');
+  await expect(page.locator('.couple-page')).toContainText('Love Notes');
   await expect(page.locator('.couple-page')).toContainText('Shared Memories');
   await expect(page.locator('.home-dashboard')).toHaveCount(0);
   await page.getByRole('button', { name: /Wishlist/ }).click();

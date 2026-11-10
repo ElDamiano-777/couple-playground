@@ -19,6 +19,8 @@ import TaskBadges from './tasks/TaskBadges';
 import type { HouseholdTask, HouseholdTasksState } from './tasks/useHouseholdTasks';
 import Expenses from './expenses/Expenses';
 import PartnerNotes from './notes/PartnerNotes';
+import { usePartnerNotes } from './notes/usePartnerNotes';
+import './notes/partner-notes.css';
 import OurTimeTogether from './couple/OurTimeTogether';
 
 export { Symbol } from './ui/Symbol';
@@ -38,6 +40,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   sharedRecipe: string | null;
   onClearSharedRecipe: () => void;
 }) {
+  const loveNotes = usePartnerNotes(shopping.session?.user.id, shopping.household, page === 'folders' || page === 'partner-notes');
   const [dinnerToOpen, setDinnerToOpen] = useState<MealPlanItem | null>(null);
   const [dinnerToPlan, setDinnerToPlan] = useState<MealPlanItem | { day_index: number; meal_slot: MealSlot } | null>(null);
   const [taskToOpen, setTaskToOpen] = useState<HouseholdTask | null>(null);
@@ -62,14 +65,14 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   if (page === `folders`) {
     const pets = family.profiles.filter(item => item.kind === 'pet').map(item => item.name);
     return <section className="preview-page couple-page"><p className="eyebrow">A LITTLE SPACE FOR TWO</p><h1>Us<span>.</span></h1><OurTimeTogether key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} userId={shopping.session?.user.id} household={shopping.household} onSignIn={() => navigate('shopping')} /><p className="page-intro">A cozy place for the things you share.</p>
-      <div className="couple-grid"><button className="couple-card couple-people" onClick={() => navigate('partner-notes')}><span className="dashboard-icon"><Symbol name="heart" /></span><strong>Masha &amp; Damian</strong><small>Little notes for each other</small><span className="couple-link">Open partner notes →</span></button>
+      <div className="couple-grid"><button className="couple-card couple-people" onClick={() => navigate('partner-notes')}><span className="dashboard-icon"><Symbol name="heart" /></span><strong>Love Notes</strong><small>Little notes for each other</small>{loveNotes.unread > 0 && <span className="love-note-count">{loveNotes.unread} new</span>}<span className="couple-link">Open love notes →</span></button>
       <button className="couple-card couple-pets" onClick={() => navigate('pets')}><span className="dashboard-icon"><Symbol name="pet" /></span><strong>Pets</strong><small>{pets.length ? pets.join(' · ') : 'Your pets, together'}</small><span className="couple-link">View pets →</span></button>
       <div className="couple-card couple-memories"><span className="dashboard-icon"><Symbol name="folder" /></span><strong>Shared Memories</strong><small>A little space for memories, coming later.</small></div>
       <button className="couple-card couple-wishlist" onClick={() => navigate('wishlist')}><span className="dashboard-icon"><Symbol name="wishlist" /></span><strong>Wishlist</strong><small>Wishes you save together</small><span className="couple-link">Open wishlist →</span></button></div></section>;
   }
 
   return <div className="household-preview">
-    {[`home`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`].includes(page) && <HomeNavigation page={page} navigate={navigate} />}
+    {[`home`, `recipes`, `meals`, `tasks`, `expenses`, `calendar`, `children`, `pets`].includes(page) && <HomeNavigation page={page} navigate={navigate} />}
     {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} initialCategory={shoppingCategory} />
       : page === `pets` ? <Pets key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
       : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
@@ -77,7 +80,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
       : page === `meals` ? <MealPlanner initialMeal={dinnerToOpen} initialPlan={dinnerToPlan} plan={meals} recipes={collections.entries.filter(entry => entry.kind === `recipe`)} shopping={shopping} />
       : page === `tasks` ? <Tasks state={tasks} viewer={viewer} initialTask={taskToOpen} initialAdd={addTask} />
       : page === `expenses` ? <Expenses userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} />
-      : page === `partner-notes` ? <PartnerNotes userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} />
+      : page === `partner-notes` ? <PartnerNotes userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} state={loveNotes} onBack={() => navigate('folders')} />
       : page === `calendar` ? <Calendar shopping={shopping} />
       : page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
       : <FolderPages page={page} navigate={navigate} />}
