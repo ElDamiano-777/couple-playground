@@ -9,6 +9,9 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
   await expect(page.locator('.shopping-dashboard')).toBeVisible();
+  await expect(page.locator('.us-shopping-heading > span')).toBeVisible();
+  const heading = page.locator('.us-shopping-heading button');
+  if (await heading.getAttribute('aria-expanded') === 'false') await heading.click();
 }
 async function add(page: Page, name: string, category: string, details: string) {
   await page.getByRole('button', { name: '+ Add item', exact: true }).click();
@@ -82,6 +85,7 @@ test('an unsuccessful dashboard addition keeps its draft when navigating', async
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
+  await page.locator('.us-shopping-heading button').click();
   await page.getByRole('button', { name: '+ Add item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
@@ -99,4 +103,54 @@ test('dashboard shopping preview expands and links to Shopping', async ({ page, 
   await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
   await page.locator('.us-shopping-heading').getByRole('button', { name: 'Shopping', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Shopping.' })).toBeVisible();
+});
+
+test('purchased items stay collapsed on Home and can be restored across phones', async ({ browser }) => {
+  const server = transport();
+  server.seedShopping('Active oats', '');
+  const a = await browser.newContext({ viewport: { width: 320, height: 700 }, serviceWorkers: 'block' });
+  const b = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  await server.attach(a); await server.attach(b);
+  const first = await a.newPage(), second = await b.newPage();
+  try {
+    await login(first, 'Masha'); await login(second, 'Damian');
+    const list = first.locator('.home-dashboard .purchased-list');
+    await expect(list).toHaveCount(0);
+    await first.getByRole('checkbox', { name: 'Mark Active oats as purchased' }).click();
+    await expect(list.locator('summary')).toHaveText('Purchased (1)');
+    await expect(list).not.toHaveAttribute('open');
+    await expect(first.getByRole('checkbox', { name: 'Return Active oats to active list' })).toBeHidden();
+    await list.locator('summary').click();
+    await expect(list).toHaveAttribute('open', '');
+    await first.locator('.us-shopping-item.is-bought').getByRole('button', { name: /Active oats/ }).click();
+    await expect(first.getByRole('dialog', { name: 'Active oats' })).toBeVisible();
+    await first.getByRole('dialog', { name: 'Active oats' }).getByRole('button', { name: 'Close' }).click();
+    await expect(first.getByRole('checkbox', { name: 'Return Active oats to active list' })).toBeChecked();
+    await list.locator('summary').click();
+    await expect(list).not.toHaveAttribute('open');
+    await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    const partnerList = second.locator('.home-dashboard .purchased-list');
+    await expect(partnerList.locator('summary')).toHaveText('Purchased (1)');
+    await expect(partnerList).not.toHaveAttribute('open');
+    await partnerList.locator('summary').click();
+    await second.getByRole('checkbox', { name: 'Return Active oats to active list' }).click();
+    await expect(second.getByRole('checkbox', { name: 'Mark Active oats as purchased' })).toBeVisible();
+    await first.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(first.getByRole('checkbox', { name: 'Mark Active oats as purchased' })).toBeVisible();
+    await expect(list).toHaveCount(0);
+    server.seedShopping('Bought tea', '', true);
+    server.seedShopping('Bought bread', '', true);
+    await first.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(list.locator('summary')).toHaveText('Purchased (2)');
+    await expect(list).not.toHaveAttribute('open');
+    await second.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(partnerList.locator('summary')).toHaveText('Purchased (2)');
+    await expect(partnerList).not.toHaveAttribute('open');
+    await list.locator('summary').click();
+    await expect(list.getByRole('checkbox')).toHaveCount(2);
+    await expect(first.getByRole('checkbox', { name: 'Return Bought tea to active list' })).toBeVisible();
+    await list.locator('summary').click();
+    await expect(first.getByRole('checkbox', { name: 'Return Bought tea to active list' })).toBeHidden();
+    expect(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await a.close(); await b.close(); }
 });

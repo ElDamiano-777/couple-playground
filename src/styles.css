@@ -470,3 +470,13 @@
   .header-tools{padding-bottom:20px}
   .header-tools > .header-profile{right:0;bottom:0;width:max-content;height:20px;min-height:0;margin:0;padding:0 4px}
 }
+
+/* Compact Home shopping while keeping purchased items available on demand. */
+.home-dashboard .us-shopping-shortcuts{margin:8px 0}
+.home-dashboard .us-shopping-list{margin-top:6px}
+.home-dashboard .us-shopping-item{padding:7px 0}
+.home-dashboard .us-shopping .purchased-list{margin-top:8px}
+.home-dashboard .us-shopping .purchased-list summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:10px 0;list-style:none}
+.home-dashboard .us-shopping .purchased-list summary::-webkit-details-marker{display:none}
+.home-dashboard .us-shopping .purchased-list summary::after{content:'';width:8px;height:8px;flex:none;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:0 4px 4px}
+.home-dashboard .us-shopping .purchased-list[open] summary::after{transform:rotate(225deg);margin:4px 4px 0}
