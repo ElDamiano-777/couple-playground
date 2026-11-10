@@ -20,6 +20,7 @@ type Row = {
 
 export function transport() {
   let members: string[] = [];
+  let failNoteStatus = false;
   let serverTime: number | null = null;
   const serverNow = () => serverTime ?? Date.now();
   const relationshipDates = new Map<string, string | null>();
@@ -141,6 +142,10 @@ export function transport() {
         if (action === `events`) return reply({ events: [{ id: `calendar-event`, title: `Synthetic dinner`, start: { dateTime: `2026-11-12T18:30:00+01:00` }, end: { dateTime: `2026-11-12T20:00:00+01:00` }, calendar: `Our calendar`, color: `#8040be`, own: true }] });
         if (action === `connect`) return reply({ url: `https://accounts.google.test/connect` });
         return reply({ ok: true });
+      }
+      if (url.pathname.endsWith(`/rpc/scheduled_love_note_status`)) {
+        if (failNoteStatus) { failNoteStatus = false; return reply({ message: `Status unavailable` }, 503); }
+        return reply(partnerNotes.filter(note => note.created_by === user && note.household_id === homeFor(user) && note.deliver_at).map(note => ({ note_id: note.id, status: new Date(note.deliver_at).getTime() > serverNow() ? 'scheduled' : noteReads.some(read => read.note_id === note.id && read.user_id !== user && new Date(read.read_at).getTime() >= new Date(note.deliver_at).getTime()) ? 'delivered' : 'unconfirmed' })));
       }
       if (url.pathname.endsWith(`/rpc/current_household`))
         return reply(homeFor(user));
@@ -264,7 +269,7 @@ export function transport() {
       }
       if ([`/rest/v1/shared_expenses`, `/rest/v1/partner_notes`, `/rest/v1/partner_note_reads`].includes(url.pathname)) {
         const household = homeFor(user); if (!household) return reply({ message: `Forbidden` }, 403);
-        if (url.pathname.endsWith(`partner_note_reads`)) { if (method === `GET`) return reply(noteReads.filter(item => item.user_id === user)); if (method === `POST`) { const row = { ...data, read_at: new Date().toISOString() }; noteReads = [...noteReads.filter(item => !(item.note_id === row.note_id && item.user_id === row.user_id)), row]; return reply(row, 201); } }
+        if (url.pathname.endsWith(`partner_note_reads`)) { if (method === `GET`) return reply(noteReads.filter(item => item.user_id === user)); if (method === `POST`) { const row = { ...data, read_at: new Date(serverNow()).toISOString() }; noteReads = [...noteReads.filter(item => !(item.note_id === row.note_id && item.user_id === row.user_id)), row]; return reply(row, 201); } }
         const rows = url.pathname.endsWith(`shared_expenses`) ? expenses : partnerNotes;
         if (method === `GET`) return reply(rows.filter(item => item.household_id === household));
         if (method === `POST`) { if (data.household_id !== household) return reply({ message: `Forbidden` }, 403); const row = { ...data, id: crypto.randomUUID(), created_by: user, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }; rows.push(row); return reply(row, 201); }
@@ -417,6 +422,7 @@ export function transport() {
   return {
     attach,
     setServerTime: (time: number) => { serverTime = time; },
+    failNextNoteStatus: () => { failNoteStatus = true; },
     seedLegacyRecipe: (title: string, notes: string, source?: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes, created_by: pocMasha, created_at: new Date().toISOString(), ...(source ? { recipe_source_url: source } : {}) }); },
     seedRecipe: (title: string, ingredients: string, details: { instructions?: string; photo?: string } = {}) => { const id = crypto.randomUUID(); entryRows.push({ id, household_id: pocHome, kind: 'recipe', title, notes: '', recipe_ingredients: ingredients, recipe_instructions: details.instructions || '', ...(details.photo ? { recipe_image_url: details.photo } : {}), created_by: pocMasha, created_at: new Date().toISOString() }); return id; },
     seedTask: (title: string, due_date: string | null, priority: string, assignee = 'masha', completed_at: string | null = null) => { householdTasks.push({ id: crypto.randomUUID(), household_id: pocHome, title, due_date, priority, assignee, completed_at, created_at: new Date().toISOString() }); },

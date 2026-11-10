@@ -5,6 +5,7 @@ export type Note = { id: string; household_id: string; sender: 'masha' | 'damian
 export function usePartnerNotes(userId: string | undefined, household: string | null, enabled: boolean) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [reads, setReads] = useState<string[]>([]);
+  const [statuses, setStatuses] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const generation = useRef(0);
   const [loadedFor, setLoadedFor] = useState('');
@@ -22,6 +23,11 @@ export function usePartnerNotes(userId: string | undefined, household: string | 
     setNotes(notesResult.data as Note[]);
     setReads((readsResult.data ?? []).map(row => row.note_id));
     setError('');
+    if (notesResult.data.some(note => note.created_by === userId && note.deliver_at)) {
+      const result = await supabase.rpc('scheduled_love_note_status');
+      if (requestGeneration !== generation.current) return;
+      setStatuses(result.error ? {} : Object.fromEntries((result.data ?? []).map((row: { note_id: string; status: string }) => [row.note_id, row.status])));
+    } else setStatuses({});
   }, [userId, household, enabled, identity]);
   useEffect(() => {
     if (!userId || !household) { setNotes([]); setReads([]); return; }
@@ -41,6 +47,6 @@ export function usePartnerNotes(userId: string | undefined, household: string | 
   };
   const visibleNotes = loadedFor === identity ? notes : [];
   const visibleReads = loadedFor === identity ? reads : [];
-  return { notes: visibleNotes, reads: visibleReads, error, setError, setNotes, markRead, unread: visibleNotes.filter(note => note.created_by !== userId && !visibleReads.includes(note.id)).length };
+  return { notes: visibleNotes, reads: visibleReads, statuses: loadedFor === identity ? statuses : {}, refresh, error, setError, setNotes, markRead, unread: visibleNotes.filter(note => note.created_by !== userId && !visibleReads.includes(note.id)).length };
 }
 export type PartnerNotesState = ReturnType<typeof usePartnerNotes>;

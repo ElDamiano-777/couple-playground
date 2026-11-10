@@ -22,7 +22,7 @@ export default function PartnerNotes({ userId, household, viewer, state, onBack,
   const [edit, setEdit] = useState<Note | null>(null);
   const [saving, setSaving] = useState(false);
   const [opening, setOpening] = useState<string | null>(null);
-  const { notes, reads, error, setError, setNotes, markRead, unread } = state;
+  const { notes, reads, statuses, refresh, error, setError, setNotes, markRead, unread } = state;
   const personalDirty = composing && (edit ? draft !== edit.body || (delivery === 'scheduled' && scheduledTime !== localScheduleValue(edit.deliver_at!)) : !!draft.trim() || !!scheduledTime);
   useEffect(() => { onDirty(personalDirty || sharedDirty); return () => onDirty(false); }, [personalDirty, sharedDirty, onDirty]);
   const save = async () => {
@@ -37,7 +37,7 @@ export default function PartnerNotes({ userId, household, viewer, state, onBack,
         : supabase.from('partner_notes').update(values).eq('id', edit.id).select().maybeSingle())
       : await supabase.from('partner_notes').insert({ household_id: household, sender: viewer, ...values }).select().single();
     if (result.error || !result.data) setError(scheduled ? 'Could not save the surprise. Check that the delivery time is still in the future and try again.' : 'Could not save note.');
-    else { setNotes(current => [result.data as Note, ...current.filter(note => note.id !== result.data.id)]); setDraft(''); setScheduledTime(''); setDelivery('now'); setEdit(null); setComposing(false); setMessage(scheduled ? 'Surprise scheduled.' : edit ? 'Note saved.' : 'Note sent.'); setError(''); }
+    else { setNotes(current => [result.data as Note, ...current.filter(note => note.id !== result.data.id)]); setDraft(''); setScheduledTime(''); setDelivery('now'); setEdit(null); setComposing(false); setMessage(scheduled ? 'Surprise scheduled.' : edit ? 'Note saved.' : 'Note sent.'); setError(''); void refresh(); }
     setSaving(false);
   };
   const remove = async (note: Note) => {
@@ -52,7 +52,7 @@ export default function PartnerNotes({ userId, household, viewer, state, onBack,
     if (result.error || !result.data) setError('Could not cancel this surprise. It may already have been delivered.');
     else { setNotes(current => current.filter(item => item.id !== note.id)); setMessage('Surprise cancelled.'); }
   };
-  const scheduledNotes = notes.filter(note => note.created_by === userId && note.deliver_at && new Date(note.deliver_at).getTime() > now);
+  const scheduledNotes = notes.filter(note => note.created_by === userId && note.deliver_at && (statuses[note.id] === 'scheduled' || (!statuses[note.id] && new Date(note.deliver_at).getTime() > now)));
   const deliveredNotes = notes.filter(note => !scheduledNotes.some(item => item.id === note.id));
   const editNote = (note: Note) => { if (personalDirty && !confirm('Discard your unfinished note?')) return; setEdit(note); setDraft(note.body); setDelivery(note.deliver_at ? 'scheduled' : 'now'); setScheduledTime(note.deliver_at ? localScheduleValue(note.deliver_at) : ''); setMessage(''); setComposing(true); };
   return <section className="partner-notes">
@@ -71,11 +71,12 @@ export default function PartnerNotes({ userId, household, viewer, state, onBack,
     </form>}
     {message && <p role="status" className="note-status">{message}</p>}
     {error && <p role="alert">{error}</p>}
-    {!!scheduledNotes.length && <section className="scheduled-notes"><h2>Scheduled</h2><div className="partner-note-list">{[...scheduledNotes].sort((a, b) => a.deliver_at!.localeCompare(b.deliver_at!)).map(note => <article key={note.id}><strong>Scheduled surprise</strong><time dateTime={note.deliver_at!}>{scheduleLabel(note.deliver_at!)}</time><p>{note.body}</p><div><button onClick={() => editNote(note)}>Edit</button><button onClick={() => void cancelSurprise(note)}>Cancel surprise</button></div></article>)}</div></section>}
+    {!!scheduledNotes.length && <section className="scheduled-notes"><h2>Scheduled</h2><div className="partner-note-list">{[...scheduledNotes].sort((a, b) => a.deliver_at!.localeCompare(b.deliver_at!)).map(note => <article className="scheduled-surprise" key={note.id}><strong><svg aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Scheduled surprise</strong><span className="surprise-status">{statuses[note.id] === 'scheduled' ? 'Scheduled' : 'Status unavailable'}</span><time dateTime={note.deliver_at!}>{scheduleLabel(note.deliver_at!)}</time><p>{note.body}</p><div className="surprise-actions"><button onClick={() => editNote(note)}>Edit</button><button onClick={() => void cancelSurprise(note)}>Cancel surprise</button></div></article>)}</div></section>}
     <div className="partner-note-list">{[...deliveredNotes].sort((a, b) => (b.deliver_at ?? b.created_at).localeCompare(a.deliver_at ?? a.created_at)).map(note => {
       const closed = note.created_by !== userId && !reads.includes(note.id);
       return <article className={closed ? 'unread note-envelope' : 'note-open'} key={note.id}>
         <span className="envelope-icon" aria-hidden="true">{closed ? '✉' : ''}</span><strong>{note.sender === 'masha' ? 'Masha' : 'Damian'}{closed && <em>New</em>}</strong>
+        {note.created_by === userId && note.deliver_at && <span className="surprise-status">{statuses[note.id] === 'delivered' ? 'Delivered · opened in Together' : statuses[note.id] === 'scheduled' ? 'Scheduled' : statuses[note.id] === 'unconfirmed' ? 'Release unconfirmed' : 'Status unavailable'}</span>}
         <time dateTime={note.deliver_at ?? note.created_at}>{new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(note.deliver_at ?? note.created_at))}</time>
         {closed ? <button className="open-note" disabled={opening === note.id} onClick={() => { setOpening(note.id); void markRead(note).finally(() => setOpening(null)); }}>Open note <span aria-hidden="true">✉</span></button> : <div className="note-message"><p>{note.body}</p>{note.created_by === userId && !note.deliver_at && <div><button onClick={() => editNote(note)}>Edit</button><button onClick={() => void remove(note)}>Delete</button></div>}</div>}
       </article>;
