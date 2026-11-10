@@ -19,6 +19,7 @@ import TaskBadges from './tasks/TaskBadges';
 import type { HouseholdTask, HouseholdTasksState } from './tasks/useHouseholdTasks';
 import Expenses from './expenses/Expenses';
 import PartnerNotes from './notes/PartnerNotes';
+import OurTimeTogether from './couple/OurTimeTogether';
 
 export { Symbol } from './ui/Symbol';
 export type HouseholdPage = FolderPage | `activity`;
@@ -60,7 +61,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
 
   if (page === `folders`) {
     const pets = family.profiles.filter(item => item.kind === 'pet').map(item => item.name);
-    return <section className="preview-page couple-page"><p className="eyebrow">A LITTLE SPACE FOR TWO</p><h1>Us<span>.</span></h1><p className="page-intro">A cozy place for the things you share.</p>
+    return <section className="preview-page couple-page"><p className="eyebrow">A LITTLE SPACE FOR TWO</p><h1>Us<span>.</span></h1><OurTimeTogether key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} userId={shopping.session?.user.id} household={shopping.household} onSignIn={() => navigate('shopping')} /><p className="page-intro">A cozy place for the things you share.</p>
       <div className="couple-grid"><button className="couple-card couple-people" onClick={() => navigate('partner-notes')}><span className="dashboard-icon"><Symbol name="heart" /></span><strong>Masha &amp; Damian</strong><small>Little notes for each other</small><span className="couple-link">Open partner notes →</span></button>
       <button className="couple-card couple-pets" onClick={() => navigate('pets')}><span className="dashboard-icon"><Symbol name="pet" /></span><strong>Pets</strong><small>{pets.length ? pets.join(' · ') : 'Your pets, together'}</small><span className="couple-link">View pets →</span></button>
       <div className="couple-card couple-memories"><span className="dashboard-icon"><Symbol name="folder" /></span><strong>Shared Memories</strong><small>A little space for memories, coming later.</small></div>

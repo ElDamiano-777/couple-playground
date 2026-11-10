@@ -20,6 +20,7 @@ type Row = {
 
 export function transport() {
   let members: string[] = [];
+  const relationshipDates = new Map<string, string | null>();
   let rows: Row[] = [];
   type FamilyRow = {
     id: string; household_id: string; kind: string; name: string;
@@ -168,6 +169,12 @@ export function transport() {
         members.push(user);
         codeUsed = true;
         return reply(home);
+      }
+      if (url.pathname === `/rest/v1/households`) {
+        const household = homeFor(user);
+        if (!household || url.searchParams.get(`id`) !== `eq.${household}`) return reply({ message: `Forbidden` }, 403);
+        if (method === `PATCH`) relationshipDates.set(household, data.relationship_start_date);
+        return reply({ relationship_start_date: relationshipDates.get(household) ?? null });
       }
       if (url.pathname === `/rest/v1/household_members`)
         return reply(

@@ -480,3 +480,12 @@
 .home-dashboard .us-shopping .purchased-list summary::-webkit-details-marker{display:none}
 .home-dashboard .us-shopping .purchased-list summary::after{content:'';width:8px;height:8px;flex:none;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:0 4px 4px}
 .home-dashboard .us-shopping .purchased-list[open] summary::after{transform:rotate(225deg);margin:4px 4px 0}
+
+.our-time{margin:14px 0 12px;padding:17px;border:1px solid #dbc3e8;border-radius:20px;background:#f2e7f8;color:#493154}
+.our-time-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.our-time h2{margin:0;font:600 21px/1.2 Georgia,serif}.our-time p{margin:9px 0;font-size:14px;line-height:1.4}
+.our-time .our-time-duration{font-weight:700;font-size:16px;color:#663b82}.our-time .our-time-since{font-size:12px;color:#706176}
+.our-time .our-time-anniversary{margin-bottom:0;font-weight:600}.our-time-anniversary span{font-weight:400}.our-time small{display:block;margin-top:7px;color:#706176}
+.our-time-edit{padding:8px 0;border:0;background:transparent;color:#713995;font-weight:700;white-space:nowrap}
+.our-time form{display:grid;gap:8px;margin-top:12px}.our-time label{font-size:13px;font-weight:700}.our-time input{box-sizing:border-box;width:100%;min-height:44px;padding:8px;border:1px solid #d1b7de;border-radius:10px;background:#fff;color:#493154;font:inherit}
+.our-time-actions{display:flex;gap:8px}.our-time-actions button,.our-time-button{min-height:44px;padding:9px 16px;border:1px solid #b696c7;border-radius:12px;background:#fffaf6;color:#633583;font-weight:700}.our-time .our-time-button{background:#78469a;color:white;border-color:#78469a}.our-time button:disabled{opacity:.6}
