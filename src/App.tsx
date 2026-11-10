@@ -62,7 +62,8 @@ export default function App() {
   const [online, setOnline] = useState(navigator.onLine);
   const [updateReady, setUpdateReady] = useState(false);
 
-  const hasDraft = !!draft.trim() || shopping.dirty || family.dirty || collections.dirty || !!sharedRecipe;
+  const [loveNotesDirty, setLoveNotesDirty] = useState(false);
+  const hasDraft = loveNotesDirty || !!draft.trim() || shopping.dirty || family.dirty || collections.dirty || !!sharedRecipe;
   useEffect(() => {
     if (!sharedRecipe) return;
     try {
@@ -168,6 +169,7 @@ export default function App() {
   }
 
   function navigate(next: Page) {
+    if (page === 'partner-notes' && next !== page && loveNotesDirty && !window.confirm('Discard your unfinished note?')) return;
     if (next === `home`) meals.setWeekStart(monday());
     if (next === `home` || next === `shopping`) setShoppingCategory(null);
     if (next === `children`) family.setKind(`child`);
@@ -210,7 +212,7 @@ export default function App() {
         </div>
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
-      {([`folders`, `home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
+      {([`folders`, `home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} onNotesDirty={setLoveNotesDirty} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
       {page === `settings` && profile && <Settings name={profile === `masha` ? `Masha` : `Damian`} notificationsActive={!!shopping.household} poc={shopping.isPoc} busy={shopping.busy} onChangeName={() => { setProfile(null); setPage(`folders`); window.scrollTo({ top: 0, behavior: `instant` }); }} onDeleteAccount={() => { if (window.confirm(`Permanently delete your account? This cannot be undone.`)) void shopping.deleteAccount(); }} />}
       {page === `welcome` && <>
         <section className="hero welcome-hero" lang="en">

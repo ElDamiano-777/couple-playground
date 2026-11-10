@@ -7,3 +7,9 @@
 .couple-card .love-note-count{padding:4px 9px;border-radius:999px;background:#75439a;color:white;font-size:12px;font-weight:700}
 @keyframes reveal-note{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.partner-note-list .note-message{animation:none}}
+.love-note-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0}
+.love-note-tabs button{min-width:0;min-height:44px;padding:8px 5px;border:1px solid #dbc3e8;border-radius:12px;background:#fffaf6;color:#684b75;font-weight:700}
+.love-note-tabs button[aria-selected=true]{background:#eadbf3;border-color:#a97dc0;color:#593071}
+.notes-create{min-height:44px;padding:9px 14px;border:1px solid #b896c7;border-radius:12px;background:#f3e5f9;color:#633583;font-weight:700}
+.note-composer{margin-top:8px}.note-composer label{font-size:13px;font-weight:700}.note-composer input{width:100%;min-height:44px;padding:9px;border:1px solid #cfabe4;border-radius:10px;background:white;font:inherit;box-sizing:border-box}.note-form-actions{display:flex;gap:8px}.note-form-actions button,.note-composer>button{min-height:44px}.note-status{font-size:13px;color:#476d4a}
+.partner-notes .partner-note-list{margin-top:12px}.partner-note-list .note-envelope{position:relative;padding-left:56px}.envelope-icon{position:absolute;left:16px;top:14px;font-size:24px;color:#75439a}.shared-note p{overflow-wrap:anywhere}

@@ -26,7 +26,7 @@ import OurTimeTogether from './couple/OurTimeTogether';
 export { Symbol } from './ui/Symbol';
 export type HouseholdPage = FolderPage | `activity`;
 
-export default function HouseholdPreview({ page, navigate, shopping, family, collections, meals, tasks, viewer, shoppingCategory, onShoppingCategory, sharedRecipe, onClearSharedRecipe }: {
+export default function HouseholdPreview({ page, navigate, shopping, family, collections, meals, tasks, viewer, shoppingCategory, onShoppingCategory, sharedRecipe, onClearSharedRecipe, onNotesDirty }: {
   page: HouseholdPage;
   navigate: (page: HouseholdPage) => void;
   shopping: SharedShoppingState;
@@ -39,6 +39,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   onShoppingCategory: (category: ShoppingItem['category']) => void;
   sharedRecipe: string | null;
   onClearSharedRecipe: () => void;
+  onNotesDirty: (dirty: boolean) => void;
 }) {
   const loveNotes = usePartnerNotes(shopping.session?.user.id, shopping.household, page === 'folders' || page === 'partner-notes');
   const [dinnerToOpen, setDinnerToOpen] = useState<MealPlanItem | null>(null);
@@ -80,7 +81,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
       : page === `meals` ? <MealPlanner initialMeal={dinnerToOpen} initialPlan={dinnerToPlan} plan={meals} recipes={collections.entries.filter(entry => entry.kind === `recipe`)} shopping={shopping} />
       : page === `tasks` ? <Tasks state={tasks} viewer={viewer} initialTask={taskToOpen} initialAdd={addTask} />
       : page === `expenses` ? <Expenses userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} />
-      : page === `partner-notes` ? <PartnerNotes userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} state={loveNotes} onBack={() => navigate('folders')} />
+      : page === `partner-notes` ? <PartnerNotes userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} state={loveNotes} onBack={() => navigate('folders')} onDirty={onNotesDirty} />
       : page === `calendar` ? <Calendar shopping={shopping} />
       : page === `wishlist` || page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
       : <FolderPages page={page} navigate={navigate} />}

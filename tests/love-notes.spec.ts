@@ -22,8 +22,9 @@ test('love notes remain closed until opened and share read status between device
   await damian.getByRole('button', { name: /Open love notes/ }).click();
   await expect(damian.getByRole('navigation', { name: 'Home sections' })).toHaveCount(0);
   await expect(damian.getByRole('heading', { name: 'Love Notes.' })).toBeVisible();
+  await damian.getByRole('button', { name: '+ Write a note' }).click();
   await damian.getByLabel('Partner note').fill('A private note for Masha');
-  await damian.getByRole('button', { name: 'Send note' }).click();
+  await damian.getByRole('button', { name: 'Send', exact: true }).click();
   await expect(damian.getByText('A private note for Masha')).toBeVisible();
   await masha.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(masha.getByRole('button', { name: /Love Notes/ })).toContainText('1 new');
@@ -38,8 +39,9 @@ test('love notes remain closed until opened and share read status between device
   await mashaOtherDevice.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await mashaOtherDevice.getByRole('button', { name: /Open love notes/ }).click();
   await expect(mashaOtherDevice.getByText('A private note for Masha')).toBeVisible();
+  await masha.getByRole('button', { name: '+ Write a note' }).click();
   await masha.getByLabel('Partner note').fill('A private note for Damian');
-  await masha.getByRole('button', { name: 'Send note' }).click();
+  await masha.getByRole('button', { name: 'Send', exact: true }).click();
   await damian.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(damian.locator('.note-envelope')).toContainText('Masha');
   await expect(damian.getByText('A private note for Damian')).toHaveCount(0);

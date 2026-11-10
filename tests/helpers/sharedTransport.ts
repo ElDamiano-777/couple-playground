@@ -38,7 +38,7 @@ export function transport() {
   let favorites: any[] = [];
   let mealPlans: any[] = [];
   let householdTasks: any[] = [];
-  let expenses: any[] = []; let partnerNotes: any[] = []; let noteReads: any[] = [];
+  let expenses: any[] = []; let partnerNotes: any[] = []; let sharedLoveNotes: any[] = []; let noteReads: any[] = [];
   let failFamilySave = false;
   let familyRequests = 0;
   let delayedFamilyRead: Promise<void> | null = null;
@@ -235,6 +235,16 @@ export function transport() {
         if (!row) return reply({ message: `Not found` }, 404);
         if (method === `PATCH`) { Object.assign(row, data); return reply(row); }
         if (method === `DELETE`) { householdTasks = householdTasks.filter(item => item !== row); return reply({ id }); }
+      }
+      if (url.pathname === `/rest/v1/shared_love_notes`) {
+        const household = homeFor(user); if (!household) return reply({ message: `Forbidden` }, 403);
+        if (method === `GET`) return reply(sharedLoveNotes.filter(item => item.household_id === household).sort((a, b) => b.created_at.localeCompare(a.created_at)));
+        if (method === `POST`) { if (data.household_id !== household) return reply({ message: `Forbidden` }, 403); const row = { ...data, id: crypto.randomUUID(), created_by: user, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), revision: 1 }; sharedLoveNotes.push(row); return reply(row, 201); }
+        const id = url.searchParams.get(`id`)?.replace(`eq.`, ``); const revision = Number(url.searchParams.get(`revision`)?.replace(`eq.`, ``));
+        const row = sharedLoveNotes.find(item => item.id === id && item.household_id === household && item.revision === revision);
+        if (!row) return reply(null);
+        if (method === `PATCH`) { Object.assign(row, data, { revision: row.revision + 1, updated_at: new Date().toISOString() }); return reply(row); }
+        if (method === `DELETE`) { sharedLoveNotes = sharedLoveNotes.filter(item => item !== row); return reply(row); }
       }
       if ([`/rest/v1/shared_expenses`, `/rest/v1/partner_notes`, `/rest/v1/partner_note_reads`].includes(url.pathname)) {
         const household = homeFor(user); if (!household) return reply({ message: `Forbidden` }, 403);
