@@ -20,6 +20,8 @@ type Row = {
 
 export function transport() {
   let members: string[] = [];
+  let serverTime: number | null = null;
+  const serverNow = () => serverTime ?? Date.now();
   const relationshipDates = new Map<string, string | null>();
   let rows: Row[] = [];
   type FamilyRow = {
@@ -246,6 +248,20 @@ export function transport() {
         if (method === `PATCH`) { Object.assign(row, data, { revision: row.revision + 1, updated_at: new Date().toISOString() }); return reply(row); }
         if (method === `DELETE`) { sharedLoveNotes = sharedLoveNotes.filter(item => item !== row); return reply(row); }
       }
+      if (url.pathname === `/rest/v1/partner_notes`) {
+        const household = homeFor(user); if (!household) return reply({ message: `Forbidden` }, 403);
+        const visible = (row: any) => row.household_id === household && (row.created_by === user || !row.deliver_at || new Date(row.deliver_at).getTime() <= serverNow());
+        if (method === `GET`) return reply(partnerNotes.filter(visible));
+        if (method === `POST`) {
+          if (data.household_id !== household || data.deliver_at && new Date(data.deliver_at).getTime() <= serverNow()) return reply({ message: `Invalid delivery` }, 400);
+          const row = { deliver_at: null, ...data, id: crypto.randomUUID(), created_by: user, created_at: new Date(serverNow()).toISOString(), updated_at: new Date(serverNow()).toISOString() }; partnerNotes.push(row); return reply(row, 201);
+        }
+        const id = url.searchParams.get(`id`)?.replace(`eq.`, ``); const expected = url.searchParams.get(`deliver_at`)?.replace(`eq.`, ``);
+        const row = partnerNotes.find(item => item.id === id && item.household_id === household && item.created_by === user && (!item.deliver_at || new Date(item.deliver_at).getTime() > serverNow()) && (!expected || expected === item.deliver_at));
+        if (!row) return reply(null);
+        if (method === `PATCH`) { if (data.deliver_at && new Date(data.deliver_at).getTime() <= serverNow()) return reply({ message: `Invalid delivery` }, 400); Object.assign(row, data); return reply(row); }
+        if (method === `DELETE`) { partnerNotes = partnerNotes.filter(item => item !== row); return reply(row); }
+      }
       if ([`/rest/v1/shared_expenses`, `/rest/v1/partner_notes`, `/rest/v1/partner_note_reads`].includes(url.pathname)) {
         const household = homeFor(user); if (!household) return reply({ message: `Forbidden` }, 403);
         if (url.pathname.endsWith(`partner_note_reads`)) { if (method === `GET`) return reply(noteReads.filter(item => item.user_id === user)); if (method === `POST`) { const row = { ...data, read_at: new Date().toISOString() }; noteReads = [...noteReads.filter(item => !(item.note_id === row.note_id && item.user_id === row.user_id)), row]; return reply(row, 201); } }
@@ -400,6 +416,7 @@ export function transport() {
   }
   return {
     attach,
+    setServerTime: (time: number) => { serverTime = time; },
     seedLegacyRecipe: (title: string, notes: string, source?: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes, created_by: pocMasha, created_at: new Date().toISOString(), ...(source ? { recipe_source_url: source } : {}) }); },
     seedRecipe: (title: string, ingredients: string, details: { instructions?: string; photo?: string } = {}) => { const id = crypto.randomUUID(); entryRows.push({ id, household_id: pocHome, kind: 'recipe', title, notes: '', recipe_ingredients: ingredients, recipe_instructions: details.instructions || '', ...(details.photo ? { recipe_image_url: details.photo } : {}), created_by: pocMasha, created_at: new Date().toISOString() }); return id; },
     seedTask: (title: string, due_date: string | null, priority: string, assignee = 'masha', completed_at: string | null = null) => { householdTasks.push({ id: crypto.randomUUID(), household_id: pocHome, title, due_date, priority, assignee, completed_at, created_at: new Date().toISOString() }); },

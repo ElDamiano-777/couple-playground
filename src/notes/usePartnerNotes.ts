@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../shared/client';
 
-export type Note = { id: string; household_id: string; sender: 'masha' | 'damian'; body: string; created_by: string; created_at: string };
+export type Note = { id: string; household_id: string; sender: 'masha' | 'damian'; body: string; created_by: string; created_at: string; deliver_at: string | null };
 export function usePartnerNotes(userId: string | undefined, household: string | null, enabled: boolean) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [reads, setReads] = useState<string[]>([]);
