@@ -21,6 +21,10 @@ type Row = {
 export function transport() {
   let members: string[] = [];
   let failNoteStatus = false;
+  let failNoteSave = false;
+  let delayedNoteSave: Promise<void> | null = null;
+  let releaseNoteSave: (() => void) | null = null;
+  const notePhotos = new Map<string, string[]>();
   let serverTime: number | null = null;
   const serverNow = () => serverTime ?? Date.now();
   const relationshipDates = new Map<string, string | null>();
@@ -143,6 +147,17 @@ export function transport() {
         if (action === `connect`) return reply({ url: `https://accounts.google.test/connect` });
         return reply({ ok: true });
       }
+      if (url.pathname.endsWith(`/rpc/save_partner_note_photos`)) {
+        if (delayedNoteSave) await delayedNoteSave;
+        if (failNoteSave) { failNoteSave = false; return reply({ message: `Synthetic upload failure` }, 503); }
+        const household = homeFor(user); if (!household || !Array.isArray(data.p_photos) || data.p_photos.length > 5 || (!String(data.p_body || '').trim() && !data.p_photos.length)) return reply({ message: `Invalid note` }, 400);
+        const existing = data.p_note_id && partnerNotes.find(note => note.id === data.p_note_id && note.household_id === household && note.created_by === user && note.deliver_at === data.p_expected_delivery && note.updated_at === data.p_expected_updated_at);
+        if (data.p_note_id && !existing) return reply({ message: `Note changed` }, 409);
+        if (data.p_delivery && new Date(data.p_delivery).getTime() <= serverNow()) return reply({ message: `Invalid delivery` }, 400);
+        const row = existing ?? { id: crypto.randomUUID(), household_id: household, sender: data.p_sender, created_by: user, created_at: new Date(serverNow()).toISOString() };
+        Object.assign(row, { body: data.p_body, deliver_at: data.p_delivery, photo_count: data.p_photos.length, updated_at: new Date(serverNow()).toISOString() });
+        if (!existing) partnerNotes.push(row); notePhotos.set(row.id, data.p_photos); return reply(row);
+      }
       if (url.pathname.endsWith(`/rpc/scheduled_love_note_status`)) {
         if (failNoteStatus) { failNoteStatus = false; return reply({ message: `Status unavailable` }, 503); }
         return reply(partnerNotes.filter(note => note.created_by === user && note.household_id === homeFor(user) && note.deliver_at).map(note => ({ note_id: note.id, status: new Date(note.deliver_at).getTime() > serverNow() ? 'scheduled' : noteReads.some(read => read.note_id === note.id && read.user_id !== user && new Date(read.read_at).getTime() >= new Date(note.deliver_at).getTime()) ? 'delivered' : 'unconfirmed' })));
@@ -252,6 +267,11 @@ export function transport() {
         if (!row) return reply(null);
         if (method === `PATCH`) { Object.assign(row, data, { revision: row.revision + 1, updated_at: new Date().toISOString() }); return reply(row); }
         if (method === `DELETE`) { sharedLoveNotes = sharedLoveNotes.filter(item => item !== row); return reply(row); }
+      }
+      if (url.pathname === `/rest/v1/partner_note_photos`) {
+        const id = url.searchParams.get(`note_id`)?.replace(`eq.`, ``); const note = partnerNotes.find(item => item.id === id && item.household_id === homeFor(user));
+        if (!note || (note.created_by !== user && (note.deliver_at && new Date(note.deliver_at).getTime() > serverNow() || !noteReads.some(read => read.note_id === note.id && read.user_id === user)))) return reply([]);
+        return reply((notePhotos.get(note.id) ?? []).map(data_url => ({ data_url })));
       }
       if (url.pathname === `/rest/v1/partner_notes`) {
         const household = homeFor(user); if (!household) return reply({ message: `Forbidden` }, 403);
@@ -423,6 +443,9 @@ export function transport() {
     attach,
     setServerTime: (time: number) => { serverTime = time; },
     failNextNoteStatus: () => { failNoteStatus = true; },
+    failNextNoteSave: () => { failNoteSave = true; },
+    delayNoteSave: () => { delayedNoteSave = new Promise<void>(resolve => { releaseNoteSave = resolve; }); },
+    releaseNoteSave: () => { releaseNoteSave?.(); delayedNoteSave = null; releaseNoteSave = null; },
     seedLegacyRecipe: (title: string, notes: string, source?: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes, created_by: pocMasha, created_at: new Date().toISOString(), ...(source ? { recipe_source_url: source } : {}) }); },
     seedRecipe: (title: string, ingredients: string, details: { instructions?: string; photo?: string } = {}) => { const id = crypto.randomUUID(); entryRows.push({ id, household_id: pocHome, kind: 'recipe', title, notes: '', recipe_ingredients: ingredients, recipe_instructions: details.instructions || '', ...(details.photo ? { recipe_image_url: details.photo } : {}), created_by: pocMasha, created_at: new Date().toISOString() }); return id; },
     seedTask: (title: string, due_date: string | null, priority: string, assignee = 'masha', completed_at: string | null = null) => { householdTasks.push({ id: crypto.randomUUID(), household_id: pocHome, title, due_date, priority, assignee, completed_at, created_at: new Date().toISOString() }); },
