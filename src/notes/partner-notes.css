@@ -26,3 +26,18 @@
 .partner-note-list .surprise-actions{display:flex;flex-wrap:wrap;gap:8px}.partner-note-list .surprise-actions button{min-height:44px;margin:0;padding:9px 13px;border:1px solid #cfaddf;border-radius:12px;background:#edddf5;color:#633583}.partner-note-list .surprise-actions button+button{border-color:#bda8bd;background:transparent;color:#633583}
 .note-photo-picker{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.note-photo-picker small{color:#62516e}.note-photo-button{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;border:1px solid #cdb5db;border-radius:12px;background:#f4e9f9;color:#633583;font-weight:700;cursor:pointer}.note-photo-button input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}.note-photo-button:focus-within{outline:3px solid #a566df;outline-offset:3px}
 .note-photo-previews,.note-photo-gallery{display:flex;flex-wrap:wrap;gap:8px}.note-photo-previews>div{display:grid;gap:4px;max-width:90px}.note-photo-previews img,.note-photo-gallery img{display:block;width:82px;height:82px;object-fit:contain;border-radius:10px;background:#f5eef7}.note-photo-previews button{min-height:36px;border-radius:8px;background:#eee0f6;color:#633583;font-weight:700}.partner-note-list .note-photo-gallery button{padding:0;margin:0;border:0;border-radius:10px;background:transparent}.note-photo-overlay{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;background:#23172de8}.note-photo-overlay button{align-self:flex-end;min-height:44px;padding:10px 16px;border-radius:12px;background:#fffaf6;color:#633583;font-weight:700}.note-photo-overlay img{max-width:100%;max-height:80vh;object-fit:contain}
+/* Larger uncropped photos and clear, touch-friendly letter actions. */
+.note-direction{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;background:#eee2f5;color:#654178;font-size:12px;font-weight:700}
+.partner-note-list .note-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.partner-note-list .note-actions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:0;padding:9px 15px;border:1px solid #cfaddf;border-radius:12px;background:#edddf5;color:#633583}
+.partner-note-list .note-actions button+button{border-color:#cbb6c4;background:transparent;color:#7c4a64}
+.partner-note-list .note-photo-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.partner-note-list .note-photo-gallery.single-photo{grid-template-columns:minmax(0,1fr)}
+.partner-note-list .note-photo-gallery button{display:flex;align-items:center;justify-content:center;min-width:0;min-height:120px;overflow:hidden;background:#f5eef7}
+.partner-note-list .note-photo-gallery img{width:100%;height:auto;max-height:240px;object-fit:contain}
+.partner-note-list .note-photo-gallery.single-photo img{max-height:320px}
+.note-photo-overlay{height:100%;height:100dvh;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));touch-action:pan-y}
+.note-photo-overlay .note-photo-close{flex:none}
+.note-photo-overlay img{min-height:0;max-height:calc(100dvh - 150px);width:auto;height:auto}
+.note-photo-navigation{display:flex;align-items:center;justify-content:center;gap:18px;color:#fff;font-weight:700}
+.note-photo-navigation button{min-width:44px;min-height:44px;font-size:24px;line-height:1}

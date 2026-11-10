@@ -6,7 +6,7 @@ test.use({ serviceWorkers: 'block' });
 
 test('personal and scheduled photos stay sealed and save atomically on mobile', async ({ browser }) => {
   const server = transport(); const start = Math.floor(Date.now() / 60000) * 60000; server.setServerTime(start);
-  const contexts = await Promise.all([390, 360].map(width => browser.newContext({ viewport: { width, height: 844 }, serviceWorkers: 'block', timezoneId: 'Europe/Berlin' })));
+  const contexts = await Promise.all([390, 360].map(width => browser.newContext({ viewport: { width, height: 844 }, hasTouch: true, serviceWorkers: 'block', timezoneId: 'Europe/Berlin' })));
   const pages = [];
   for (const [index, context] of contexts.entries()) {
     await server.attach(context); const page = await context.newPage(); pages.push(page);
@@ -29,7 +29,12 @@ test('personal and scheduled photos stay sealed and save atomically on mobile', 
   await expect(sender.getByText('Uploading photos and saving note…')).toBeVisible(); server.releaseNoteSave();
   await expect(sender.getByRole('status')).toHaveText('Note sent.');
   await expect(sender.getByRole('button', { name: 'Enlarge photo 1' })).toBeVisible();
+  const photoOnly = sender.locator('.note-open').filter({ has: sender.getByRole('button', { name: 'Enlarge photo 1' }) });
+  await expect(photoOnly.locator('.note-direction')).toHaveText('Sent'); await expect(photoOnly.locator('.note-message > p')).toHaveCount(0);
+  const photoBox = await photoOnly.getByRole('button', { name: 'Enlarge photo 1' }).boundingBox(); expect(photoBox!.width).toBeGreaterThan(160);
+  await expect(photoOnly.locator('.note-photo-gallery img')).toHaveCSS('object-fit', 'contain');
   await recipient.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))); await expect(recipient.locator('.note-envelope')).toHaveCount(1);
+  await expect(recipient.locator('.note-envelope .note-direction')).toHaveText('Received');
   await expect(recipient.getByRole('button', { name: /Enlarge photo/ })).toHaveCount(0);
   await recipient.getByRole('button', { name: /Open note/ }).click(); await recipient.getByRole('button', { name: 'Enlarge photo 1' }).click();
   await expect(recipient.getByRole('dialog', { name: 'Note photo' }).getByAltText('Enlarged note photo')).toBeVisible(); await recipient.getByRole('button', { name: 'Close', exact: true }).click();
@@ -49,6 +54,16 @@ test('personal and scheduled photos stay sealed and save atomically on mobile', 
   await recipient.evaluate(() => document.dispatchEvent(new Event('visibilitychange'))); await expect(recipient.locator('.note-envelope')).toHaveCount(1);
   await expect(recipient.getByText('A future photo')).toHaveCount(0); await recipient.getByRole('button', { name: /Open note/ }).click();
   await expect(recipient.getByText('A future photo')).toBeVisible(); await expect(recipient.getByRole('button', { name: 'Enlarge photo 2' })).toBeVisible();
+  await recipient.getByRole('button', { name: 'Enlarge photo 2' }).click();
+  const viewer = recipient.getByRole('dialog', { name: 'Note photo' }); await expect(viewer).toContainText('2 / 2');
+  await viewer.getByRole('button', { name: 'Previous photo' }).click(); await expect(viewer).toContainText('1 / 2');
+  await viewer.evaluate(element => {
+    const start = new Touch({ identifier: 1, target: element, clientX: 300, clientY: 200 });
+    const end = new Touch({ identifier: 1, target: element, clientX: 100, clientY: 205 });
+    element.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, touches: [start] }));
+    element.dispatchEvent(new TouchEvent('touchend', { bubbles: true, changedTouches: [end] }));
+  });
+  await expect(viewer).toContainText('2 / 2'); await viewer.getByRole('button', { name: 'Close' }).click(); await expect(viewer).toHaveCount(0);
   for (const page of pages) expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await Promise.all(contexts.map(context => context.close()));
 });
