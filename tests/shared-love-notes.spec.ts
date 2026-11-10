@@ -18,6 +18,10 @@ test('shared notes sync, guard simultaneous edits, and confirm deletion', async 
   }
   const [masha, damian] = pages;
   await masha.getByRole('button', { name: '+ New shared note' }).click();
+  const buttons = masha.locator('.note-form-actions button');
+  const primary = await buttons.nth(0).boundingBox(), cancel = await buttons.nth(1).boundingBox();
+  expect(primary && cancel && primary.y === cancel.y && primary.height === cancel.height && primary.height >= 44 && primary.x + primary.width <= cancel.x).toBeTruthy();
+  await expect(buttons.nth(1)).toHaveCSS('background-color', 'rgb(241, 228, 248)');
   await masha.getByLabel('Title').fill('Weekend plans'); await masha.getByLabel('Note', { exact: true }).fill('A quiet day together');
   await masha.getByRole('tab', { name: /For Each Other/ }).click(); await masha.getByRole('tab', { name: /Our Notes/ }).click();
   await expect(masha.getByLabel('Note', { exact: true })).toHaveValue('A quiet day together');

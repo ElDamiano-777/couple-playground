@@ -23,6 +23,10 @@ test('love notes remain closed until opened and share read status between device
   await expect(damian.getByRole('navigation', { name: 'Home sections' })).toHaveCount(0);
   await expect(damian.getByRole('heading', { name: 'Love Notes.' })).toBeVisible();
   await damian.getByRole('button', { name: '+ Write a note' }).click();
+  const buttons = damian.locator('.note-form-actions button');
+  const primary = await buttons.nth(0).boundingBox(), cancel = await buttons.nth(1).boundingBox();
+  expect(primary && cancel && primary.y === cancel.y && primary.height === cancel.height && primary.height >= 44 && primary.x + primary.width <= cancel.x).toBeTruthy();
+  await expect(buttons.nth(1)).toHaveCSS('background-color', 'rgb(241, 228, 248)');
   await damian.getByLabel('Partner note').fill('A private note for Masha');
   await damian.getByRole('button', { name: 'Send', exact: true }).click();
   await expect(damian.getByText('A private note for Masha')).toBeVisible();

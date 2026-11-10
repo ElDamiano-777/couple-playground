@@ -13,3 +13,7 @@
 .notes-create{min-height:44px;padding:9px 14px;border:1px solid #b896c7;border-radius:12px;background:#f3e5f9;color:#633583;font-weight:700}
 .note-composer{margin-top:8px}.note-composer label{font-size:13px;font-weight:700}.note-composer input{width:100%;min-height:44px;padding:9px;border:1px solid #cfabe4;border-radius:10px;background:white;font:inherit;box-sizing:border-box}.note-form-actions{display:flex;gap:8px}.note-form-actions button,.note-composer>button{min-height:44px}.note-status{font-size:13px;color:#476d4a}
 .partner-notes .partner-note-list{margin-top:12px}.partner-note-list .note-envelope{position:relative;padding-left:56px}.envelope-icon{position:absolute;left:16px;top:14px;font-size:24px;color:#75439a}.shared-note p{overflow-wrap:anywhere}
+
+.partner-notes .note-form-actions{display:flex;gap:8px}
+.partner-notes .note-form-actions button{appearance:none;flex:1;min-width:0;min-height:50px;padding:10px 14px;border-radius:14px;font-size:15px;font-weight:700}
+.partner-notes .note-form-actions button:not(.primary){border:1px solid #c6a4d8;background:#f1e4f8;color:#633583}

@@ -42,8 +42,8 @@ export default function PartnerNotes({ userId, household, viewer, state, onBack,
     {!composing && <button className="notes-create" disabled={!household} onClick={() => { setMessage(''); setComposing(true); }}>+ Write a note</button>}
     {composing && <form className="note-composer" onSubmit={event => { event.preventDefault(); void save(); }}>
       <textarea aria-label="Partner note" maxLength={2000} value={draft} onChange={event => setDraft(event.target.value)} placeholder="Write something kind or useful…" />
-      <button className="primary" disabled={!household || !draft.trim() || saving}>{edit ? 'Save note' : 'Send'}</button>
-      <button type="button" disabled={saving} onClick={() => { if (personalDirty && !confirm('Discard your changes?')) return; setEdit(null); setDraft(''); setComposing(false); }}>Cancel</button>
+      <div className="note-form-actions"><button className="primary" disabled={!household || !draft.trim() || saving}>{edit ? 'Save note' : 'Send'}</button>
+      <button type="button" disabled={saving} onClick={() => { if (personalDirty && !confirm('Discard your changes?')) return; setEdit(null); setDraft(''); setComposing(false); }}>Cancel</button></div>
     </form>}
     {message && <p role="status" className="note-status">{message}</p>}
     {error && <p role="alert">{error}</p>}
