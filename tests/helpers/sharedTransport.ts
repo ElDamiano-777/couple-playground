@@ -20,6 +20,8 @@ type Row = {
 
 export function transport() {
   let members: string[] = [];
+  let noteReactions: { note_id: string; user_id: string; reaction: string }[] = [];
+  let noteFavorites: { note_id: string; user_id: string }[] = [];
   let failNoteStatus = false;
   let failNoteSave = false;
   let delayedNoteSave: Promise<void> | null = null;
@@ -267,6 +269,25 @@ export function transport() {
         if (!row) return reply(null);
         if (method === `PATCH`) { Object.assign(row, data, { revision: row.revision + 1, updated_at: new Date().toISOString() }); return reply(row); }
         if (method === `DELETE`) { sharedLoveNotes = sharedLoveNotes.filter(item => item !== row); return reply(row); }
+      }
+      if ([`/rest/v1/partner_note_reactions`, `/rest/v1/partner_note_favorites`].includes(url.pathname)) {
+        const isReaction = url.pathname.endsWith('partner_note_reactions');
+        const eligible = (id: string) => {
+          const note = partnerNotes.find(item => item.id === id && item.household_id === homeFor(user));
+          return !!note && (!note.deliver_at || new Date(note.deliver_at).getTime() <= serverNow()) && (!isReaction || note.created_by === user || noteReads.some(read => read.note_id === id && read.user_id === user));
+        };
+        const rows = isReaction ? noteReactions : noteFavorites;
+        if (method === 'GET') return reply(rows.filter(row => eligible(row.note_id) && (isReaction || row.user_id === user)));
+        if (method === 'POST') {
+          if (data.user_id !== user || !eligible(data.note_id)) return reply({ message: 'Forbidden' }, 403);
+          if (rows.some(row => row.note_id === data.note_id && row.user_id === user)) return reply({ code: '23505', message: 'Duplicate' }, 409);
+          rows.push(data); return reply(null, 201);
+        }
+        const id = url.searchParams.get('note_id')?.replace('eq.', ''), target = url.searchParams.get('user_id')?.replace('eq.', '');
+        const row = rows.find(item => item.note_id === id && item.user_id === user && target === user && eligible(item.note_id));
+        if (!row) return reply(null);
+        if (method === 'PATCH' && isReaction) { (row as typeof noteReactions[number]).reaction = data.reaction; return reply(null); }
+        if (method === 'DELETE') { if (isReaction) noteReactions = noteReactions.filter(item => item !== row); else noteFavorites = noteFavorites.filter(item => item !== row); return reply(null); }
       }
       if (url.pathname === `/rest/v1/partner_note_photos`) {
         const id = url.searchParams.get(`note_id`)?.replace(`eq.`, ``); const note = partnerNotes.find(item => item.id === id && item.household_id === homeFor(user));
