@@ -7,6 +7,7 @@ import type { HouseholdTasksState } from '../tasks/useHouseholdTasks';
 import './search.css';
 
 type SearchHit = { kind: string; title: string; detail: string };
+type SearchableNote = { sender: string; body: string; created_at: string };
 
 export default function GlobalSearch({ shopping, collections, tasks, localNotes, onClose }: {
   shopping: SharedShoppingState;
@@ -17,21 +18,27 @@ export default function GlobalSearch({ shopping, collections, tasks, localNotes,
 }) {
   const [query, setQuery] = useState('');
   const [favorites, setFavorites] = useState<any[]>([]);
-  const [partnerNotes, setPartnerNotes] = useState<any[]>([]);
+  const [partnerNotes, setPartnerNotes] = useState<SearchableNote[]>([]);
+  const [notesIdentity, setNotesIdentity] = useState('');
+  const identity = `${shopping.session?.user.id ?? ''}:${shopping.household ?? ''}`;
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!shopping.session || !shopping.household) return;
+    let cancelled = false;
     setLoading(true);
     void Promise.all([
       supabase.from('shopping_favorites').select('name,brand,flavor,category').eq('household_id', shopping.household),
-      supabase.from('partner_notes').select('body,sender,created_at').eq('household_id', shopping.household),
+      supabase.rpc('searchable_partner_notes'),
     ]).then(([favoritesResult, notesResult]) => {
+      if (cancelled) return;
       setFavorites(favoritesResult.data ?? []);
-      setPartnerNotes(notesResult.data ?? []);
+      setPartnerNotes(((notesResult.data ?? []) as SearchableNote[]).filter(note => typeof note.body === 'string'));
+      setNotesIdentity(identity);
       setLoading(false);
     });
-  }, [shopping.household, shopping.session]);
+    return () => { cancelled = true; };
+  }, [shopping.household, shopping.session, identity]);
 
   const hits = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
@@ -41,11 +48,11 @@ export default function GlobalSearch({ shopping, collections, tasks, localNotes,
       ...shopping.items.map(item => ({ kind: 'Shopping', title: item.name, detail: [item.category, item.notes].filter(Boolean).join(' · ') })),
       ...favorites.map(item => ({ kind: 'Favorite', title: item.name, detail: [item.brand, item.flavor, item.category].filter(Boolean).join(' · ') })),
       ...tasks.items.map(task => ({ kind: 'Task', title: task.title, detail: [task.assignee, task.due_date, task.priority].filter(Boolean).join(' · ') })),
-      ...partnerNotes.map(note => ({ kind: 'Partner note', title: note.sender === 'masha' ? 'Masha' : 'Damian', detail: note.body })),
+      ...(notesIdentity === identity ? partnerNotes : []).map(note => ({ kind: 'Partner note', title: note.sender === 'masha' ? 'Masha' : 'Damian', detail: note.body ?? '' })),
       ...localNotes.map(note => ({ kind: 'Personal note', title: 'Personal note', detail: note.text })),
     ];
     return all.filter(hit => `${hit.title} ${hit.detail}`.toLocaleLowerCase().includes(normalized)).slice(0, 60);
-  }, [collections.entries, favorites, localNotes, partnerNotes, query, shopping.items, tasks.items]);
+  }, [collections.entries, favorites, localNotes, partnerNotes, notesIdentity, identity, query, shopping.items, tasks.items]);
 
   return <section className="search-page">
     <button className="text-action" onClick={onClose}>← Back</button>

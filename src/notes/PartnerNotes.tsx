@@ -69,7 +69,7 @@ export default function PartnerNotes({ userId, household, viewer, state, onBack,
   };
   const cancelSurprise = async (note: Note) => {
     if (!confirm('Cancel this scheduled surprise?')) return;
-    const result = await supabase.from('partner_notes').delete().eq('id', note.id).eq('deliver_at', note.deliver_at!).select().maybeSingle();
+    const result = await supabase.from('partner_notes').delete().eq('id', note.id).eq('deliver_at', note.deliver_at!).select('id').maybeSingle();
     if (result.error || !result.data) setError('Could not cancel this surprise. It may already have been delivered.');
     else { setNotes(current => current.filter(item => item.id !== note.id)); setMessage('Surprise cancelled.'); }
   };

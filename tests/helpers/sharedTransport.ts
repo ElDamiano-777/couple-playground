@@ -160,6 +160,16 @@ export function transport() {
         Object.assign(row, { body: data.p_body, deliver_at: data.p_delivery, photo_count: data.p_photos.length, updated_at: new Date(serverNow()).toISOString() });
         if (!existing) partnerNotes.push(row); notePhotos.set(row.id, data.p_photos); return reply(row);
       }
+      if (url.pathname.endsWith(`/rpc/searchable_partner_notes`)) {
+        const visible = partnerNotes.filter(note => note.household_id === homeFor(user) && (note.created_by === user || ((!note.deliver_at || new Date(note.deliver_at).getTime() <= serverNow()) && noteReads.some(read => read.note_id === note.id && read.user_id === user))));
+        return reply(visible.map(({ sender, body, created_at }) => ({ sender, body, created_at })));
+      }
+      if (url.pathname.endsWith(`/rpc/list_private_partner_notes`)) {
+        return reply(partnerNotes.filter(note => note.household_id === homeFor(user) && (note.created_by === user || !note.deliver_at || new Date(note.deliver_at).getTime() <= serverNow())).map(note => {
+          const opened = noteReads.some(read => read.note_id === note.id && read.user_id === user);
+          return { ...note, body: note.created_by === user || opened ? note.body : null, opened };
+        }));
+      }
       if (url.pathname.endsWith(`/rpc/scheduled_love_note_status`)) {
         if (failNoteStatus) { failNoteStatus = false; return reply({ message: `Status unavailable` }, 503); }
         return reply(partnerNotes.filter(note => note.created_by === user && note.household_id === homeFor(user) && note.deliver_at).map(note => ({ note_id: note.id, status: new Date(note.deliver_at).getTime() > serverNow() ? 'scheduled' : noteReads.some(read => read.note_id === note.id && read.user_id !== user && new Date(read.read_at).getTime() >= new Date(note.deliver_at).getTime()) ? 'delivered' : 'unconfirmed' })));
@@ -297,7 +307,11 @@ export function transport() {
       if (url.pathname === `/rest/v1/partner_notes`) {
         const household = homeFor(user); if (!household) return reply({ message: `Forbidden` }, 403);
         const visible = (row: any) => row.household_id === household && (row.created_by === user || !row.deliver_at || new Date(row.deliver_at).getTime() <= serverNow());
-        if (method === `GET`) return reply(partnerNotes.filter(visible));
+        if (method === `GET`) {
+          const selected = url.searchParams.get('select') || '*';
+          if (selected === '*' || selected.split(',').includes('body')) return reply({ code: '42501', message: 'permission denied for column body' }, 403);
+          return reply(partnerNotes.filter(visible).map(({ body: _body, ...metadata }) => metadata));
+        }
         if (method === `POST`) {
           if (data.household_id !== household || data.deliver_at && new Date(data.deliver_at).getTime() <= serverNow()) return reply({ message: `Invalid delivery` }, 400);
           const row = { deliver_at: null, ...data, id: crypto.randomUUID(), created_by: user, created_at: new Date(serverNow()).toISOString(), updated_at: new Date(serverNow()).toISOString() }; partnerNotes.push(row); return reply(row, 201);

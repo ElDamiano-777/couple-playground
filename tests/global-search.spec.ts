@@ -16,7 +16,8 @@ test('global search finds a recipe, shopping item, task and local note without l
   await page.getByRole('button', { name: '✦ Quick Add' }).click();
   await page.getByRole('button', { name: 'Milk', exact: true }).click();
   await page.getByRole('button', { name: 'Add 1 item', exact: true }).click();
-  await page.getByRole('button', { name: 'Tasks', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
+  await page.locator('.more-shortcuts').getByRole('button', { name: 'Tasks', exact: true }).click();
   await page.getByRole('button', { name: '+ Add task', exact: true }).click();
   await page.getByRole('dialog', { name: 'New task' }).locator('input').first().fill('Searchable laundry');
   await page.getByRole('button', { name: 'Save task', exact: true }).click();
