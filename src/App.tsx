@@ -10,6 +10,7 @@ import { monday, useMealPlan } from './meals/useMealPlan';
 import { useHouseholdTasks } from './tasks/useHouseholdTasks';
 import GlobalSearch from './search/GlobalSearch';
 import Settings from './settings/Settings';
+import { applyTheme, readTheme, saveTheme, type Theme } from './theme';
 
 type Page = HouseholdPage | `notes` | `more` | `welcome` | `search` | `settings`;
 type Profile = `masha` | `damian`;
@@ -52,6 +53,9 @@ export default function App() {
   const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : new URLSearchParams(window.location.search).has(`calendar`) ? `calendar` : `home`);
   const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
+  const [theme, setTheme] = useState<Theme>(() => readTheme(readProfile()));
+  useEffect(() => { const next = readTheme(profile); setTheme(next); applyTheme(next); }, [profile]);
+  const changeTheme = (next: Theme) => { setTheme(next); if (profile) saveTheme(profile, next); else applyTheme(next); };
   const waitingForSignIn = useRef(false);
   const [profileSaved, setProfileSaved] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -224,7 +228,7 @@ export default function App() {
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
       {([`folders`, `home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} onBack={goBack} backLabel={backLabel} shopping={shopping} family={family} onNotesDirty={setLoveNotesDirty} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
-      {page === `settings` && profile && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button><Settings name={profile === `masha` ? `Masha` : `Damian`} notificationsActive={!!shopping.household} poc={shopping.isPoc} busy={shopping.busy} onChangeName={() => { setProfile(null); setPage(`folders`); window.scrollTo({ top: 0, behavior: `instant` }); }} onDeleteAccount={() => { if (window.confirm(`Permanently delete your account? This cannot be undone.`)) void shopping.deleteAccount(); }} /></>}
+      {page === `settings` && profile && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button><Settings theme={theme} onThemeChange={changeTheme} name={profile === `masha` ? `Masha` : `Damian`} notificationsActive={!!shopping.household} poc={shopping.isPoc} busy={shopping.busy} onChangeName={() => { setProfile(null); setPage(`folders`); window.scrollTo({ top: 0, behavior: `instant` }); }} onDeleteAccount={() => { if (window.confirm(`Permanently delete your account? This cannot be undone.`)) void shopping.deleteAccount(); }} /></>}
       {page === `welcome` && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button>
         <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">

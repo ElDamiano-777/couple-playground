@@ -1,0 +1,41 @@
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --dark-bg: #101014;
+  --dark-card: #202029;
+  --dark-elevated: #292733;
+  --dark-purple: #332640;
+  --dark-green: #25352e;
+  --dark-warm: #3c302b;
+  --dark-blue: #293440;
+  --dark-text: #f7f4fa;
+  --dark-muted: #d0cad7;
+  --dark-purple-text: #d9c3f4;
+  --dark-green-text: #c4e0c7;
+  --dark-warm-text: #f1d1bd;
+  --dark-border: #665b6d;
+  --dark-accent: #bd83f3;
+  background: var(--dark-bg);
+  color: var(--dark-text);
+}
+:root[data-theme="light"] { color-scheme: light; }
+.theme-settings fieldset { display:flex; gap:12px; border:0; margin:0; padding:0; }
+.theme-settings legend { font-weight:700; margin-bottom:8px; }
+.theme-settings label { display:flex; align-items:center; gap:8px; min-height:44px; padding:8px 14px; border:1px solid #bfa4d1; border-radius:12px; cursor:pointer; }
+.theme-settings input { width:20px; height:20px; accent-color:#8040be; }
+:root[data-theme="dark"] .theme-settings label { border-color:var(--dark-border); background:var(--dark-elevated); color:var(--dark-text); }
+:root[data-theme="dark"] .theme-settings input { accent-color:var(--dark-accent); }
+:root[data-theme="dark"] .bottom-nav { background:#17171ef5; border-color:var(--dark-border); }
+:root[data-theme="dark"] input, :root[data-theme="dark"] select, :root[data-theme="dark"] textarea { color:var(--dark-text); background-color:var(--dark-elevated); border-color:var(--dark-border); }
+:root[data-theme="dark"] input[type="checkbox"], :root[data-theme="dark"] input[type="radio"] { accent-color:var(--dark-accent); }
+:root[data-theme="dark"] input::placeholder, :root[data-theme="dark"] textarea::placeholder { color:#c5bdcc; }
+:root[data-theme="dark"] :focus-visible { outline-color:var(--dark-accent); }
+:root[data-theme="dark"] .primary, :root[data-theme="dark"] .nav-us, :root[data-theme="dark"] .add-fab { color:#fff; }
+:root[data-theme="dark"] .preview-page .task-dashboard.dashboard-active { background:#342642; border-color:#8563a1; }
+:root[data-theme="dark"] .preview-page .task-dashboard.dashboard-overdue { border-color:#d59084; }
+:root[data-theme="dark"] .preview-page .shopping-dashboard.dashboard-active,
+:root[data-theme="dark"] .preview-page .us-shopping.dashboard-active { background:#263a30; border-color:#668b70; }
+:root[data-theme="dark"] .preview-page .dinner-dashboard.dashboard-active { background:#43302b; border-color:#ab7c6a; }
+:root[data-theme="dark"] .partner-note-list .scheduled-surprise { background:#3a3123; border-color:#a58b59; }
+:root[data-theme="dark"] .scheduled-surprise strong,
+:root[data-theme="dark"] .partner-note-list .scheduled-surprise time { color:#f4dfb3; }
+:root[data-theme="dark"] .surprise-status { background:#54452e; color:#f4dfb3; }
