@@ -70,7 +70,8 @@ test('recipes with photos and filters are shared across phones and existing note
     await mainNavigation(b).getByRole('button', { name: 'Us', exact: true }).click();
     await expect(b.getByRole('heading', { name: 'Us.' })).toBeVisible();
     await mainNavigation(b).getByRole('button', { name: 'Shopping', exact: true }).click();
-    await b.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Recipes', exact: true }).click();
+    await b.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'More', exact: true }).click();
+  await b.locator('.more-shortcuts').getByRole('button', { name: 'Recipes', exact: true }).click();
     await expect(b.locator('.recipe-card')).toHaveCount(2);
   } finally { await first.close(); await second.close(); }
 });
@@ -784,7 +785,8 @@ test('estimated prices show on recipe cards, the weekly meal plan and the shoppi
   await server.attach(context);
   await login(page, 'Masha'); await recipes(page);
   await expect(page.locator('.recipe-card-price')).toContainText('≈ 1,99 €');
-  await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Meals', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'More', exact: true }).click();
+  await page.locator('.more-shortcuts').getByRole('button', { name: 'Meals', exact: true }).click();
   await page.getByRole('button', { name: '+ Add meal', exact: true }).first().click();
   await page.getByLabel('Saved recipe').selectOption({ label: 'Synthetic pasta' });
   await page.getByRole('button', { name: 'Save meal', exact: true }).click();

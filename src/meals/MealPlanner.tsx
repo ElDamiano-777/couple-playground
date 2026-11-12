@@ -12,7 +12,7 @@ type MealState = { weekStart: string; setWeekStart: (value: string) => void; ite
 const shiftedDay = (week: string, days: number) => { const date = new Date(`${week}T12:00:00`); date.setDate(date.getDate() + days); return date; };
 const dayName = (week: string, index: number) => new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }).format(shiftedDay(week, index));
 const weekShift = (week: string, amount: number) => localDate(shiftedDay(week, amount * 7));
-export default function MealPlanner({ plan, recipes, shopping, initialMeal = null, initialPlan = null }: { initialMeal?: MealPlanItem | null; initialPlan?: MealPlanItem | { day_index: number; meal_slot: MealSlot } | null; plan: MealState; recipes: FolderEntry[]; shopping: SharedShoppingState }) {
+export default function MealPlanner({ plan, recipes, shopping, initialMeal = null, initialPlan = null, onBack, backLabel }: { onBack: () => void; backLabel: string; initialMeal?: MealPlanItem | null; initialPlan?: MealPlanItem | { day_index: number; meal_slot: MealSlot } | null; plan: MealState; recipes: FolderEntry[]; shopping: SharedShoppingState }) {
   const [editing, setEditing] = useState<MealPlanItem | { day_index: number; meal_slot: MealSlot } | null>(initialPlan);
   const [viewing, setViewing] = useState<MealPlanItem | null>(initialMeal);
   const [menu, setMenu] = useState<MealPlanItem | null>(null);
@@ -26,7 +26,7 @@ export default function MealPlanner({ plan, recipes, shopping, initialMeal = nul
   return <section className="meal-planner">{viewing ? <div className="meal-detail">
     {viewedRecipe ? <RecipeDetail key={viewedRecipe.id} recipe={viewedRecipe} shopping={shopping} busy={plan.busy} online={navigator.onLine} backLabel="← Meals" onBack={() => setViewing(null)} /> : <><button className="text-action recipe-back" onClick={() => setViewing(null)}>← Meals</button><article className="meal-custom-detail"><h1>{viewing.title}</h1>{viewing.recipe_id && <p>This saved recipe is no longer available.</p>}</article></>}
     <button className="primary meal-edit-dinner" onClick={() => { openEditor(viewing); setViewing(null); }}>Edit dinner</button>
-  </div> : <><p className="eyebrow">SHARED WEEKLY PLAN</p><h1>Meals<span>.</span></h1><p className="meal-lead">Plan dinner together.</p>
+  </div> : <><button className="text-action navigation-back" onClick={onBack}>← {backLabel}</button><p className="eyebrow">SHARED WEEKLY PLAN</p><h1>Meals<span>.</span></h1><p className="meal-lead">Plan dinner together.</p>
     <div className="meal-week-controls"><button aria-label="Previous week" onClick={() => plan.setWeekStart(weekShift(plan.weekStart, -1))}>‹</button><strong>{new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date(`${plan.weekStart}T12:00:00`))} – {new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(shiftedDay(plan.weekStart, 6))}</strong><button aria-label="Next week" onClick={() => plan.setWeekStart(weekShift(plan.weekStart, 1))}>›</button><button className="text-button" disabled={plan.loading} onClick={() => void plan.refresh()}>Refresh</button></div>
     {weekCost > 0 && <p className="meal-week-cost">Estimated cost of this week’s dinners: <strong>≈ {euro(weekCost)}</strong></p>}
     {plan.error && <p className="feedback error-message" role="alert">{plan.error}</p>}{plan.notice && <p className="feedback" role="status">{plan.notice}</p>}

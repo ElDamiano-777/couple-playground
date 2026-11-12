@@ -103,7 +103,7 @@ function RecipeImage({ recipe }: { recipe: FolderEntry }) {
   return <span className="recipe-image">{photo ? <img src={photo} referrerPolicy="no-referrer" alt="" /> : <span aria-hidden="true"><Symbol name="recipe" /></span>}</span>;
 }
 
-export default function Recipes({ state, shopping, sharedRecipe, onClearSharedRecipe, onSignIn }: { state: FolderEntriesState; shopping: SharedShoppingState; sharedRecipe: string | null; onClearSharedRecipe: () => void; onSignIn: () => void }) {
+export default function Recipes({ state, shopping, sharedRecipe, onClearSharedRecipe, onSignIn, onBack, backLabel }: { onBack: () => void; backLabel: string; state: FolderEntriesState; shopping: SharedShoppingState; sharedRecipe: string | null; onClearSharedRecipe: () => void; onSignIn: () => void }) {
   const [filter, setFilter] = useState('All');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -211,6 +211,7 @@ export default function Recipes({ state, shopping, sharedRecipe, onClearSharedRe
       <RecipeDetail key={selected.id} recipe={selected} shopping={shopping} busy={state.busy} online={state.online} onBack={() => setSelectedId(null)} onEdit={() => state.startEdit(selected)} onDelete={() => { if (window.confirm(`Remove “${selected.title}” from your shared recipes?`)) void state.remove(selected)?.then(success => { if (success) setSelectedId(null); }); }} />
       {isEditing && state.edit && <RecipeForm draft={state.edit} setField={state.setEditField} busy={state.busy} online={state.online} editing error={state.error} onClose={state.cancelEdit} onSave={() => { void state.saveEdit(); }} />}
     </> : <>
+      <button className="text-action navigation-back" onClick={onBack}>← {backLabel}</button>
       <div className="recipe-heading"><div><p className="eyebrow">SAVED TOGETHER</p><h1>Our Recipes<span>.</span></h1></div>{state.userId && state.household && <div className="recipe-heading-actions"><button className="primary recipe-add" onClick={() => { const draft = state.drafts.recipe; const resume = !sharedRecipe && !!draft.recipe_source_url && isSocial(draft.recipe_source_url) && (!draft.recipe_ingredients || !draft.recipe_instructions); setSource(sharedRecipe || (resume ? draft.recipe_source_url : '')); setNeedsCaption(resume); setCaptionChanged(false); setImportMessage(resume ? 'Your copied description is still here. Review it below.' : ''); setImporting(true); }}>Import from Link</button><button className="text-action recipe-manual" onClick={() => setScreenshotImporting(true)}>Import from Screenshots</button><button className="text-action recipe-manual" onClick={() => { setImported(!!state.drafts.recipe.recipe_source_url); setAdding(true); }}>+ Add Recipe manually</button></div>}</div>
       {!state.authReady || state.contextLoading ? <p role="status">Opening your recipes…</p> : !state.userId || !state.household ? <section className="dashboard-card"><h2>{state.userId ? 'Connect your home' : 'Sign in to your account'}</h2><p>Recipes are shared with both people in your home.</p><button className="primary" onClick={onSignIn}>{state.userId ? 'Connect home' : 'Sign in through Shopping'}</button></section> : <>
         {state.isPoc && <p className="notice">POC test space. Don’t add sensitive personal information or private photos.</p>}

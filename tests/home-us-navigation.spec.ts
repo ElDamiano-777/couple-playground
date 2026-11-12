@@ -30,7 +30,7 @@ test('Home starts the app and Us opens the couple space on a phone', async ({ pa
   await nav.getByRole('button', { name: 'Shopping', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Shopping.' })).toBeVisible();
   await nav.getByRole('button', { name: 'More', exact: true }).click();
-  for (const name of ['Recipes', 'Meals', 'Tasks', 'Expenses', 'Wishlist']) {
+  for (const name of ['Recipes', 'Meals', 'Tasks', 'Expenses', 'Calendar', 'Children', 'Settings & notifications']) {
     await expect(page.locator('.more-shortcuts').getByRole('button', { name, exact: true })).toBeVisible();
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

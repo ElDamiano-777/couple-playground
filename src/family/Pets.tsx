@@ -14,7 +14,7 @@ type Detail = { pet_id: string; photo: string | null; likes: string; dislikes: s
 const emptyDetail = (pet_id: string): Detail => ({ pet_id, photo: null, likes: '', dislikes: '', important_notes: '' });
 
 
-export default function Pets({ state, onSignIn }: { state: FamilyProfilesState; onSignIn: () => void }) {
+export default function Pets({ state, onSignIn, onBack, backLabel }: { onBack: () => void; backLabel: string; state: FamilyProfilesState; onSignIn: () => void }) {
   const [details, setDetails] = useState<Detail[]>([]);
   const [foodPreview, setFoodPreview] = useState<FoodPreview[]>([]);
   const [previewStatus, setPreviewStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -84,8 +84,8 @@ export default function Pets({ state, onSignIn }: { state: FamilyProfilesState; 
     setBusy(false);
   }
   if (!state.authReady || state.contextLoading) return <section className="preview-page"><p>Opening your pets…</p></section>;
-  if (!state.userId || !state.household) return <section className="preview-page"><h1>Pets<span>.</span></h1><section className="dashboard-card"><p>Sign in to see your shared pets.</p><button className="primary" onClick={onSignIn}>Sign in through Shopping</button></section></section>;
-  return <section className="preview-page pets-page"><h1>{view === 'list' || view === 'add' ? 'Pets' : pet?.name}<span>.</span></h1>
+  if (!state.userId || !state.household) return <section className="preview-page"><button className="text-action navigation-back" onClick={onBack}>← {backLabel}</button><h1>Pets<span>.</span></h1><section className="dashboard-card"><p>Sign in to see your shared pets.</p><button className="primary" onClick={onSignIn}>Sign in through Shopping</button></section></section>;
+  return <section className="preview-page pets-page">{view === 'list' && <button className="text-action navigation-back" onClick={onBack}>← {backLabel}</button>}<h1>{view === 'list' || view === 'add' ? 'Pets' : pet?.name}<span>.</span></h1>
     {state.isPoc && <p className="notice">POC test space. Don’t add sensitive personal information or private photos.</p>}
     {(error || state.error) && <p role="alert" className="feedback error-message">{error || state.error}</p>}
     {loading && <p role="status">Loading pets…</p>}

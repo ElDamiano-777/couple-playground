@@ -50,10 +50,8 @@ test('compact home opens task details and reuses all three shared forms on phone
     await page.getByLabel('Custom product').fill('Home test item');
     await page.locator('.quick-custom').getByRole('button', { name: 'Add', exact: true }).click();
     await page.getByRole('button', { name: 'Add 1 item' }).click();
-    await expect(sections.nth(1)).toContainText('1 item to buy');
-    await page.getByText('Manage shopping here').click();
+    await expect(sections.nth(1)).toContainText('1 item');
     await expect(page.getByRole('checkbox', { name: 'Mark Home test item as purchased' })).toBeVisible();
-    await page.getByText('Manage shopping here').click();
     await page.getByRole('button', { name: 'Plan dinner', exact: true }).click();
     await page.getByLabel('Saved recipe').selectOption({ label: 'Dinner pasta' });
     await page.getByRole('button', { name: 'Save meal' }).click();

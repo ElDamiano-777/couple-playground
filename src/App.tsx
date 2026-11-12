@@ -168,8 +168,20 @@ export default function App() {
     }
   }
 
-  function navigate(next: Page) {
+  const [history, setHistory] = useState<Page[]>([]);
+  const roots: Page[] = ['home', 'shopping', 'folders', 'places', 'more'];
+  const parent = history.at(-1) ?? (['pets', 'partner-notes', 'wishlist'].includes(page) ? 'folders' : 'more');
+  const labels: Partial<Record<Page, string>> = { home: 'Home', shopping: 'Shopping', folders: 'Us', places: 'Places', more: 'More', recipes: 'Recipes', meals: 'Meals', tasks: 'Tasks', expenses: 'Expenses', calendar: 'Calendar', children: 'Children', pets: 'Pets', wishlist: 'Wishlist', 'partner-notes': 'Love Notes', notes: 'Personal notes', settings: 'Settings', search: 'Search', activity: 'Example updates', welcome: 'Welcome' };
+  const backLabel = labels[parent] ?? 'More';
+  const goBack = () => navigate(parent, true);
+
+  function navigate(next: Page, back = false) {
     if (page === 'partner-notes' && next !== page && loveNotesDirty && !window.confirm('Discard your unfinished note?')) return;
+    if (next !== page) {
+      if (back) setHistory(previous => previous.slice(0, -1));
+      else if (roots.includes(next)) setHistory([]);
+      else setHistory(previous => [...previous, page]);
+    }
     if (next === `home`) meals.setWeekStart(monday());
     if (next === `home` || next === `shopping`) setShoppingCategory(null);
     if (next === `children`) family.setKind(`child`);
@@ -184,8 +196,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: `instant` });
   }
 
-  const homePages: Page[] = [`home`, `recipes`, `meals`, `tasks`, `expenses`, `calendar`, `children`];
-  const activeFolder = homePages.includes(page) ? `home` : [`pets`, `partner-notes`, `wishlist`].includes(page) ? `folders` : [`notes`, `welcome`, `activity`, `search`].includes(page) ? `more` : page;
+  const activeFolder = roots.includes(page) ? page : [...history].reverse().find(item => roots.includes(item)) ?? (['pets', 'partner-notes', 'wishlist'].includes(page) ? 'folders' : 'more');
 
   return <div className="app">
     <a className="skip-link" href="#main">Skip to content</a>
@@ -212,9 +223,9 @@ export default function App() {
         </div>
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
-      {([`folders`, `home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} shopping={shopping} family={family} onNotesDirty={setLoveNotesDirty} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
-      {page === `settings` && profile && <Settings name={profile === `masha` ? `Masha` : `Damian`} notificationsActive={!!shopping.household} poc={shopping.isPoc} busy={shopping.busy} onChangeName={() => { setProfile(null); setPage(`folders`); window.scrollTo({ top: 0, behavior: `instant` }); }} onDeleteAccount={() => { if (window.confirm(`Permanently delete your account? This cannot be undone.`)) void shopping.deleteAccount(); }} />}
-      {page === `welcome` && <>
+      {([`folders`, `home`, `shopping`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} onBack={goBack} backLabel={backLabel} shopping={shopping} family={family} onNotesDirty={setLoveNotesDirty} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
+      {page === `settings` && profile && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button><Settings name={profile === `masha` ? `Masha` : `Damian`} notificationsActive={!!shopping.household} poc={shopping.isPoc} busy={shopping.busy} onChangeName={() => { setProfile(null); setPage(`folders`); window.scrollTo({ top: 0, behavior: `instant` }); }} onDeleteAccount={() => { if (window.confirm(`Permanently delete your account? This cannot be undone.`)) void shopping.deleteAccount(); }} /></>}
+      {page === `welcome` && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button>
         <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">
             <p className="eyebrow">A LITTLE SPACE FOR THE TWO OF US</p>
@@ -252,7 +263,7 @@ export default function App() {
         <aside className="gentle-note"><Icon name="heart" /><p>This is only the beginning. There’s just one rule:<br />make it something you’ll love together.</p></aside>
       </>}
 
-      {page === `notes` && <section className="inner-page">
+      {page === `notes` && <section className="inner-page"><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button>
         <p className="eyebrow">THE LITTLE THINGS THAT MATTER</p>
         <h1>Thoughts for later<span>.</span></h1>
         <p className="intro">An idea for an evening, a few kind words, or something just for you.</p>
@@ -275,14 +286,14 @@ export default function App() {
       {page === `more` && <section className="inner-page">
         <p className="eyebrow">MAKE IT YOURS</p>
         <h1>More<span>.</span></h1>
-        <div className="more-shortcuts" aria-label="More sections"><button className="start-card" onClick={() => navigate(`recipes`)}><Symbol name="recipe" /><strong>Recipes</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`meals`)}><Symbol name="plans" /><strong>Meals</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`tasks`)}><Symbol name="plans" /><strong>Tasks</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`expenses`)}><Symbol name="plans" /><strong>Expenses</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`wishlist`)}><Symbol name="wishlist" /><strong>Wishlist</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`search`)}><Icon name="spark" /><strong>Search Together</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`notes`)}><Icon name="note" /><strong>Personal notes</strong><Icon name="arrow" /></button><button className="start-card create-card" onClick={() => navigate(`activity`)}><Symbol name="bell" /><strong>Example updates</strong><Icon name="arrow" /></button></div>
+        <div className="more-shortcuts" aria-label="More sections"><button className="start-card" onClick={() => navigate(`recipes`)}><Symbol name="recipe" /><strong>Recipes</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`meals`)}><Symbol name="plans" /><strong>Meals</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`tasks`)}><Symbol name="plans" /><strong>Tasks</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`expenses`)}><Symbol name="plans" /><strong>Expenses</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`calendar`)}><Symbol name="plans" /><strong>Calendar</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`children`)}><Symbol name="heart" /><strong>Children</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`settings`)}><Icon name="more" /><strong>Settings &amp; notifications</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`search`)}><Icon name="spark" /><strong>Search Together</strong><Icon name="arrow" /></button><button className="start-card" onClick={() => navigate(`notes`)}><Icon name="note" /><strong>Personal notes</strong><Icon name="arrow" /></button><button className="start-card create-card" onClick={() => navigate(`activity`)}><Symbol name="bell" /><strong>Example updates</strong><Icon name="arrow" /></button></div>
         <p className="intro">You don’t need to know about computers. Just tell your agent what you’d like to change.</p>
         <div className="help-card"><span className="card-icon"><Icon name="spark" /></span><h2>Say it in your own words</h2><p>Open your chat with your agent, tap the microphone on your keyboard, and describe your idea. After making the change, your agent will send you the app link and tell you where to find it.</p><blockquote>“I’d love a shared list of date ideas here.”</blockquote><p className="muted">You can speak Russian, English or German.</p></div>
         <div className="help-card"><h2>A note for you</h2><button className="primary" onClick={() => navigate(`welcome`)}>Read your welcome</button></div>
         <div className="local-label"><span />This is a little demo. Notes stay in this browser and aren’t shared with your partner yet.</div>
         <p className="small-print">Clearing your browser data also removes these local notes. Other people using the same browser can read them.</p>
       </section>}
-      {page === `search` && <GlobalSearch shopping={shopping} collections={collections} tasks={tasks} localNotes={notes} onClose={() => navigate(`home`)} />}
+      {page === `search` && <GlobalSearch shopping={shopping} collections={collections} tasks={tasks} localNotes={notes} onClose={goBack} />}
       </>}
     </main>
 

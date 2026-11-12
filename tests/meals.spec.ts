@@ -12,7 +12,7 @@ test('meal planner selects a recipe and reviews its quantities before adding to 
   await page.getByLabel('Password', { exact: true }).fill(pocPassword);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await openShopping(page);
-  await page.getByRole('button', { name: 'Meals', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click(); await page.locator('.more-shortcuts').getByRole('button', { name: 'Meals', exact: true }).click();
   await page.getByRole('button', { name: '+ Add meal', exact: true }).first().click();
   await page.getByLabel('Saved recipe').selectOption({ label: 'Synthetic pasta' });
   await page.getByRole('button', { name: 'Save meal', exact: true }).click();
@@ -20,7 +20,8 @@ test('meal planner selects a recipe and reviews its quantities before adding to 
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
   await expect(page.getByRole('button', { name: /Tonight’s dinner/ })).toBeVisible();
   await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
-  await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Meals', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'More', exact: true }).click();
+  await page.locator('.more-shortcuts').getByRole('button', { name: 'Meals', exact: true }).click();
   await page.getByRole('button', { name: 'Create Shopping List', exact: true }).click();
   await expect(page.getByText('200 g pasta', { exact: true })).toBeVisible();
   await expect(page.getByText('1 lime', { exact: true })).toBeVisible();
@@ -45,7 +46,7 @@ test('phone layout uses English dates and navigates weeks in the local timezone'
     await page.getByLabel('Password', { exact: true }).fill(pocPassword);
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await openShopping(page);
-    await page.getByRole('button', { name: 'Meals', exact: true }).click();
+    await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click(); await page.locator('.more-shortcuts').getByRole('button', { name: 'Meals', exact: true }).click();
     await expect(page.locator('.meal-day h2').first()).toHaveText('Monday 30 Mar');
     const first = await page.locator('.meal-day').nth(0).boundingBox();
     const second = await page.locator('.meal-day').nth(1).boundingBox();
@@ -98,7 +99,7 @@ test('dinner details, editing, moving and removal preserve other meal data', asy
   await page.getByLabel('Password', { exact: true }).fill(pocPassword);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await openShopping(page);
-  await page.getByRole('button', { name: 'Meals', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click(); await page.locator('.more-shortcuts').getByRole('button', { name: 'Meals', exact: true }).click();
   await expect(page.locator('.meal-day')).toHaveCount(7);
   await expect(page.locator('.meal-slot')).toHaveCount(7);
   await expect(page.getByText('Existing breakfast')).toHaveCount(0);
@@ -134,7 +135,8 @@ test('dinner details, editing, moving and removal preserve other meal data', asy
   await expect(page.getByRole('button', { name: /A very long custom dinner/ })).toHaveCount(0);
   expect(server.meals().map(item => item.title).sort()).toEqual(['Existing breakfast', 'Existing lunch']);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Recipes', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'More', exact: true }).click();
+  await page.locator('.more-shortcuts').getByRole('button', { name: 'Recipes', exact: true }).click();
   await expect(page.getByText('Synthetic pasta', { exact: true })).toBeVisible();
   await expect(page.getByText('Synthetic soup', { exact: true })).toBeVisible();
 });
@@ -156,7 +158,7 @@ test('planned dinner ingredients offer duplicate choices and sync to the other p
       await page.getByLabel('Password', { exact: true }).fill(pocPassword);
       await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     }
-    await openShopping(a); await a.getByRole('button', { name: 'Meals', exact: true }).click();
+    await openShopping(a); await mainNavigation(a).getByRole('button', { name: 'More', exact: true }).click(); await a.locator('.more-shortcuts').getByRole('button', { name: 'Meals', exact: true }).click();
     await a.getByRole('button', { name: '+ Add meal' }).first().click();
     await a.getByLabel('Saved recipe').selectOption({ label: 'Dinner with rice' });
     await a.getByRole('button', { name: 'Save meal' }).click();
@@ -199,7 +201,7 @@ test('dinner menu changes and removes the plan without deleting the shared recip
       await page.goto('./'); await page.getByRole('button', { name, exact: true }).click();
       await page.getByLabel('Password', { exact: true }).fill(pocPassword);
       await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-      await openShopping(page); await page.getByRole('button', { name: 'Meals', exact: true }).click();
+      await openShopping(page); await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click(); await page.locator('.more-shortcuts').getByRole('button', { name: 'Meals', exact: true }).click();
     }
     await a.locator('.meal-day').first().getByRole('button', { name: '+ Add meal' }).click();
     await a.getByLabel('Saved recipe').selectOption({ label: 'Roast vegetables' });
@@ -222,7 +224,8 @@ test('dinner menu changes and removes the plan without deleting the shared recip
     await expect(a.locator('.meal-day').first().getByRole('button', { name: '+ Add meal' })).toBeVisible();
     await b.evaluate(() => window.dispatchEvent(new Event('focus')));
     await expect(b.locator('.meal-day').first().getByRole('button', { name: '+ Add meal' })).toBeVisible();
-    await a.getByRole('navigation', { name: 'Home sections' }).getByRole('button', { name: 'Recipes' }).click();
+    await a.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'More', exact: true }).click();
+  await a.locator('.more-shortcuts').getByRole('button', { name: 'Recipes', exact: true }).click();
     await expect(a.locator('.recipe-card').filter({ hasText: 'Roast vegetables' })).toBeVisible();
     await expect(a.locator('.recipe-card').filter({ hasText: 'Lentil soup' })).toBeVisible();
   } finally { await first.close(); await second.close(); }
