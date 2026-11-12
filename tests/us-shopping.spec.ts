@@ -9,9 +9,7 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
   await expect(page.locator('.shopping-dashboard')).toBeVisible();
-  await expect(page.locator('.us-shopping-heading > span')).toBeVisible();
-  const heading = page.locator('.us-shopping-heading button');
-  if (await heading.getAttribute('aria-expanded') === 'false') await heading.click();
+  await expect(page.locator('.shopping-count')).toBeVisible();
 }
 async function add(page: Page, name: string, category: string, details: string) {
   await page.getByRole('button', { name: '+ Add item', exact: true }).click();
@@ -85,7 +83,6 @@ test('an unsuccessful dashboard addition keeps its draft when navigating', async
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
-  await page.locator('.us-shopping-heading button').click();
   await page.getByRole('button', { name: '+ Add item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
@@ -101,7 +98,7 @@ test('dashboard shopping preview expands and links to Shopping', async ({ page, 
   await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(10);
   await page.getByRole('button', { name: 'Show less' }).click();
   await expect(page.locator('.us-shopping-item:not(.is-bought)')).toHaveCount(3);
-  await page.locator('.us-shopping-heading').getByRole('button', { name: 'Shopping', exact: true }).click();
+  await page.locator('.us-shopping-heading').getByRole('button', { name: 'View all', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Shopping.' })).toBeVisible();
 });
 

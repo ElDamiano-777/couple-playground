@@ -9,7 +9,7 @@ import { getNotePhotos, prepareNotePhoto } from './notePhotos';
 import NotePhotos from './NotePhotos';
 import { useNoteInteractions } from './useNoteInteractions';
 
-export default function PartnerNotes({ userId, household, viewer, state, onBack, onDirty }: { userId?: string; household: string | null; viewer: 'masha' | 'damian'; state: PartnerNotesState; onBack: () => void; onDirty: (dirty: boolean) => void }) {
+export default function PartnerNotes({ userId, household, viewer, state, onBack, onDirty, backLabel = 'Us' }: { backLabel?: string; userId?: string; household: string | null; viewer: 'masha' | 'damian'; state: PartnerNotesState; onBack: () => void; onDirty: (dirty: boolean) => void }) {
   const [sharedDirty, setSharedDirty] = useState(false);
   const [tab, setTab] = useState<'personal' | 'shared'>('personal');
   const [letterFilter, setLetterFilter] = useState<'all' | 'favorites'>('all');
@@ -87,7 +87,7 @@ export default function PartnerNotes({ userId, household, viewer, state, onBack,
     finally { setSaving(false); }
   };
   return <section className="partner-notes">
-    <button className="text-action" onClick={onBack}>← Us</button>
+    <button className="text-action" onClick={onBack}>← {backLabel}</button>
     <p className="eyebrow">FOR EACH OTHER</p><h1>Love Notes<span>.</span></h1>
     <div className="love-note-tabs" role="tablist" aria-label="Love Notes sections"><button role="tab" aria-selected={tab === 'personal'} onClick={() => setTab('personal')}>For Each Other 💌</button><button role="tab" aria-selected={tab === 'shared'} onClick={() => setTab('shared')}>Our Notes 📖</button></div>
     <div hidden={tab !== 'personal'}>

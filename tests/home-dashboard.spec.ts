@@ -37,7 +37,7 @@ test('compact home opens task details and reuses all three shared forms on phone
     await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Close' }).click();
     await expect(page.getByLabel('Complete Past task')).toBeVisible();
     await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
-    await page.getByRole('button', { name: 'View all' }).click();
+    await page.locator('.task-dashboard').getByRole('button', { name: 'View all' }).click();
     await expect(page.getByLabel('Complete Later urgent')).toBeVisible();
     await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
     await page.getByRole('button', { name: 'Add task', exact: true }).click();

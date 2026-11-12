@@ -21,7 +21,7 @@ for (const width of [320, 360, 390]) {
       await expect(page.getByRole('navigation', { name: 'Home sections' })).toHaveCount(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
-    await page.getByRole('button', { name: 'View all', exact: true }).click();
+    await page.locator('.task-dashboard').getByRole('button', { name: 'View all', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Tasks.' })).toBeVisible();
     await page.getByRole('button', { name: '← Home' }).click();
     await expect(page.getByRole('heading', { name: 'Home.' })).toBeVisible();

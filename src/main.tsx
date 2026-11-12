@@ -4,6 +4,7 @@ import App from './App';
 import './styles.css';
 import './theme-dark.css';
 import './theme.css';
+import './home.css';
 
 createRoot(document.getElementById(`root`)!).render(<StrictMode><App /></StrictMode>);
 
