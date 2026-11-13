@@ -31,6 +31,7 @@ test('every catalog item has an illustration and favorites use the catalog', asy
       for (let j = 0; j < await subgroups.count(); j++) if (await subgroups.nth(j).getAttribute('aria-expanded') === 'false') await subgroups.nth(j).click();
       expect(await group.locator('.quick-tile').count()).toBeGreaterThan(0);
       expect(await group.locator('.quick-tile:not(:has(.product-illustration))').count()).toBe(0);
+      expect(await group.locator('.quick-tile .product-illustration[data-illustration="unknown"]').count()).toBe(0);
     }
   }
   await modal.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Home' }).click();

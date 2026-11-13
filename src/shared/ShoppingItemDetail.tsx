@@ -1,5 +1,5 @@
 import type { ShoppingItem } from './useSharedShopping';
-import { Symbol } from '../ui/Symbol';
+import { ProductIllustration, petFoodIllustrationName } from './ProductIllustration';
 
 export function shoppingPhoto(item: ShoppingItem, favoritePhotos: Record<string, string | null>, petFoodPhotos: Record<string, string | null>) {
   return item.pet_food_id ? petFoodPhotos[item.pet_food_id] ?? null : item.favorite_id ? favoritePhotos[item.favorite_id] ?? null : null;
@@ -15,7 +15,7 @@ export default function ShoppingItemDetail({ item, photo, onClose, onEdit, onDel
   return <div className="shopping-detail-overlay" role="presentation" onMouseDown={onClose}>
     <section className="shopping-detail-card" role="dialog" aria-modal="true" aria-labelledby="shopping-detail-title" onMouseDown={event => event.stopPropagation()}>
       <div className="shopping-detail-header"><button type="button" className="text-action shopping-detail-close" onClick={onClose}>Close</button></div>
-      <div className="shopping-detail-photo">{photo ? <img src={photo} alt="" /> : <Symbol name="shopping" />}</div>
+      <div className="shopping-detail-photo">{photo ? <img src={photo} alt="" /> : <ProductIllustration name={item.pet_food_id ? petFoodIllustrationName(item.name, item.notes) : item.name} />}</div>
       <h2 id="shopping-detail-title">{item.name}</h2>
       <dl>
         {brand && <><dt>Brand</dt><dd>{brand}</dd></>}

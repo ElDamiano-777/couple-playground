@@ -1,8 +1,8 @@
+import { ProductIllustration, petFoodIllustrationName } from './ProductIllustration';
 import { useEffect, useState } from "react";
 import { euro, packPrice } from '../pricing/recipeCost';
 import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
 import QuickAdd from "./QuickAdd";
-import { Symbol } from "../ui/Symbol";
 import PetFoodShopping from "./PetFoodShopping";
 import ShoppingItemDetail, { shoppingPhoto } from './ShoppingItemDetail';
 import './shopping-unified.css';
@@ -293,7 +293,7 @@ export default function SharedShopping({
             const unpriced = prices.filter(price => price === null).length;
             const row = (item: ShoppingItem) => <div className={`shopping-list-row${item.bought ? ' is-bought' : ''}`} key={item.id}>
               <input aria-label={item.bought ? `Return ${item.name} to active list` : `Mark ${item.name} as purchased`} type="checkbox" checked={item.bought} disabled={state.busy || !navigator.onLine} onChange={() => { void state.markBought(item).then(success => { if (success && !item.bought) setUndoItem(item); }); }} />
-              <button type="button" className="shopping-row-open" onClick={() => setDetail(item)}><span className="shopping-thumb" aria-hidden="true">{shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos) ? <img src={shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos)!} alt="" /> : <Symbol name="shopping" />}</span><span className="shopping-row-copy"><strong>{item.name}</strong><small><span className="shopping-row-category">{item.category}</span>{item.notes && <> · {item.notes}</>}</small></span></button>
+              <button type="button" className="shopping-row-open" onClick={() => setDetail(item)}><span className="shopping-thumb" aria-hidden="true">{shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos) ? <img src={shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos)!} alt="" /> : <ProductIllustration name={item.pet_food_id ? petFoodIllustrationName(item.name, item.notes) : item.name} />}</span><span className="shopping-row-copy"><strong>{item.name}</strong><small><span className="shopping-row-category">{item.category}</span>{item.notes && <> · {item.notes}</>}</small></span></button>
             </div>;
             return <>{total > 0 && <p className="shopping-total">Estimated total: <strong>≈ {euro(total)}</strong>{unpriced ? ` · ${unpriced} without price` : ''}</p>}<section className="shopping-active-list" aria-label="Items to buy">{active.length ? active.map(row) : <p className="shopping-empty">{query ? 'No items match your search.' : 'Your shopping list is empty.'}</p>}</section>
               {purchased.length > 0 && <details className="purchased-list shopping-purchased" open={purchasedOpen} onToggle={event => setPurchasedOpen(event.currentTarget.open)}><summary>Purchased ({purchased.length})</summary><div className="shopping-active-list">{purchased.map(row)}</div></details>}</>;

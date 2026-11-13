@@ -109,3 +109,8 @@
 .quick-subgroup-toggle { position: relative; }
 .quick-subgroup-toggle .quick-chevron { position: absolute; top: 8px; right: 8px; }
 .quick-check { top: 8px; right: 36px; bottom: auto; }
+.shopping-thumb .product-illustration, .pet-food-shopping-photo .product-illustration { width: 100%; height: 100%; max-width: 38px; max-height: 38px; }
+.shopping-detail-photo .product-illustration { width: 90px; height: 90px; }
+.quick-selected-product { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.quick-selected-thumb { display: grid; place-items: center; flex: none; width: 36px; height: 36px; }
+.quick-selected-thumb .product-illustration, .quick-selected-thumb img { display: block; width: 100%; height: 100%; object-fit: contain; }
