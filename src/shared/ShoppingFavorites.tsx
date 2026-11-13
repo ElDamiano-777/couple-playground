@@ -17,13 +17,15 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
   const [draft, setDraft] = useState<FavoriteDraft>(emptyDraft(category));
   const [editingId, setEditingId] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  useEffect(() => { setShowAll(false); }, [category]);
   const [productGroup, setProductGroup] = useState<string>(favoriteCatalog[0].title);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const [recognition, setRecognition] = useState('');
   const [scanningBarcode, setScanningBarcode] = useState(false);
   const scannerVideo = useRef<HTMLVideoElement>(null);
-  const items = data.favorites.filter(item => item.category === category && `${item.name} ${item.brand}`.toLocaleLowerCase().includes(query));
+  const items = data.favorites.filter(item => item.category === category && `${item.name} ${item.brand} ${item.flavor} ${item.size} ${item.quantity} ${item.notes}`.toLocaleLowerCase().includes(query));
   function start(item?: Favorite) {
     setEditingId(item?.id ?? null);
     setDraft(item ? { category: item.category, name: item.name, brand: item.brand, flavor: item.flavor ?? '', size: item.size ?? '', quantity: item.quantity, notes: item.notes, photo: item.photo } : emptyDraft(category));
@@ -70,24 +72,25 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
   async function save(event: FormEvent) {
     event.preventDefault();
     if (!draft.name.trim()) return;
-    if (await data.save(draft, editingId)) setEditing(false);
+    if (await data.save(draft, editingId)) { setEditing(false); setShowAll(true); }
   }
   return <section className="favorites-section" aria-labelledby="favorites-title">
-    <div className="favorites-header"><h3 id="favorites-title">⭐ Favorites</h3>{!editing && <button type="button" className="favorite-add" disabled={data.loading || data.busy || disabled} onClick={() => start()}>+ Add favorite</button>}</div>
+    <div className="favorites-header"><h3 id="favorites-title"><span aria-hidden="true">★</span> Favorites</h3>{!editing && <button type="button" className="favorite-add" disabled={data.loading || data.busy || disabled} onClick={() => start()}>+ Add favorite</button>}</div>
     {isPoc && <p className="favorite-poc">POC test space: don’t add sensitive information or private photos.</p>}
     {data.loading && <p className="favorite-hint">Loading favorites…</p>}
     {!editing && !data.loading && !items.length && <p className="favorite-hint">{query ? 'No matching favorites.' : 'Save your favorite products here.'}</p>}
-    {!editing && <div className="favorites-list">{items.map(item => <article className="favorite-card" key={item.id}>
+    {!editing && <div className="favorites-list">{(showAll || query ? items : items.slice(0, 3)).map(item => <article className="favorite-card" key={item.id}>
       <button type="button" className="favorite-select" aria-pressed={selectedIds.includes(item.id)} disabled={data.busy || disabled || editing} onClick={() => onToggle(item)}>
         <span className="favorite-thumb">{item.photo ? <img src={item.photo} alt="" /> : <span aria-hidden="true">☆</span>}</span>
         <span className="favorite-copy"><strong>{item.name}</strong>{(item.brand || item.flavor || item.size || item.quantity) && <small>{[item.brand, item.flavor, item.size, item.quantity].filter(Boolean).join(' · ')}</small>}</span>
-        <span aria-hidden="true">{selectedIds.includes(item.id) ? '✓' : '+'}</span>
+        <span className="favorite-indicator" aria-hidden="true">{selectedIds.includes(item.id) ? '✓' : '+'}</span>
       </button>
       <details className="food-menu favorite-menu"><summary aria-label={`Actions for favorite ${item.name}`}>⋯</summary><div className="food-menu-options">
         <button disabled={data.busy || disabled || editing} onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); start(item); }}>Edit</button>
         <button disabled={data.busy || disabled || editing} onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); if (window.confirm(`Remove “${item.name}” from favorites for both of you?`)) void data.remove(item); }}>Delete</button>
       </div></details>
     </article>)}</div>}
+    {!editing && !query && items.length > 3 && <button type="button" className="favorite-show-all" aria-expanded={showAll} onClick={() => setShowAll(value => !value)}>{showAll ? 'Show less' : `Show all favorites (${items.length})`}</button>}
     {data.error && <p className="feedback error-message" role="alert">{data.error}</p>}
     {editing && picking && <section className="favorite-picker" aria-label="Choose a product">
       <h3>Choose a product</h3><p>Pick a category, then tap a product.</p>
