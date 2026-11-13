@@ -101,7 +101,6 @@ test('saved favorites remain reusable from Shopping', async ({ page, context }) 
   await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
   await page.getByRole('button', { name: '+ Quick Add Item' }).click();
   await page.getByRole('button', { name: '+ Add favorite' }).click();
-  await page.getByRole('button', { name: '+ Enter a custom product' }).click();
   await page.getByLabel('Product name').fill('Test favorite tea');
   await page.getByLabel('Brand (optional)').fill('Example');
   await page.getByRole('button', { name: 'Save favorite' }).click();

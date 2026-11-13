@@ -4,22 +4,21 @@ import { readPhoto } from '../family/petPhoto';
 import type { ShoppingItem } from './useSharedShopping';
 import type { Favorite, FavoriteDraft } from './useShoppingFavorites';
 import { useShoppingFavorites } from './useShoppingFavorites';
-import { favoriteCatalog } from './favoriteCatalog';
+import { ProductIllustration } from './ProductIllustration';
 import { recognizeBarcode, recognizeProduct } from './productRecognition';
 
 type FavoritesState = ReturnType<typeof useShoppingFavorites>;
 const emptyDraft = (category: ShoppingItem['category']): FavoriteDraft => ({ category, name: '', brand: '', flavor: '', size: '', quantity: '', notes: '', photo: null });
 
-export default function ShoppingFavorites({ category, data, selectedIds, onToggle, editing, setEditing, isPoc, query, disabled }: {
+export default function ShoppingFavorites({ category, data, selectedIds, onToggle, editing, setEditing, isPoc, query, disabled, favoriteSeed, onSeedHandled }: {
+  favoriteSeed: { name: string; id: number } | null; onSeedHandled: () => void;
   category: ShoppingItem['category']; data: FavoritesState; selectedIds: string[];
   onToggle: (item: Favorite) => void; editing: boolean; setEditing: (value: boolean) => void; isPoc: boolean; query: string; disabled: boolean;
 }) {
   const [draft, setDraft] = useState<FavoriteDraft>(emptyDraft(category));
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [picking, setPicking] = useState(false);
   const [showAll, setShowAll] = useState(false);
   useEffect(() => { setShowAll(false); }, [category]);
-  const [productGroup, setProductGroup] = useState<string>(favoriteCatalog[0].title);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const [recognition, setRecognition] = useState('');
@@ -29,9 +28,14 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
   function start(item?: Favorite) {
     setEditingId(item?.id ?? null);
     setDraft(item ? { category: item.category, name: item.name, brand: item.brand, flavor: item.flavor ?? '', size: item.size ?? '', quantity: item.quantity, notes: item.notes, photo: item.photo } : emptyDraft(category));
-    setProductGroup(favoriteCatalog[0].title); setPicking(!item);
+
     setPhotoError(''); setRecognition(''); setEditing(true);
   }
+  useEffect(() => {
+    if (!favoriteSeed) return;
+    setEditingId(null); setDraft({ ...emptyDraft(category), name: favoriteSeed.name });
+    setPhotoError(''); setRecognition(''); setEditing(true); onSeedHandled();
+  }, [favoriteSeed, category, onSeedHandled, setEditing]);
   async function photo(file?: File) {
     if (!file) return;
     setPhotoBusy(true); setPhotoError('');
@@ -53,7 +57,6 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
       const result = await recognizeBarcode(code);
       if (!Object.values(result.fields).some(Boolean)) { setRecognition('No product found for this barcode. You can enter it yourself.'); return; }
       setDraft(previous => ({ ...previous, ...result.fields, photo: result.photo }));
-      setPicking(false);
       setRecognition(result.photo ? 'Product and product photo found. Review before saving.' : 'Product found. Add a front photo if you want one.');
     } catch { setPhotoError('Could not look up this barcode. Try again or enter details yourself.'); }
     finally { setPhotoBusy(false); }
@@ -75,13 +78,13 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
     if (await data.save(draft, editingId)) { setEditing(false); setShowAll(true); }
   }
   return <section className="favorites-section" aria-labelledby="favorites-title">
-    <div className="favorites-header"><h3 id="favorites-title"><span aria-hidden="true">★</span> Favorites</h3>{!editing && <button type="button" className="favorite-add" disabled={data.loading || data.busy || disabled} onClick={() => start()}>+ Add favorite</button>}</div>
+    <div className="favorites-header"><h3 id="favorites-title"><span aria-hidden="true">★</span> Favorites</h3>{!editing && <div className="favorite-header-actions"><button type="button" className="favorite-header-tool" aria-label="Scan barcode" disabled={data.loading || data.busy || disabled} onClick={() => { start(); setScanningBarcode(true); }}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16m3-16v16m3-16v16m3-16v16m4-16v16m3-16v16" /></svg></button><label className="favorite-header-tool" htmlFor="quick-favorite-photo" aria-label="Choose product photo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h4l2-3h4l2 3h4v11H4z"/><circle cx="12" cy="13" r="3"/></svg></label><input id="quick-favorite-photo" className="favorite-header-input" type="file" accept="image/*" disabled={data.loading || data.busy || disabled} onChange={event => { const file = event.target.files?.[0]; if (file) { start(); void photo(file); } }} /><button type="button" className="favorite-add" disabled={data.loading || data.busy || disabled} onClick={() => start()}>+ Add favorite</button></div>}</div>
     {isPoc && <p className="favorite-poc">POC test space: don’t add sensitive information or private photos.</p>}
     {data.loading && <p className="favorite-hint">Loading favorites…</p>}
     {!editing && !data.loading && !items.length && <p className="favorite-hint">{query ? 'No matching favorites.' : 'Save your favorite products here.'}</p>}
-    {!editing && <div className="favorites-list">{(showAll || query ? items : items.slice(0, 3)).map(item => <article className="favorite-card" key={item.id}>
+    {!editing && <div className="favorites-list">{(showAll || query ? items : items.slice(0, 2)).map(item => <article className="favorite-card" key={item.id}>
       <button type="button" className="favorite-select" aria-pressed={selectedIds.includes(item.id)} disabled={data.busy || disabled || editing} onClick={() => onToggle(item)}>
-        <span className="favorite-thumb">{item.photo ? <img src={item.photo} alt="" /> : <span aria-hidden="true">☆</span>}</span>
+        <span className="favorite-thumb">{item.photo ? <img src={item.photo} alt="" /> : <ProductIllustration name={item.name} />}</span>
         <span className="favorite-copy"><strong>{item.name}</strong>{(item.brand || item.flavor || item.size || item.quantity) && <small>{[item.brand, item.flavor, item.size, item.quantity].filter(Boolean).join(' · ')}</small>}</span>
         <span className="favorite-indicator" aria-hidden="true">{selectedIds.includes(item.id) ? '✓' : '+'}</span>
       </button>
@@ -90,21 +93,12 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
         <button disabled={data.busy || disabled || editing} onClick={event => { event.currentTarget.closest('details')?.removeAttribute('open'); if (window.confirm(`Remove “${item.name}” from favorites for both of you?`)) void data.remove(item); }}>Delete</button>
       </div></details>
     </article>)}</div>}
-    {!editing && !query && items.length > 3 && <button type="button" className="favorite-show-all" aria-expanded={showAll} onClick={() => setShowAll(value => !value)}>{showAll ? 'Show less' : `Show all favorites (${items.length})`}</button>}
+    {!editing && !query && items.length > 2 && <button type="button" className="favorite-show-all" aria-expanded={showAll} onClick={() => setShowAll(value => !value)}>{showAll ? 'Show less' : `Show all favorites (${items.length})`}</button>}
     {data.error && <p className="feedback error-message" role="alert">{data.error}</p>}
-    {editing && picking && <section className="favorite-picker" aria-label="Choose a product">
-      <h3>Choose a product</h3><p>Pick a category, then tap a product.</p>
-      <div className="favorite-picker-groups" role="group" aria-label="Product categories">{favoriteCatalog.map(group => <button type="button" key={group.title} className="favorite-picker-group" aria-pressed={productGroup === group.title} onClick={() => setProductGroup(group.title)}>{group.title}</button>)}</div>
-      <div className="favorite-picker-products" role="group" aria-label={`${productGroup} products`}>{favoriteCatalog.find(group => group.title === productGroup)?.items.map(name => <button type="button" key={name} className="favorite-picker-product" onClick={() => { setDraft(previous => ({ ...previous, name })); setPicking(false); }}>{name}</button>)}</div>
-      <button type="button" className="favorite-custom" disabled={photoBusy} onClick={() => setScanningBarcode(true)}>Scan barcode</button>
-      <label className="favorite-photo-action" htmlFor="favorite-photo-recognize">Choose product photo</label><input id="favorite-photo-recognize" type="file" accept="image/*" disabled={photoBusy} onChange={event => { setPicking(false); void photo(event.target.files?.[0]); }} />
-      <button type="button" className="favorite-custom" onClick={() => { setDraft(previous => ({ ...previous, name: '' })); setPicking(false); }}>+ Enter a custom product</button>
-      <button type="button" className="text-action" onClick={() => { if (window.confirm('Discard your unfinished favorite?')) setEditing(false); }}>Cancel</button>
-    </section>}
-    {editing && !picking && <form className="favorite-form" onSubmit={save}>
+    {editing && <form className="favorite-form" onSubmit={save}>
       <h3>{editingId ? 'Edit favorite' : 'New favorite'}</h3>
+      <div className="favorite-tools"><button type="button" disabled={photoBusy} onClick={() => setScanningBarcode(true)}>Scan barcode</button><label htmlFor="favorite-photo-recognize">Choose product photo</label><input id="favorite-photo-recognize" type="file" accept="image/*" disabled={photoBusy} onChange={event => void photo(event.target.files?.[0])} /></div>
       <label htmlFor="favorite-name">Product name</label><input id="favorite-name" required maxLength={200} value={draft.name} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, name: event.target.value })} />
-      {!editingId && <button type="button" className="favorite-change-product" onClick={() => setPicking(true)}>← Choose a different product</button>}
       <label htmlFor="favorite-brand">Brand (optional)</label><input id="favorite-brand" maxLength={150} value={draft.brand} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, brand: event.target.value })} />
       <label htmlFor="favorite-flavor">Flavor (optional)</label><input id="favorite-flavor" maxLength={150} value={draft.flavor} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, flavor: event.target.value })} />
       <label htmlFor="favorite-size">Size (optional)</label><input id="favorite-size" maxLength={150} value={draft.size} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, size: event.target.value })} />

@@ -20,7 +20,7 @@ test('Quick Add keeps favorites compact, tabs distinct and selection accessible'
   expect(colors[0]).not.toBe(colors[1]);
   const save = modal.getByRole('button', { name: 'Add 0 items' }); await expect(save).toBeDisabled();
   await expect(save).toHaveCSS('background-color', 'rgb(59, 59, 67)');
-  await expect(modal.locator('.favorite-card')).toHaveCount(3);
+  await expect(modal.locator('.favorite-card')).toHaveCount(2);
   await expect(modal.locator('.favorite-card').first().locator('img')).toBeVisible();
   if (process.env.TOGETHER_SCREENSHOTS) { await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))); await page.screenshot({ path: `${process.env.TOGETHER_SCREENSHOTS}/quick-add.png`, animations: 'disabled' }); }
   await modal.getByRole('button', { name: 'Show all favorites (5)' }).click();
