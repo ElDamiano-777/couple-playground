@@ -1,0 +1,43 @@
+import { expect, test } from '@playwright/test';
+import { transport, pocPassword } from './helpers/sharedTransport';
+import { mainNavigation } from './navigation';
+
+test.use({ serviceWorkers: 'block', viewport: { width: 320, height: 700 } });
+test('compact Quick Add keeps controls and products accessible while scrolling', async ({ page, context }) => {
+  const server = transport(); const photo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5X0QAAAABJRU5ErkJggg==';
+  server.seedFavorite('Saved milk', photo); server.seedShopping('Bought tea', '', true);
+  await server.attach(context); await page.goto('./');
+  await page.getByRole('button', { name: 'Masha', exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.getByRole('button', { name: 'Add shopping item' }).click();
+  await expect(page.locator('.quick-add')).toBeVisible();
+  await expect(page.locator('.favorite-card img')).toHaveAttribute('src', photo);
+  await page.locator('.quick-add').getByRole('button', { name: 'Close', exact: true }).click();
+  const nav = mainNavigation(page); await nav.getByRole('button', { name: 'Shopping', exact: true }).click();
+  await page.getByRole('button', { name: '+ Quick Add Item' }).click();
+  const modal = page.locator('.quick-add'), tabs = modal.getByRole('group', { name: 'Quick Add categories' });
+  for (const name of ['Pets', 'Kids', 'Home']) { const tab = tabs.getByRole('button', { name }); await tab.click(); await expect(tab).toHaveAttribute('aria-pressed', 'true'); }
+  await modal.getByRole('button', { name: 'Vegetables', exact: true }).click();
+  await modal.getByRole('button', { name: 'Fruit', exact: true }).click();
+  const carrot = modal.getByRole('button', { name: 'Carrots', exact: true });
+  await carrot.evaluate(el => el.scrollIntoView({ block: 'start' }));
+  const bounds = await page.evaluate(() => { const c = document.querySelector('.quick-content')!.getBoundingClientRect(), t = document.querySelector('.quick-category-tabs')!.getBoundingClientRect(), p = [...document.querySelectorAll('button')].find(b => b.textContent?.trim() === 'Carrots')!.getBoundingClientRect(), f = document.querySelector('.quick-footer')!.getBoundingClientRect(), nav = document.querySelector('.bottom-nav')!.getBoundingClientRect(); return { top: c.top, tabs: t.bottom, productTop: p.top, productBottom: p.bottom, footer: f.top, footerBottom: f.bottom, nav: nav.top }; });
+  expect(bounds.productTop).toBeGreaterThanOrEqual(bounds.tabs); expect(bounds.productTop).toBeGreaterThanOrEqual(bounds.top); expect(bounds.productBottom).toBeLessThanOrEqual(bounds.footer); expect(bounds.footerBottom).toBeLessThanOrEqual(bounds.nav);
+  await expect(carrot.locator('[data-illustration="carrot"]')).toBeVisible();
+  await expect(modal.getByRole('button', { name: 'Tomatoes', exact: true }).locator('[data-illustration="tomato"]')).toHaveCount(1);
+  await carrot.click(); await modal.getByRole('button', { name: 'Tomatoes', exact: true }).click();
+  await expect(modal.getByRole('button', { name: 'Add 2 items' })).toBeEnabled();
+  await modal.locator('.quick-content').evaluate(el => { el.scrollTop = el.scrollHeight; });
+  await expect(modal.getByRole('button', { name: 'Add 2 items' })).toBeVisible();
+  await modal.locator('.quick-content').evaluate(el => { el.scrollTop = 0; });
+  await expect(tabs.getByRole('button', { name: 'Home' })).toBeVisible();
+  if (process.env.TOGETHER_SCREENSHOTS) await modal.screenshot({ path: `${process.env.TOGETHER_SCREENSHOTS}/quick-add-polish.png`, animations: 'disabled' });
+  await modal.getByRole('button', { name: 'Add 2 items' }).click();
+  await expect(page.locator('.shopping-list-row').filter({ hasText: 'Carrots' }).locator('[data-illustration="carrot"]')).toBeVisible();
+  await expect(page.locator('.shopping-list-row').filter({ hasText: 'Tomatoes' }).locator('[data-illustration="tomato"]')).toBeVisible();
+  await expect(page.locator('.shopping-purchased')).not.toHaveAttribute('open');
+  await nav.getByRole('button', { name: 'Home', exact: true }).click();
+  await expect(page.locator('.us-shopping-item').filter({ hasText: 'Carrots' }).locator('[data-illustration="carrot"]')).toBeVisible();
+  await expect(page.locator('.us-shopping-item').filter({ hasText: 'Tomatoes' }).locator('[data-illustration="tomato"]')).toBeVisible();
+});
