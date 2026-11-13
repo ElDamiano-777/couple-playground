@@ -1,0 +1,45 @@
+/* Shared visual hierarchy. Functional states and light-theme colors stay intact. */
+.preview-page h1, .inner-page h1, .tasks-page h1, .meal-planner h1 { font-size: clamp(34px, 8vw, 42px); line-height: 1.12; letter-spacing: -1px; }
+.preview-page h2, .inner-page h2, .tasks-page h2, .meal-planner h2 { line-height: 1.25; }
+.home-dashboard .home-task strong, .task-main strong { font-size: 16px; font-weight: 650; line-height: 1.35; }
+.home-dashboard .us-shopping-list { display: grid; gap: 6px; margin: 8px 0; }
+.home-dashboard .us-shopping-item, .shared-shopping .grocery-row {
+  min-width: 0; border: 1px solid #d6e4d6; border-radius: 13px;
+  background: #f8fcf6; padding: 7px 9px;
+}
+.home-dashboard .us-shopping-item:last-child, .shared-shopping .grocery-row:last-child { border: 1px solid #d6e4d6; }
+.home-dashboard .us-shopping-copy strong, .shared-shopping .grocery-copy strong {
+  font-size: 18px; line-height: 1.3; font-weight: 700; white-space: normal; overflow-wrap: anywhere;
+}
+.home-dashboard .us-shopping-details { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.4; }
+.home-dashboard .us-shopping-item > input, .shared-shopping .grocery-row > input { width: 23px; height: 23px; flex: none; accent-color: #4f8a62; }
+.home-dashboard .us-shopping-shortcuts { margin: 8px 0; }
+.home-dashboard .us-shopping-add { min-height: 44px; }
+.shared-shopping .grocery-list { display: grid; gap: 7px; }
+.shared-shopping .grocery-row { min-height: 66px; gap: 8px; }
+.shared-shopping .grocery-copy { min-width: 0; }
+.shared-shopping .grocery-copy small, .home-dashboard .us-shopping-copy small { font-size: 12px; line-height: 1.4; }
+:root[data-theme="dark"] :is(h1, h2, h3) { color: var(--dark-text); }
+:root[data-theme="dark"] :is(.home-task strong, .task-main strong, .recipe-card strong, .home-shortcut-copy strong, .couple-card strong, .saved-note p, .note-message, .shared-note p) { color: var(--dark-text); }
+:root[data-theme="dark"] :is(.page-intro, .intro, .tasks-lead, .meal-lead, .home-empty, .home-shortcut-copy small, .grocery-copy small, .us-shopping-copy small, .shopping-count, .small-print) { color: var(--dark-muted); }
+:root[data-theme="dark"] :is(.home-view-all, .navigation-back, .dashboard-show-all, .text-action) { color: var(--dark-accent); }
+:root[data-theme="dark"] .home-dashboard .us-shopping-item,
+:root[data-theme="dark"] .home-dashboard .us-shopping-item:last-child,
+:root[data-theme="dark"] .shared-shopping .grocery-row,
+:root[data-theme="dark"] .shared-shopping .grocery-row:last-child { background: #17231d; border-color: #40564a; }
+:root[data-theme="dark"] .home-dashboard .us-shopping-copy strong,
+:root[data-theme="dark"] .shared-shopping .grocery-copy strong { color: var(--dark-text); }
+:root[data-theme="dark"] .home-dashboard .us-shopping-item > input,
+:root[data-theme="dark"] .shared-shopping .grocery-row > input { accent-color: var(--dark-green-text); }
+:root[data-theme="dark"] .home-dashboard .us-shopping .dashboard-icon,
+:root[data-theme="dark"] .home-dashboard .us-shopping-shortcuts button { color: var(--dark-green-text); }
+:root[data-theme="dark"] .home-dashboard .dinner-dashboard .dashboard-icon { color: var(--dark-warm-text); }
+:root[data-theme="dark"] .is-bought .grocery-copy strong,
+:root[data-theme="dark"] .is-bought .us-shopping-copy strong { color: var(--dark-muted); text-decoration: line-through; }
+@media (max-width: 540px) {
+  .shared-shopping .grocery-row:not(:has(.shopping-edit)) { display: grid; grid-template-columns: 23px minmax(0, 1fr) auto auto; gap: 4px 8px; }
+  .shared-shopping .grocery-row > .shopping-item-open { grid-column: 2 / -1; }
+  .shared-shopping .grocery-row > .category-tag { grid-column: 2; justify-self: start; }
+  .shared-shopping .grocery-row > .shopping-edit-button { grid-column: 3; }
+  .shared-shopping .grocery-row > .remove-purchase { grid-column: 4; }
+}

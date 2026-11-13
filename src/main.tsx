@@ -5,6 +5,7 @@ import './styles.css';
 import './theme-dark.css';
 import './theme.css';
 import './home.css';
+import './visual-refresh.css';
 
 createRoot(document.getElementById(`root`)!).render(<StrictMode><App /></StrictMode>);
 
