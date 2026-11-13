@@ -18,6 +18,7 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
   const [draft, setDraft] = useState<FavoriteDraft>(emptyDraft(category));
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   useEffect(() => { setShowAll(false); }, [category]);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState('');
@@ -29,12 +30,12 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
     setEditingId(item?.id ?? null);
     setDraft(item ? { category: item.category, name: item.name, brand: item.brand, flavor: item.flavor ?? '', size: item.size ?? '', quantity: item.quantity, notes: item.notes, photo: item.photo } : emptyDraft(category));
 
-    setPhotoError(''); setRecognition(''); setEditing(true);
+    setNotesOpen(!!item?.notes); setPhotoError(''); setRecognition(''); setEditing(true);
   }
   useEffect(() => {
     if (!favoriteSeed) return;
     setEditingId(null); setDraft({ ...emptyDraft(category), name: favoriteSeed.name });
-    setPhotoError(''); setRecognition(''); setEditing(true); onSeedHandled();
+    setNotesOpen(false); setPhotoError(''); setRecognition(''); setEditing(true); onSeedHandled();
   }, [favoriteSeed, category, onSeedHandled, setEditing]);
   async function photo(file?: File) {
     if (!file) return;
@@ -95,22 +96,15 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
     </article>)}</div>}
     {!editing && !query && items.length > 2 && <button type="button" className="favorite-show-all" aria-expanded={showAll} onClick={() => setShowAll(value => !value)}>{showAll ? 'Show less' : `Show all favorites (${items.length})`}</button>}
     {data.error && <p className="feedback error-message" role="alert">{data.error}</p>}
-    {editing && <form className="favorite-form" onSubmit={save}>
-      <h3>{editingId ? 'Edit favorite' : 'New favorite'}</h3>
-      <div className="favorite-tools"><button type="button" disabled={photoBusy} onClick={() => setScanningBarcode(true)}>Scan barcode</button><label htmlFor="favorite-photo-recognize">Choose product photo</label><input id="favorite-photo-recognize" type="file" accept="image/*" disabled={photoBusy} onChange={event => void photo(event.target.files?.[0])} /></div>
-      <label htmlFor="favorite-name">Product name</label><input id="favorite-name" required maxLength={200} value={draft.name} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, name: event.target.value })} />
-      <label htmlFor="favorite-brand">Brand (optional)</label><input id="favorite-brand" maxLength={150} value={draft.brand} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, brand: event.target.value })} />
-      <label htmlFor="favorite-flavor">Flavor (optional)</label><input id="favorite-flavor" maxLength={150} value={draft.flavor} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, flavor: event.target.value })} />
-      <label htmlFor="favorite-size">Size (optional)</label><input id="favorite-size" maxLength={150} value={draft.size} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, size: event.target.value })} />
-      <label htmlFor="favorite-quantity">Quantity (optional)</label><input id="favorite-quantity" maxLength={150} value={draft.quantity} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, quantity: event.target.value })} />
-      <label htmlFor="favorite-notes">Notes (optional)</label><textarea id="favorite-notes" rows={3} maxLength={600} value={draft.notes} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, notes: event.target.value })} />
-      <label htmlFor="favorite-category">Shopping category</label><select id="favorite-category" value={draft.category} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, category: event.target.value as ShoppingItem['category'] })}><option>Home</option><option>Pets</option><option>Kids</option></select>
-      <label htmlFor="favorite-photo">{draft.photo ? 'Replace product photo (optional)' : 'Product photo (optional)'}</label><input id="favorite-photo" type="file" accept="image/*" disabled={data.busy || disabled || photoBusy} onChange={event => void photo(event.target.files?.[0])} /><label className="favorite-photo-action" htmlFor="favorite-camera">Take a photo</label><input id="favorite-camera" type="file" accept="image/*" capture="environment" disabled={data.busy || disabled || photoBusy} onChange={event => void photo(event.target.files?.[0])} />
-      {draft.photo && <><img className="favorite-photo-preview" src={draft.photo} alt="Product photo preview" /><button type="button" className="text-action" onClick={() => setDraft({ ...draft, photo: null })}>Remove photo</button></>}
-      {photoError && <p className="error-message" role="alert">{photoError}</p>}
-      {recognition && <p className="feedback" role="status">{recognition}</p>}
-      <button className="primary" disabled={data.busy || disabled || photoBusy || !draft.name.trim()}>{data.busy ? 'Saving…' : 'Save favorite'}</button>
-      <button type="button" className="text-action" disabled={data.busy || disabled || photoBusy} onClick={() => { if (window.confirm('Discard your unfinished favorite?')) setEditing(false); }}>Cancel</button>
+    {editing && <form className="favorite-form favorite-editor" onSubmit={save}>
+      <div className="favorite-editor-heading"><h3>{editingId ? 'Edit favorite' : 'New favorite'}</h3><button type="button" className="favorite-scan" disabled={photoBusy || data.busy || disabled} onClick={() => { setPhotoError(''); setScanningBarcode(true); }}>Scan barcode</button></div>
+      <div className="favorite-editor-identity"><div className="favorite-editor-photo">{draft.photo ? <img src={draft.photo} alt="Product photo preview" /> : <ProductIllustration name={draft.name} />}</div><div className="favorite-editor-name"><label htmlFor="favorite-name">Product name</label><input id="favorite-name" required maxLength={200} value={draft.name} disabled={data.busy || disabled} placeholder="What is it called?" onChange={event => setDraft({ ...draft, name: event.target.value })} /></div></div>
+      <div className="favorite-photo-controls"><input className="favorite-photo-input" id="favorite-photo" type="file" accept="image/*" aria-label="Product photo (optional)" disabled={data.busy || disabled || photoBusy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; void photo(file); }} /><label htmlFor="favorite-photo" aria-disabled={data.busy || disabled || photoBusy}>Choose photo</label><input className="favorite-photo-input" id="favorite-camera" type="file" accept="image/*" capture="environment" aria-label="Take a photo" disabled={data.busy || disabled || photoBusy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; void photo(file); }} /><label htmlFor="favorite-camera" aria-disabled={data.busy || disabled || photoBusy}>Take a photo</label>{draft.photo && <button type="button" disabled={photoBusy || data.busy || disabled} onClick={() => setDraft({ ...draft, photo: null })}>Remove photo</button>}</div>
+      {photoBusy && <p className="favorite-inline-message" role="status">Processing photo…</p>}{photoError && <p className="favorite-inline-message favorite-inline-error" role="alert">{photoError}</p>}{recognition && !photoBusy && <p className="favorite-inline-message" role="status">{recognition}</p>}
+      <p className="favorite-optional-heading">Optional details</p><div className="favorite-editor-grid"><div><label htmlFor="favorite-brand">Brand</label><input aria-label="Brand (optional)" id="favorite-brand" maxLength={150} value={draft.brand} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, brand: event.target.value })} /></div><div><label htmlFor="favorite-flavor">Flavor</label><input aria-label="Flavor (optional)" id="favorite-flavor" maxLength={150} value={draft.flavor} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, flavor: event.target.value })} /></div><div><label htmlFor="favorite-size">Size</label><input aria-label="Size (optional)" id="favorite-size" maxLength={150} value={draft.size} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, size: event.target.value })} /></div><div><label htmlFor="favorite-quantity">Quantity</label><input aria-label="Quantity (optional)" id="favorite-quantity" maxLength={150} value={draft.quantity} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, quantity: event.target.value })} /></div></div>
+      <div className="favorite-editor-category"><label htmlFor="favorite-category">Shopping category</label><select id="favorite-category" value={draft.category} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, category: event.target.value as ShoppingItem['category'] })}><option>Home</option><option>Pets</option><option>Kids</option></select></div>
+      <details className="favorite-more-details" open={notesOpen} onToggle={event => setNotesOpen(event.currentTarget.open)}><summary>More details <span>Optional</span></summary><label htmlFor="favorite-notes">Notes (optional)</label><textarea id="favorite-notes" rows={3} maxLength={600} value={draft.notes} disabled={data.busy || disabled} onChange={event => setDraft({ ...draft, notes: event.target.value })} /></details>
+      <div className="favorite-editor-actions"><button className="primary favorite-save" disabled={data.busy || disabled || photoBusy || !draft.name.trim()}>{data.busy ? 'Saving…' : 'Save favorite'}</button><button type="button" className="favorite-cancel" disabled={data.busy || disabled || photoBusy} onClick={() => { if (window.confirm('Discard your unfinished favorite?')) setEditing(false); }}>Cancel</button></div>
     </form>}
     {scanningBarcode && <div className="barcode-scanner" role="dialog" aria-modal="true" aria-label="Scan barcode"><section><button type="button" className="text-action" onClick={() => setScanningBarcode(false)}>Close</button><h3>Scan barcode</h3><p>Point camera at barcode.</p><video ref={scannerVideo} className="barcode-video" playsInline muted /></section></div>}
   </section>;
