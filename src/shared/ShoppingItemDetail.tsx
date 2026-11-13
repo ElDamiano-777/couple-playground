@@ -9,7 +9,7 @@ function field(notes: string, label: string) {
   return notes.split(' · ').find(part => part.startsWith(`${label}: `))?.slice(label.length + 2) ?? '';
 }
 
-export default function ShoppingItemDetail({ item, photo, onClose }: { item: ShoppingItem; photo: string | null; onClose: () => void }) {
+export default function ShoppingItemDetail({ item, photo, onClose, onEdit, onDelete, addedBy, busy = false }: { addedBy?: string; item: ShoppingItem; photo: string | null; onClose: () => void; onEdit?: () => void; onDelete?: () => void; busy?: boolean }) {
   const brand = field(item.notes, 'Brand');
   const quantity = field(item.notes, 'Quantity') || field(item.notes, 'Quantity or size') || field(item.notes, 'Size');
   return <div className="shopping-detail-overlay" role="presentation" onMouseDown={onClose}>
@@ -22,7 +22,9 @@ export default function ShoppingItemDetail({ item, photo, onClose }: { item: Sho
         {quantity && <><dt>Quantity</dt><dd>{quantity}</dd></>}
         {item.notes && <><dt>Notes</dt><dd className="shopping-item-notes">{item.notes}</dd></>}
         <dt>Category</dt><dd>{item.category}</dd>
+        {addedBy && <><dt>Added by</dt><dd>{addedBy}</dd></>}
       </dl>
+      {(onEdit || onDelete) && <div className="shopping-detail-actions">{onEdit && <button className="primary" disabled={busy} onClick={onEdit}>Edit item</button>}{onDelete && <button className="text-action" disabled={busy || !navigator.onLine} onClick={onDelete}>Delete item</button>}</div>}
     </section>
   </div>;
 }
