@@ -204,9 +204,9 @@ export default function App() {
 
   return <div className="app">
     <a className="skip-link" href="#main">Skip to content</a>
-    <header className="header">
+    <header className={`header${page === 'home' ? ' home-header' : ''}`}>
       <a className="wordmark" href={config.basePath} aria-label="Together — Home" onClick={event => { event.preventDefault(); navigate(`home`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />{config.name}<span>a place for two</span></a>
-      <div className="header-tools">{profile && <><button aria-label="Search Together" onClick={() => navigate(`search`)}>⌕</button><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Settings" onClick={() => navigate(`settings`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}<button className="edition header-profile" aria-label="Open settings" onClick={() => profile && navigate(`settings`)}><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</button></div>
+      <div className="header-tools">{profile && <><button aria-label="Search Together" onClick={() => navigate(`search`)}>⌕</button><button aria-label="Personal notes" onClick={() => navigate(`notes`)}><Icon name="note" /></button><button aria-label="Settings" onClick={() => navigate(`settings`)}><Icon name="more" /></button><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button></>}{profile && page === 'home' && <span className={`home-connection${online ? '' : ' offline'}`} aria-label={online ? 'Device online' : 'Device offline'}><span aria-hidden="true" />{online ? 'Online' : 'Offline'}</span>}<button className="edition header-profile" aria-label="Open settings" onClick={() => profile && navigate(`settings`)}><span />{profile ? `Hi, ${profile === `masha` ? `Masha` : `Damian`}` : `Your story starts here`}</button></div>
     </header>
 
     {!online && <div className="notice" role="status">You’re offline. You can still save notes on this phone.</div>}

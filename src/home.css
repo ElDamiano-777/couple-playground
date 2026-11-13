@@ -49,3 +49,21 @@
 :root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(2) svg { color: #a8d5ae; }
 :root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(3) svg { color: #e6a8ca; }
 :root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(4) svg { color: #ecc0a7; }
+/* Home-only finishing touches. */
+.home-header .home-connection { display: inline-flex; align-items: center; gap: 5px; color: #5b6d60; font-size: 11px; white-space: nowrap; }
+.home-connection > span { width: 6px; height: 6px; border-radius: 50%; background: #79a980; }
+.home-connection.offline > span { background: #d58978; }
+.home-dashboard .home-add-task { min-height: 40px; padding: 5px 2px; background: transparent; color: #704391; font-size: 13px; font-weight: 700; }
+.home-dashboard .home-add-task:focus-visible { outline: 3px solid #8040be; outline-offset: 2px; border-radius: 8px; }
+.home-dashboard .home-task strong { overflow-wrap: anywhere; }
+.home-dashboard .us-shopping-add { min-height: 44px; padding: 6px 12px; }
+.home-dashboard .us-shopping-copy strong { line-height: 1.25; }
+:root[data-theme="dark"] .home-header .home-connection { color: #bdb7c8; }
+:root[data-theme="dark"] .home-dashboard .home-add-task { color: #c9a9f2; }
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(1) svg { color: #e6a8ca; }
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(2) svg { color: #c5a4f0; }
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(3) svg { color: #a8d5ae; }
+@media (max-width: 760px) {
+  .home-header { height: 82px; }
+  .home-header .home-connection { position: absolute; left: 0; bottom: 0; min-height: 20px; }
+}
