@@ -172,3 +172,14 @@
 :root[data-theme="dark"] .favorite-inline-error { color: #f1b1a5; }
 :root[data-theme="dark"] .favorite-editor-actions .favorite-save { white-space: nowrap; font-size: 14px; background: #9bd5b3; color: #163427; }
 :root[data-theme="dark"] .favorite-cancel { background: #37313b; color: #e2d9e5; }
+
+/* Clear product and category states without changing shopping behavior. */
+:root[data-theme="dark"] .quick-product > .quick-tile { background: #373640; color: #fffafc; }
+:root[data-theme="dark"] .quick-group .quick-product > .quick-tile[aria-pressed="true"] { background: #304c3d; border-color: #9bd5b3; color: #f4fff8; }
+.quick-subgroup-label { position: absolute; top: 9px; right: 33px; font-size: 10px; font-weight: 700; color: #745d66; }
+:root[data-theme="dark"] .quick-subgroup-label { color: #d4bcc8; }
+.quick-subgroup.is-expanded { display: grid; grid-column: 1 / -1; gap: 4px; min-width: 0; }
+.quick-subgroup.is-expanded > .quick-subgroup-toggle { width: calc((100% - 6px) / 2); }
+.quick-subgroup.is-expanded > .quick-subtiles { grid-column: auto; margin: 0 0 3px 7px; padding: 7px; border: 0; border-left: 2px solid #c7b2b9; border-radius: 0 10px 10px 0; background: #f2e9ed; }
+:root[data-theme="dark"] .quick-subgroup.is-expanded > .quick-subtiles { background: #2e2b33; border-left-color: #806d79; }
+.favorite-more-details .favorite-editor-grid { margin: 2px 0 10px; }

@@ -17,6 +17,8 @@ test('favorite editor saves a name and structured optional details', async ({ pa
   const form = page.locator('.favorite-editor');
   await expect(form.getByRole('button', { name: 'Save favorite' })).toBeDisabled();
   await expect(form.getByLabel('Notes (optional)')).toBeHidden();
+  await expect(form.getByLabel('Brand (optional)')).toBeHidden();
+  await expect(form.getByLabel('Shopping category')).toBeVisible();
   await expect(form.getByLabel('Product photo (optional)')).toHaveCSS('opacity', '0');
   if (process.env.TOGETHER_SCREENSHOTS) { await page.locator('.quick-content').evaluate(el => { el.scrollTop = 0; }); await page.waitForTimeout(200); await page.locator('.quick-add').screenshot({ path: `${process.env.TOGETHER_SCREENSHOTS}/favorite-editor-top.png`, animations: 'disabled' }); }
   await form.getByLabel('Product name').fill('Simple tea');
@@ -24,11 +26,15 @@ test('favorite editor saves a name and structured optional details', async ({ pa
   await expect(page.locator('.favorite-card').filter({ hasText: 'Simple tea' })).toBeVisible();
   await page.getByRole('button', { name: '+ Add favorite' }).click();
   await form.getByLabel('Product name').fill('Complete item');
+  await form.getByText('More details').click();
+  await expect(form.getByLabel('Brand (optional)')).toBeVisible();
+  await form.getByText('More details').click();
+  await expect(form.getByLabel('Brand (optional)')).toBeHidden();
+  await form.getByText('More details').click();
   await form.getByLabel('Brand (optional)').fill('Sample brand');
   await form.getByLabel('Flavor (optional)').fill('Vanilla');
   await form.getByLabel('Size (optional)').fill('500 g');
   await form.getByLabel('Quantity (optional)').fill('2');
-  await form.getByText('More details').click();
   await form.getByLabel('Notes (optional)').fill('Keep cool');
   await form.getByLabel('Shopping category').selectOption('Kids');
   const columns = await form.locator('.favorite-editor-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);

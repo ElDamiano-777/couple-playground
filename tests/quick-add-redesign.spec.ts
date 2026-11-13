@@ -37,7 +37,25 @@ test('Quick Add keeps favorites compact, tabs distinct and selection accessible'
   await expect(modal.getByRole('button', { name: 'Add 1 item', exact: true })).toBeEnabled();
   await modal.locator('.favorite-select').filter({ hasText: 'Favorite milk' }).click();
   await expect(modal.getByRole('button', { name: 'Add 0 items' })).toBeDisabled();
-  await modal.getByRole('button', { name: 'Eggs', exact: true }).click();
+  const vegetables = modal.getByRole('button', { name: 'Vegetables', exact: true });
+  await vegetables.click();
+  const vegetableGroup = vegetables.locator('..');
+  await expect(vegetableGroup).toHaveClass(/is-expanded/);
+  await expect(vegetableGroup.getByRole('button', { name: 'Carrots', exact: true })).toBeVisible();
+  await vegetables.click();
+  await expect(vegetableGroup.locator('.quick-subtiles')).toHaveCount(0);
+  const cheese = modal.getByRole('button', { name: 'Cheese', exact: true });
+  await cheese.click();
+  await expect(cheese.locator('..').locator('.quick-subtiles .quick-product').first()).toBeVisible();
+  await cheese.click();
+  const eggs = modal.getByRole('button', { name: 'Eggs', exact: true });
+  await expect(eggs).toHaveAttribute('aria-pressed', 'false');
+  const unselected = await eggs.evaluate(el => getComputedStyle(el).backgroundColor);
+  await eggs.click();
+  await expect(eggs).toHaveAttribute('aria-pressed', 'true');
+  await expect(eggs.locator('.quick-check')).toBeVisible();
+  expect(await eggs.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe(unselected);
+
   await pets.click(); await expect(pets).toHaveAttribute('aria-pressed', 'true');
   await kids.click(); await expect(kids).toHaveAttribute('aria-pressed', 'true');
   await modal.getByRole('button', { name: 'Wipes', exact: true }).click();
