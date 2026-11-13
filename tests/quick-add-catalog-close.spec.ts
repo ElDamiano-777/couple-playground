@@ -1,0 +1,58 @@
+import { expect, test } from '@playwright/test';
+import { transport, pocPassword } from './helpers/sharedTransport';
+import { mainNavigation } from './navigation';
+
+test.use({ serviceWorkers: 'block', viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+test('unified catalog and safe close keep only intended changes', async ({ page, context }) => {
+  await transport().attach(context);
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Masha', exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).tap();
+  const open = page.getByRole('button', { name: '+ Quick Add Item' });
+  await open.tap();
+  const modal = page.locator('.quick-add');
+  await modal.getByRole('button', { name: 'Close', exact: true }).tap();
+  await expect(modal).toHaveCount(0);
+  await open.tap();
+  for (const [group, item] of [['Meat', 'Beef'], ['Bread', 'Bagels'], ['Fruit', 'Apples'], ['Cheese', 'Mozzarella'], ['Vegetables', 'Carrots']]) {
+    const parent = modal.locator('.quick-subgroup-toggle').filter({ hasText: group }).first();
+    await parent.tap();
+    await expect(parent.locator('..').getByRole('button', { name: item, exact: true })).toBeVisible();
+  }
+  await expect(modal.locator('.quick-group-toggle').filter({ hasText: 'Meat & Poultry' })).toHaveCount(0);
+  await expect(modal.locator('.quick-group-toggle').filter({ hasText: 'Bread & Bakery' })).toHaveCount(0);
+  await modal.locator('.quick-product > button.quick-tile').filter({ hasText: /^Eggs$/ }).tap();
+  await modal.getByRole('button', { name: 'Mozzarella', exact: true }).tap();
+  await modal.getByRole('button', { name: 'Carrots', exact: true }).tap();
+  await expect(modal.getByRole('button', { name: 'Add 3 items' })).toBeEnabled();
+  await modal.getByRole('button', { name: 'Close', exact: true }).tap();
+  const dialog = page.getByRole('dialog', { name: 'Discard selected items?' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText('Your selected products haven’t been added to the shopping list yet.')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Keep selecting' }).tap();
+  await expect(modal.getByRole('button', { name: 'Add 3 items' })).toBeEnabled();
+  await modal.getByRole('button', { name: 'Add 3 items' }).tap();
+  for (const name of ['Eggs', 'Mozzarella', 'Carrots']) await expect(page.locator('.shopping-active-list').first()).toContainText(name);
+  await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).tap();
+  for (const name of ['Eggs', 'Mozzarella', 'Carrots']) await expect(page.locator('main')).toContainText(name);
+  await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).tap();
+  await open.tap();
+  await modal.getByRole('button', { name: '+ Add favorite' }).tap();
+  await modal.getByLabel('Product name').fill('Unfinished test favorite');
+  await modal.getByRole('button', { name: 'Close', exact: true }).tap();
+  const favoriteDialog = page.getByRole('dialog', { name: 'Discard changes?' });
+  await expect(favoriteDialog).toBeVisible();
+  await favoriteDialog.getByRole('button', { name: 'Keep editing' }).tap();
+  await expect(modal.getByLabel('Product name')).toHaveValue('Unfinished test favorite');
+  await modal.locator('.quick-product > button.quick-tile').filter({ hasText: /^Milk$/ }).tap();
+  await modal.getByRole('button', { name: 'Close', exact: true }).tap();
+  const combined = page.getByRole('dialog', { name: 'Discard changes and selected items?' });
+  await expect(combined).toBeVisible();
+  await combined.getByRole('button', { name: 'Discard changes' }).tap();
+  await expect(modal).toHaveCount(0);
+  await open.tap();
+  await expect(modal.getByRole('button', { name: 'Add 0 items' })).toBeDisabled();
+  await expect(page.locator('.shopping-active-list').first()).toContainText('Eggs');
+});

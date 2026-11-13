@@ -203,3 +203,14 @@
 :root[data-theme="dark"] .quick-product.is-selected { background: #304c3d; border-color: #9bd5b3; }
 :root[data-theme="dark"] .quick-group .quick-product > .quick-tile { background: transparent; }
 .quick-product > .quick-tile[aria-pressed="true"] { background: transparent; }
+.quick-confirm { width: min(340px, calc(100vw - 32px)); padding: 22px; border: 1px solid #514958; border-radius: 20px; background: #26242d; color: #f7f5fa; box-shadow: 0 15px 55px #0008; }
+.quick-confirm::backdrop { background: #0a0910b8; }
+.quick-confirm h2 { font-size: 21px; color: #f7f5fa; }
+.quick-confirm p { margin: 10px 0 18px; color: #d0c8d6; line-height: 1.5; }
+.quick-confirm > div { display: flex; gap: 8px; }
+.quick-confirm button { flex: 1; min-height: 44px; padding: 9px; border-radius: 11px; background: #3b3544; color: #eee7f2; font-weight: 700; }
+.quick-confirm button:last-child { background: #74519a; color: white; }
+:root[data-theme="light"] .quick-confirm { background: #fffaf5; color: #30273a; border-color: #d5c4da; }
+:root[data-theme="light"] .quick-confirm h2 { color: #30273a; }
+:root[data-theme="light"] .quick-confirm p { color: #62566b; }
+:root[data-theme="light"] .quick-confirm button:first-child { background: #ede4ef; color: #533c60; }
