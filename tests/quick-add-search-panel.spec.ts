@@ -25,8 +25,8 @@ test('search and selection panel preserve choices across categories', async ({ p
   const heading = modal.getByRole('button', { name: /Selected items \(3\)/ });
   await expect(heading).toHaveAttribute('aria-expanded', 'false');
   await heading.tap();
-  const chips = modal.locator('.quick-selected-chips');
-  for (const [name, icon] of [['Eggs', 'egg'], ['Mozzarella', 'mozzarella'], ['Carrots', 'carrot']]) await expect(chips.locator('.quick-selected-chip').filter({ hasText: name }).locator(`[data-illustration="${icon}"]`)).toBeVisible();
+  const chips = modal.locator('.quick-review-list');
+  for (const [name, icon] of [['Eggs', 'egg'], ['Mozzarella', 'mozzarella'], ['Carrots', 'carrot']]) await expect(chips.locator('.quick-review-item').filter({ hasText: name }).locator(`[data-illustration="${icon}"]`)).toBeVisible();
   await chips.getByRole('button', { name: 'Remove Mozzarella from selected items' }).tap();
   await expect(modal.getByRole('button', { name: 'Add 2 items' })).toBeEnabled();
   await modal.getByRole('button', { name: 'Clear', exact: true }).tap();

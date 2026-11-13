@@ -235,3 +235,19 @@
 :root[data-theme="dark"] .quick-selected-chip { background: #43394d; color: #f6f1f8; }
 :root[data-theme="dark"] .quick-selected-empty { color: #c8bdcf; }
 :root[data-theme="dark"] .quick-footer .quick-save:not(:disabled) { background: #a16dde; color: #1c1029; }
+/* Keep the sheet above all page controls and use one scroll area. */
+.quick-modal-layer { position: fixed; inset: 0; z-index: 100; background: #101014; overscroll-behavior: contain; }
+:root[data-theme="light"] .quick-modal-layer { background: #f4eee8; }
+.quick-modal-layer .quick-add { z-index: 1; }
+.quick-review-list { display: grid; gap: 5px; padding: 7px 0; }
+.quick-review-item { border-radius: 11px; background: #eee8f2; }
+.quick-review-row { display: flex; align-items: center; }
+.quick-review-toggle { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; min-height: 44px; padding: 5px 8px; background: transparent; color: #493654; text-align: left; font-size: 13px; font-weight: 700; }
+.quick-review-toggle > span:nth-child(2) { flex: 1; overflow-wrap: anywhere; }
+.quick-review-remove { flex: none; min-width: 44px; min-height: 44px; padding: 0; background: transparent; color: #604471; font-size: 21px; }
+.quick-review-details { padding: 0 8px 8px; }
+.quick-review-details label { display: block; margin-bottom: 4px; font-size: 12px; color: #604471; }
+.shared-shopping .quick-review-details input { width: 100%; min-height: 44px; padding: 8px 10px; font-size: 16px; }
+:root[data-theme="dark"] .quick-review-item { background: #302a3b; }
+:root[data-theme="dark"] .quick-review-toggle, :root[data-theme="dark"] .quick-review-remove { color: #f6f1f8; }
+:root[data-theme="dark"] .quick-review-details label { color: #d1c5d8; }
