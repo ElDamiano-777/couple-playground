@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { ShoppingItem, SharedShoppingState } from './useSharedShopping';
+import type { QuickItem, ShoppingItem, SharedShoppingState } from './useSharedShopping';
 import ShoppingFavorites from './ShoppingFavorites';
 import { useShoppingFavorites, type Favorite } from './useShoppingFavorites';
 import { formatPetFoodDetails, usePetFoodShopping } from './usePetFoodShopping';
@@ -27,12 +27,13 @@ const catalog: Record<ShoppingItem['category'], CatalogGroup[]> = {
 const categorySearchAliases: Record<string, string[]> = { Bread: ['brot', 'backwaren'], Meat: ['fleisch'], Vegetables: ['gemüse', 'gemuese', 'gemuse'], Fruit: ['obst', 'frucht'], Cheese: ['käse', 'kaese', 'kase'], Pasta: ['nudeln', 'teigwaren'] };
 const isCatalogSubgroup = (item: CatalogItem): item is Exclude<CatalogItem, string> => typeof item !== 'string';
 
-export default function QuickAdd({ category: initialCategory, state, onClose, dashboard = false }: { category: ShoppingItem['category']; state: SharedShoppingState; onClose: () => void; dashboard?: boolean }) {
+export default function QuickAdd({ category: initialCategory, state, onClose, dashboard = false, onAddSelected, addError }: { category: ShoppingItem['category']; state: SharedShoppingState; onClose: () => void; dashboard?: boolean; onAddSelected?: (items: (QuickItem & { category: ShoppingItem['category'] })[]) => Promise<boolean>; addError?: string }) {
   const [category, setCategory] = useState(initialCategory);
   const [showCustom, setShowCustom] = useState(false);
   const petFood = usePetFoodShopping(state.session?.user.id, state.household, dashboard && category === 'Pets');
   const [search, setSearch] = useState('');
   const [selectedOpen, setSelectedOpen] = useState(false);
+  const [addingToCollection, setAddingToCollection] = useState(false);
   const [expandedDetails, setExpandedDetails] = useState<string[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -140,13 +141,13 @@ export default function QuickAdd({ category: initialCategory, state, onClose, da
     {dashboard && !showCustom && !custom.trim() && <button type="button" className="favorite-custom quick-custom-toggle" onClick={() => setShowCustom(true)}>+ Custom item</button>}
     {(!dashboard || showCustom || !!custom.trim()) && <div className="quick-custom"><label htmlFor="quick-custom">Custom product</label><div><input id="quick-custom" maxLength={200} value={custom} disabled={state.busy} placeholder="Add something else" onChange={event => state.setQuickCustom(category, event.target.value)} /><button type="button" disabled={state.busy || !custom.trim()} onClick={addCustom}>Add</button></div></div>}
     {custom.trim() && <p className="quick-custom-hint">Tap Add to include your custom product.</p>}
-    {state.error && <p className="feedback error-message" role="alert">{state.error}</p>}
+    {(addError || state.error) && <p className="feedback error-message" role="alert">{addError || state.error}</p>}
     </div>
     <dialog ref={confirmDialog} className="quick-confirm" aria-labelledby="quick-confirm-title" aria-describedby="quick-confirm-message" onCancel={event => { event.preventDefault(); setConfirmClose(false); }}>
       <h2 id="quick-confirm-title">{favoriteEditing && !(total || hasCustomDraft) ? 'Discard changes?' : favoriteEditing ? 'Discard changes and selected items?' : 'Discard selected items?'}</h2>
       <p id="quick-confirm-message">{favoriteEditing && (total || hasCustomDraft) ? 'Your favorite hasn’t been saved, and your selected products haven’t been added to the shopping list yet.' : favoriteEditing ? 'Your favorite hasn’t been saved yet.' : hasCustomDraft && !total ? 'Your custom product hasn’t been added to the shopping list yet.' : 'Your selected products haven’t been added to the shopping list yet.'}</p>
       <div><button type="button" autoFocus onClick={() => setConfirmClose(false)}>{favoriteEditing ? 'Keep editing' : 'Keep selecting'}</button><button type="button" onClick={discardAndClose}>{favoriteEditing ? 'Discard changes' : 'Discard selection'}</button></div>
     </dialog>
-    <div className="quick-footer"><div className="quick-selected-panel"><div className="quick-selected-panel-heading"><button type="button" aria-expanded={selectedOpen} onClick={() => { setSelectedOpen(!selectedOpen); if (!selectedOpen) contentRef.current?.scrollTo({ top: 0 }); }}>Selected items ({total}) <span aria-hidden="true">{selectedOpen ? '⌃' : '⌄'}</span></button><button type="button" disabled={!total || state.busy} onClick={() => (dashboard ? categories : [category]).forEach(name => state.setQuickItems(name, []))}>Clear</button></div></div>{dashboard && hasCustomDraft && <p className="quick-custom-hint">Finish or clear the custom item in {categories.filter(name => state.quickCustom[name].trim()).join(', ')}.</p>}<button className="primary quick-save" disabled={state.busy || favorites.busy || favoriteEditing || !total || hasCustomDraft || !navigator.onLine} onClick={() => { void (dashboard ? state.addQuickAll() : state.addQuick(category)).then(success => { if (success) onClose(); }); }}>{state.busy ? 'Adding…' : `Add ${total} ${total === 1 ? 'item' : 'items'}`}</button></div>
+    <div className="quick-footer"><div className="quick-selected-panel"><div className="quick-selected-panel-heading"><button type="button" aria-expanded={selectedOpen} onClick={() => { setSelectedOpen(!selectedOpen); if (!selectedOpen) contentRef.current?.scrollTo({ top: 0 }); }}>Selected items ({total}) <span aria-hidden="true">{selectedOpen ? '⌃' : '⌄'}</span></button><button type="button" disabled={!total || state.busy} onClick={() => (dashboard ? categories : [category]).forEach(name => state.setQuickItems(name, []))}>Clear</button></div></div>{dashboard && hasCustomDraft && <p className="quick-custom-hint">Finish or clear the custom item in {categories.filter(name => state.quickCustom[name].trim()).join(', ')}.</p>}<button className="primary quick-save" disabled={state.busy || favorites.busy || addingToCollection || favoriteEditing || !total || hasCustomDraft || !navigator.onLine} onClick={() => { if (onAddSelected) { setAddingToCollection(true); void onAddSelected(selectedRows).then(success => { if (success) { (dashboard ? categories : [category]).forEach(name => state.setQuickItems(name, [])); onClose(); } }).finally(() => setAddingToCollection(false)); } else void (dashboard ? state.addQuickAll() : state.addQuick(category)).then(success => { if (success) onClose(); }); }}>{state.busy ? 'Adding…' : `Add ${total} ${total === 1 ? 'item' : 'items'}`}</button></div>
   </section></div>, document.body);
 }

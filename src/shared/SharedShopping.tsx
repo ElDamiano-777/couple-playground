@@ -5,6 +5,7 @@ import { euro, packPrice } from '../pricing/recipeCost';
 import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
 import QuickAdd from "./QuickAdd";
 import PetFoodShopping from "./PetFoodShopping";
+import ShoppingCollections from './ShoppingCollections';
 import ShoppingItemDetail, { shoppingPhoto, shoppingDisplayName } from './ShoppingItemDetail';
 import './shopping-unified.css';
 
@@ -275,6 +276,7 @@ export default function SharedShopping({
             <div className="shopping-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="shopping-search" type="search" placeholder="Search shopping list" value={search} onChange={event => setSearch(event.target.value)} /></div>
             <div className="shopping-filters" role="group" aria-label="Shopping categories">{([null, 'Home', 'Pets', 'Kids'] as const).map(category => <button type="button" key={category ?? 'All'} data-category={(category ?? 'All').toLowerCase()} aria-pressed={filter === category} onClick={() => setFilter(category)}><span className="shopping-filter-icon"><Symbol name={category === 'Home' ? 'home' : category === 'Pets' ? 'pet' : category === 'Kids' ? 'family' : 'shopping'} /></span><span className="shopping-filter-copy"><span>{category ?? 'All'}</span><small>{category === 'Home' ? 'Kitchen & living' : category === 'Pets' ? 'Pet essentials' : category === 'Kids' ? 'Essentials' : 'Everything'}</small></span><strong>{state.items.filter(item => !item.bought && (category === null || item.category === category)).length}</strong></button>)}</div>
           </div>
+          <ShoppingCollections state={state} />
           {(state.draft.trim() || state.draftNotes.trim() || resumeDraft) && <section className="shopping-existing-draft">
             {!resumeDraft ? <button className="text-action" onClick={() => setResumeDraft(true)}>Resume unfinished item</button> : <form className="note-form" onSubmit={event => { event.preventDefault(); void state.add().then(success => { if (success) setResumeDraft(false); }); }}>
               <h2>Unfinished item</h2><label htmlFor="purchase-name">Item name</label><input id="purchase-name" value={state.draft} maxLength={200} required disabled={state.busy} onChange={event => state.setDraft(event.target.value)} />

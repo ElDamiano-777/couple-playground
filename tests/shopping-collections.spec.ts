@@ -1,0 +1,92 @@
+import { expect, test, type Page } from '@playwright/test';
+import { transport, pocPassword } from './helpers/sharedTransport';
+import { mainNavigation } from './navigation';
+
+async function login(page: Page, name: 'Masha' | 'Damian') {
+  await page.goto('./'); await page.getByRole('button', { name, exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
+}
+test('shared collections keep independent purchases and survive refresh', async ({ browser }) => {
+  const server = transport(); server.seedShopping('Existing milk', '', false, 'Home');
+  server.seedFavorite('Favorite cocoa', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5X0QAAAABJRU5ErkJggg==');
+  const a = await browser.newContext({ viewport: { width: 375, height: 812 }, serviceWorkers: 'block' });
+  const b = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  await server.attach(a); await server.attach(b);
+  const first = await a.newPage(), second = await b.newPage();
+  try {
+    await login(first, 'Masha');
+    await expect(first.getByRole('heading', { name: 'Shop by occasion' })).toBeVisible();
+    for (const name of ['Party Time', 'Daily Groceries', 'Movie Night', 'Cozy Weekend']) await expect(first.locator('.occasion-card').filter({ hasText: name })).toBeVisible();
+    await first.locator('.occasion-card').filter({ hasText: 'Movie Night' }).click();
+    await first.getByRole('dialog', { name: 'Movie Night' }).getByRole('button', { name: '+ Popcorn' }).click();
+    await expect(first.getByRole('dialog', { name: 'Movie Night' })).toContainText('1 remaining');
+    await first.getByRole('dialog', { name: 'Movie Night' }).getByRole('button', { name: 'Close' }).click();
+    await first.getByRole('button', { name: '+ New Collection' }).click();
+    const editor = first.getByRole('dialog', { name: 'New collection' });
+    await editor.getByLabel('Collection name').fill('Birthday');
+    await editor.getByLabel('Icon').selectOption('gift'); await editor.getByLabel('Color').selectOption('pink');
+    await editor.getByRole('button', { name: 'Save', exact: true }).click();
+    await first.locator('.occasion-card').filter({ hasText: 'Birthday' }).click();
+    const collection = first.getByRole('dialog', { name: 'Birthday' });
+    await expect(collection).toContainText('No items yet');
+    await collection.getByRole('button', { name: '+ Add products' }).click();
+    const quick = first.locator('.quick-add');
+    await quick.locator('.quick-group').getByRole('button', { name: 'Eggs', exact: true }).click();
+    await quick.locator('.favorite-card').filter({ hasText: 'Favorite cocoa' }).locator('.favorite-select').click();
+    await quick.getByRole('button', { name: '+ Custom item' }).click();
+    await quick.getByLabel('Custom product').fill('Cake decorations');
+    await quick.locator('.quick-custom').getByRole('button', { name: 'Add', exact: true }).click();
+    await quick.getByRole('button', { name: 'Add 3 items' }).click();
+    await expect(collection).toContainText('Eggs'); await expect(collection).toContainText('Cake decorations');
+    await expect(collection.locator('.occasion-item').filter({ hasText: 'Favorite cocoa' }).locator('img')).toBeVisible();
+    await collection.locator('.occasion-item-copy').filter({ hasText: 'Eggs' }).click();
+    const edit = first.getByRole('dialog', { name: 'Edit collection item' });
+    await edit.getByLabel('Quantity and notes (optional)').fill('12 large');
+    await edit.getByRole('button', { name: 'Save', exact: true }).click();
+    await collection.getByRole('checkbox', { name: 'Mark Eggs purchased' }).click();
+    await expect(collection).toContainText('2 remaining · 1 purchased');
+    await first.reload(); await mainNavigation(first).getByRole('button', { name: 'Shopping', exact: true }).click();
+    await first.locator('.occasion-card').filter({ hasText: 'Birthday' }).click();
+    await expect(first.getByRole('dialog', { name: 'Birthday' })).toContainText('12 large');
+    await login(second, 'Damian'); await second.locator('.occasion-card').filter({ hasText: 'Birthday' }).click();
+    await expect(second.getByRole('dialog', { name: 'Birthday' })).toContainText('2 remaining · 1 purchased');
+    await second.getByRole('checkbox', { name: 'Mark Eggs not purchased' }).click();
+    await expect(second.getByRole('dialog', { name: 'Birthday' })).toContainText('3 remaining · 0 purchased');
+    await first.reload(); await mainNavigation(first).getByRole('button', { name: 'Shopping', exact: true }).click();
+    await first.locator('.occasion-card').filter({ hasText: 'Birthday' }).click();
+    await expect(first.getByRole('dialog', { name: 'Birthday' })).toContainText('3 remaining · 0 purchased');
+    await first.getByRole('dialog', { name: 'Birthday' }).getByRole('button', { name: 'Edit', exact: true }).click();
+    await first.getByLabel('Collection name').fill('Birthday plans');
+    await first.getByRole('dialog', { name: 'Edit collection' }).getByRole('button', { name: 'Save', exact: true }).click();
+    await first.locator('.occasion-card').filter({ hasText: 'Birthday plans' }).click();
+    first.once('dialog', dialog => dialog.accept());
+    await first.getByRole('dialog', { name: 'Birthday plans' }).getByRole('button', { name: 'Archive', exact: true }).click();
+    await first.getByRole('button', { name: 'Show archived collections' }).click();
+    await first.locator('.occasion-card').filter({ hasText: 'Birthday plans' }).click();
+    await first.getByRole('dialog', { name: 'Birthday plans' }).getByRole('button', { name: 'Unarchive' }).click();
+    await first.getByRole('button', { name: 'Show active collections' }).click();
+    await first.locator('.occasion-card').filter({ hasText: 'Birthday plans' }).click();
+    first.once('dialog', dialog => dialog.accept()); await first.getByRole('dialog', { name: 'Birthday plans' }).getByRole('button', { name: 'Delete' }).click();
+    await expect(first.locator('.shopping-active-list').first()).toContainText('Existing milk');
+    expect(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await a.close(); await b.close(); }
+});
+
+test('long collection stays scrollable on a narrow phone in light mode', async ({ page, context }) => {
+  const server = transport(); const id = server.seedCollection('A long weekend shopping collection');
+  for (let i = 1; i <= 20; i++) server.seedCollectionItem(id, `Product with a long name ${i}`);
+  await server.attach(context); await page.setViewportSize({ width: 320, height: 700 }); await login(page, 'Masha');
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
+  await page.locator('.more-shortcuts').getByRole('button', { name: 'Settings & notifications' }).click();
+  await page.getByLabel('Light', { exact: true }).check();
+  await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
+  await page.locator('.occasion-card').filter({ hasText: 'A long weekend shopping collection' }).click();
+  const list = page.getByRole('dialog', { name: 'A long weekend shopping collection' });
+  await expect(list).toContainText('20 remaining');
+  expect(await list.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+  await list.locator('.occasion-item').last().scrollIntoViewIfNeeded();
+  await expect(list.locator('.occasion-item').last()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

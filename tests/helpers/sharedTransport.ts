@@ -45,6 +45,8 @@ export function transport() {
   let petFoods: any[] = [];
   let petDislikes: any[] = [];
   let favorites: any[] = [];
+  let collections: any[] = [];
+  let collectionItems: any[] = [];
   let mealPlans: any[] = [];
   let householdTasks: any[] = [];
   let expenses: any[] = []; let partnerNotes: any[] = []; let sharedLoveNotes: any[] = []; let noteReads: any[] = [];
@@ -362,6 +364,29 @@ export function transport() {
           return reply({ id });
         }
       }
+      if ([`/rest/v1/shopping_collections`, `/rest/v1/shopping_collection_items`].includes(url.pathname)) {
+        const household = homeFor(user);
+        if (!household) return reply({ message: 'Forbidden' }, 403);
+        const isCollection = url.pathname.endsWith('shopping_collections');
+        const source = isCollection ? collections : collectionItems;
+        if (method === 'GET') return reply(source.filter(row => row.household_id === household));
+        if (method === 'POST') {
+          const batch = Array.isArray(data) ? data : [data];
+          if (batch.some(row => row.household_id !== household)) return reply({ message: 'Forbidden' }, 403);
+          const added = batch.map(row => ({ ...row, id: crypto.randomUUID(), archived: false, bought: false, created_at: new Date().toISOString() }));
+          source.push(...added);
+          return reply(Array.isArray(data) ? added : added[0], 201);
+        }
+        const id = url.searchParams.get('id')?.replace('eq.', '');
+        const row = source.find(entry => entry.id === id && entry.household_id === household);
+        if (!row) return reply({ message: 'Not found' }, 404);
+        if (method === 'PATCH') { Object.assign(row, data); return reply(row); }
+        if (method === 'DELETE') {
+          if (isCollection) { collections = collections.filter(entry => entry !== row); collectionItems = collectionItems.filter(entry => entry.collection_id !== id); }
+          else collectionItems = collectionItems.filter(entry => entry !== row);
+          return reply({ id });
+        }
+      }
       if (url.pathname === `/rest/v1/shopping_favorites`) {
         const household = homeFor(user);
         if (!household) return reply({ message: `Forbidden` }, 403);
@@ -484,6 +509,8 @@ export function transport() {
     seedLegacyRecipe: (title: string, notes: string, source?: string) => { entryRows.push({ id: crypto.randomUUID(), household_id: pocHome, kind: 'recipe', title, notes, created_by: pocMasha, created_at: new Date().toISOString(), ...(source ? { recipe_source_url: source } : {}) }); },
     seedRecipe: (title: string, ingredients: string, details: { instructions?: string; photo?: string } = {}) => { const id = crypto.randomUUID(); entryRows.push({ id, household_id: pocHome, kind: 'recipe', title, notes: '', recipe_ingredients: ingredients, recipe_instructions: details.instructions || '', ...(details.photo ? { recipe_image_url: details.photo } : {}), created_by: pocMasha, created_at: new Date().toISOString() }); return id; },
     seedTask: (title: string, due_date: string | null, priority: string, assignee = 'masha', completed_at: string | null = null) => { householdTasks.push({ id: crypto.randomUUID(), household_id: pocHome, title, due_date, priority, assignee, completed_at, created_at: new Date().toISOString() }); },
+    seedCollection: (name: string) => { const id = crypto.randomUUID(); collections.push({ id, household_id: pocHome, name, icon: 'heart', color: 'purple', archived: false, created_at: new Date().toISOString() }); return id; },
+    seedCollectionItem: (collectionId: string, name: string) => { collectionItems.push({ id: crypto.randomUUID(), household_id: pocHome, collection_id: collectionId, builtin_key: null, name, category: 'Home', notes: '', bought: false, created_at: new Date().toISOString() }); },
     seedShopping: (name: string, notes: string, bought = false, category: 'Home' | 'Pets' | 'Kids' = 'Home') => { rows.push({ id: crypto.randomUUID(), household_id: pocHome, name, notes, category, bought, created_by: pocMasha, created_at: new Date().toISOString() } as Row); },
     seedFavorite: (name: string, photo: string) => { favorites.push({ id: crypto.randomUUID(), household_id: pocHome, category: 'Home', name, brand: 'Example', flavor: '', size: '', quantity: '', notes: '', photo, created_by: pocMasha, created_at: new Date().toISOString() }); },
     seedMeal: (week: string, slot: string, title: string, recipeId: string | null = null) => { mealPlans.push({ id: crypto.randomUUID(), household_id: pocHome, week_start: week, day_index: 0, meal_slot: slot, recipe_id: recipeId, title, created_at: new Date().toISOString() }); },
