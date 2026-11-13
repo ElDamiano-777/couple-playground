@@ -14,7 +14,10 @@ test('empty Home keeps quick actions and clear connection status', async ({ page
   await expect(page.locator('.task-dashboard')).toContainText('No open tasks');
   await expect(page.locator('.shopping-count')).toHaveText('0 items to buy');
   await expect(page.getByRole('button', { name: /Tonight’s dinner/ })).toContainText('Plan dinner');
-  await page.getByRole('button', { name: '+ Add quick task' }).click();
+  await expect(page.getByRole('button', { name: '+ Add quick task' })).toHaveCount(0);
+  await expect(page.locator('.us-shopping').getByRole('button', { name: '+ Add item' })).toHaveCount(0);
+  await expect(page.locator('.home-quick-actions').getByRole('button')).toHaveText(['Love Note', 'Add task', 'Add shopping item', 'Plan dinner']);
+  await page.getByRole('button', { name: 'Add task', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'New task' })).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();

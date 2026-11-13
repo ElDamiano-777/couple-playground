@@ -14,7 +14,6 @@
 .home-dashboard .us-shopping-details { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.4; }
 .home-dashboard .us-shopping-item > input, .shared-shopping .grocery-row > input { width: 23px; height: 23px; flex: none; accent-color: #4f8a62; }
 .home-dashboard .us-shopping-shortcuts { margin: 8px 0; }
-.home-dashboard .us-shopping-add { min-height: 44px; }
 .shared-shopping .grocery-list { display: grid; gap: 7px; }
 .shared-shopping .grocery-row { min-height: 66px; gap: 8px; }
 .shared-shopping .grocery-copy { min-width: 0; }
@@ -47,11 +46,9 @@
 .home-dashboard .dashboard-sections { gap: 6px; }
 .home-dashboard .page-intro { margin: 5px 0 8px; }
 .home-dashboard .notice { margin: 5px 0 8px; }
-.home-dashboard .us-shopping-controls { display: flex; align-items: stretch; gap: 6px; margin-top: 6px; }
 .home-dashboard .us-shopping-shortcuts { flex: 1; min-width: 0; gap: 4px; margin: 0; }
 .home-dashboard .us-shopping-shortcuts button { justify-content: center; gap: 4px; min-height: 44px; padding: 4px 5px; }
 .home-dashboard .us-shopping-shortcuts strong { min-width: 19px; height: 19px; font-size: 11px; }
-.home-dashboard .us-shopping-add { flex: none; min-height: 44px; padding: 6px 9px; }
 .home-dashboard .us-shopping-list { gap: 4px; margin: 5px 0; }
 .home-dashboard .us-shopping-item { padding: 4px 7px; }
 .home-dashboard .shopping-thumb { width: 34px; height: 34px; }
@@ -59,11 +56,12 @@
 .home-dashboard .us-shopping .purchased-list summary { min-height: 44px; padding: 8px 0; }
 @media (max-width: 760px) { .home-header { height: 76px; } }
 @media (max-width: 360px) {
-  .home-dashboard .us-shopping-controls { gap: 4px; }
   .home-dashboard .us-shopping-shortcuts { gap: 3px; }
   .home-dashboard .us-shopping-shortcuts button { padding-inline: 3px; font-size: 11px; }
-  .home-dashboard .us-shopping-add { padding-inline: 7px; font-size: 12px; }
 }
 .home-dashboard .dashboard-sections { gap: 4px; }
 .home-dashboard .home-quick-actions > div { gap: 5px; }
 .home-dashboard .home-quick-actions button { min-height: 44px; padding-block: 6px; }
+
+.home-dashboard .us-shopping-shortcuts { margin: 6px 0 0; }
+.home-dashboard .task-dashboard .home-task-list { margin-bottom: 0; }

@@ -12,7 +12,7 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
   await expect(page.locator('.shopping-count')).toBeVisible();
 }
 async function add(page: Page, name: string, category: string, details: string) {
-  await page.getByRole('button', { name: '+ Add item', exact: true }).click();
+  await page.getByRole('button', { name: 'Add shopping item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: category }).click();
   await page.getByRole('button', { name: '+ Custom item' }).click();
   await page.getByLabel('Custom product').fill(name);
@@ -71,7 +71,7 @@ test('the Us dashboard uses the shared list for all categories and keeps bought 
 test('an unsuccessful dashboard addition keeps its draft when navigating', async ({ page, context }) => {
   const server = transport(); await server.attach(context);
   await login(page, 'Masha');
-  await page.getByRole('button', { name: '+ Add item', exact: true }).click();
+  await page.getByRole('button', { name: 'Add shopping item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
   await page.getByRole('button', { name: '+ Custom item' }).click();
   await page.getByLabel('Custom product').fill('Unfinished dashboard item');
@@ -83,7 +83,7 @@ test('an unsuccessful dashboard addition keeps its draft when navigating', async
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click();
-  await page.getByRole('button', { name: '+ Add item', exact: true }).click();
+  await page.getByRole('button', { name: 'Add shopping item', exact: true }).click();
   await page.getByRole('group', { name: 'Quick Add categories' }).getByRole('button', { name: 'Pets' }).click();
   await expect(page.locator('.quick-selection')).toContainText('Unfinished dashboard item');
   await expect(page.locator('.quick-selection').getByLabel('Details (optional)')).toHaveValue('Keep these details');

@@ -20,8 +20,7 @@ test('shopping content remains prominent in dark and light themes', async ({ pag
   expect(await card.evaluate(el => {
     const row = el.querySelector('.us-shopping-list')!.getBoundingClientRect();
     const categories = el.querySelector('.us-shopping-shortcuts')!.getBoundingClientRect();
-    const add = el.querySelector('.us-shopping-add')!.getBoundingClientRect();
-    return row.top < categories.top && categories.top < add.top;
+    return row.top < categories.top;
   })).toBe(true);
   if (process.env.TOGETHER_SCREENSHOTS) await page.screenshot({ path: `${process.env.TOGETHER_SCREENSHOTS}/home.png`, animations: 'disabled' });
   for (const name of ['Eggs', 'Milk', 'A long product name with extra details that should wrap naturally']) server.seedShopping(name, 'Brand: Example · Size: 1 kg');
