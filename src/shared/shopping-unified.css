@@ -117,3 +117,6 @@
 :root[data-theme="dark"] .shopping-row-category[data-category="pets"] { background: #293f37; color: #a9d9bf; }
 :root[data-theme="dark"] .shopping-row-category[data-category="kids"] { background: #432f3b; color: #e6b6ce; }
 :root[data-theme="dark"] .shopping-list-row { background: #202027; border-color: #302f38; }
+.shopping-list-heading { display: flex; align-items: center; gap: 8px; margin: 12px 0 7px; font-size: 18px; }
+.shopping-list-heading span { display: grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 8px; background: #eee5f2; color: #735086; font: 700 11px/1 system-ui, sans-serif; }
+:root[data-theme="dark"] .shopping-list-heading span { background: #352d3c; color: #d6bbeb; }

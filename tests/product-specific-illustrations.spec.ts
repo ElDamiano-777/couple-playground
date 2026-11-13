@@ -25,7 +25,8 @@ test('specific illustrations and custom names work across shopping', async ({ pa
   await modal.getByRole('button', { name: '+ Custom item' }).tap();
   await modal.getByLabel('Custom product').fill('Coca-Cola Zero');
   await modal.locator('.quick-custom').getByRole('button', { name: 'Add', exact: true }).tap();
-  await expect(modal.locator('.quick-selection').filter({ hasText: 'Coca-Cola Zero' }).locator('[data-illustration="cola"]')).toBeVisible();
+  await modal.getByRole('button', { name: /Selected items \(1\)/ }).tap();
+  await expect(modal.locator('.quick-review-item').filter({ hasText: 'Coca-Cola Zero' }).locator('[data-illustration="cola"]')).toBeVisible();
   await modal.getByRole('button', { name: 'Add 1 item' }).tap();
   await expect(page.locator('.shopping-list-row').filter({ hasText: 'Coca-Cola Zero' }).locator('[data-illustration="cola"]')).toBeVisible();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).tap();

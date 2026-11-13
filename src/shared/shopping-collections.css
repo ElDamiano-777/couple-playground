@@ -16,3 +16,29 @@
 .occasion-suggestions button { min-height: 40px; padding: 7px 9px; border-radius: 10px; background: #eee4f4; color: #65447b; font-size: 12px; }
 :root[data-theme="dark"] .occasion-suggestions button { background: #3a3045; color: #e6d8ef; }
 :root[data-theme="dark"] .occasion-dialog textarea { background: #1c1b23; color: #f7f5fa; border: 1px solid #504956; border-radius: 10px; padding: 10px; }
+/* Color accents distinguish occasions while keeping the page compact. */
+.shopping-collections { margin: 8px 0 10px; }
+.occasion-heading { margin: 9px 0 5px; }
+.occasion-card { min-height: 56px; }
+.occasion-count { display: grid; place-items: center; flex: none; min-width: 21px; height: 21px; padding: 0 5px; border-radius: 7px; background: #eee5f3; color: #79538d; }
+.occasion-empty-invite { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 48px; padding: 7px 10px; border-radius: 12px; background: #f5eef8; color: #65447b; text-align: left; }
+.occasion-empty-invite > span:nth-child(2) { display: grid; flex: 1; gap: 2px; min-width: 0; }
+.occasion-empty-invite strong { font-size: 12px; }.occasion-empty-invite small { font-size: 11px; }
+.occasion-title-icon { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 11px; background: #eee1f7; font-size: 19px; }
+.occasion-title h2 { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.occasion-title-icon[data-color="pink"] { background: #f4dfe9; }.occasion-title-icon[data-color="mint"] { background: #dceee6; }.occasion-title-icon[data-color="peach"] { background: #f5e2d8; }.occasion-title-icon[data-color="blue"] { background: #e0eaf5; }
+.occasion-dialog { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.occasion-dialog :is(input, textarea, select, button) { scroll-margin-block: 16px 28px; }
+.occasion-item { min-width: 0; }.occasion-item-image { border-radius: 9px; overflow: hidden; }
+:root[data-theme="dark"] .occasion-card[data-color="pink"] { background: #34252f; border-color: #69404f; }
+:root[data-theme="dark"] .occasion-card[data-color="mint"] { background: #20332f; border-color: #376055; }
+:root[data-theme="dark"] .occasion-card[data-color="purple"] { background: #2c2738; border-color: #554368; }
+:root[data-theme="dark"] .occasion-card[data-color="peach"] { background: #352b28; border-color: #63463c; }
+:root[data-theme="dark"] .occasion-card[data-color="blue"] { background: #26313d; border-color: #3f5367; }
+:root[data-theme="dark"] .occasion-count { background: #ffffff16; color: #f3e8f4; }
+:root[data-theme="dark"] .occasion-empty-invite { background: #2c2733; color: #dbc5ea; }
+:root[data-theme="dark"] .occasion-title-icon { background: #40304d; }
+:root[data-theme="dark"] .occasion-title-icon[data-color="pink"] { background: #523443; }
+:root[data-theme="dark"] .occasion-title-icon[data-color="mint"] { background: #2b4a40; }
+:root[data-theme="dark"] .occasion-title-icon[data-color="peach"] { background: #503b30; }
+:root[data-theme="dark"] .occasion-title-icon[data-color="blue"] { background: #33465b; }

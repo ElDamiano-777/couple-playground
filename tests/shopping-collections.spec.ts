@@ -18,6 +18,11 @@ test('shared collections keep independent purchases and survive refresh', async 
   try {
     await login(first, 'Masha');
     await expect(first.getByRole('heading', { name: 'Shop by occasion' })).toBeVisible();
+    await expect(first.getByRole('heading', { name: /Shopping list/ })).toBeVisible();
+    const colors = await first.locator('.occasion-grid').first().locator('.occasion-card').evaluateAll(cards => cards.map(card => getComputedStyle(card).backgroundColor));
+    expect(new Set(colors).size).toBe(4);
+    await expect(first.getByRole('button', { name: /Make it yours/ })).toBeVisible();
+    if (process.env.TOGETHER_SCREENSHOTS) await first.screenshot({ path: `${process.env.TOGETHER_SCREENSHOTS}/occasions.png` });
     for (const name of ['Party Time', 'Daily Groceries', 'Movie Night', 'Cozy Weekend']) await expect(first.locator('.occasion-card').filter({ hasText: name })).toBeVisible();
     await first.locator('.occasion-card').filter({ hasText: 'Movie Night' }).click();
     await first.getByRole('dialog', { name: 'Movie Night' }).getByRole('button', { name: '+ Popcorn' }).click();
@@ -25,12 +30,16 @@ test('shared collections keep independent purchases and survive refresh', async 
     await first.getByRole('dialog', { name: 'Movie Night' }).getByRole('button', { name: 'Close' }).click();
     await first.getByRole('button', { name: '+ New Collection' }).click();
     const editor = first.getByRole('dialog', { name: 'New collection' });
+    await first.evaluate(() => { const viewport = window.visualViewport!; Object.defineProperty(viewport, 'height', { value: 460, configurable: true }); viewport.dispatchEvent(new Event('resize')); });
+    await expect.poll(async () => (await editor.boundingBox())!.y + (await editor.boundingBox())!.height).toBeLessThanOrEqual(460);
+    await first.evaluate(() => { const viewport = window.visualViewport!; delete (viewport as unknown as { height?: number }).height; viewport.dispatchEvent(new Event('resize')); });
     await editor.getByLabel('Collection name').fill('Birthday');
     await editor.getByLabel('Icon').selectOption('gift'); await editor.getByLabel('Color').selectOption('pink');
     await editor.getByRole('button', { name: 'Save', exact: true }).click();
     await first.locator('.occasion-card').filter({ hasText: 'Birthday' }).click();
     const collection = first.getByRole('dialog', { name: 'Birthday' });
     await expect(collection).toContainText('No items yet');
+    await expect(collection.locator('.occasion-title-icon')).toBeVisible();
     await collection.getByRole('button', { name: '+ Add products' }).click();
     const quick = first.locator('.quick-add');
     await quick.locator('.quick-group').getByRole('button', { name: 'Eggs', exact: true }).click();
