@@ -27,6 +27,13 @@ test('Home and Shopping retain actions in compact layouts', async ({ page, conte
   await filters.getByRole('button', { name: /Pets/ }).tap();
   await expect(page.locator('.shopping-active-list').first()).toContainText('Cat litter');
   await expect(page.locator('.shopping-active-list').first()).not.toContainText('Wipes');
+  await filters.getByRole('button', { name: /Home/ }).tap();
+  await expect(page.locator('.shopping-active-list').first()).toContainText('Milk');
+  await filters.getByRole('button', { name: /Kids/ }).tap();
+  await expect(page.locator('.shopping-active-list').first()).toContainText('Wipes');
+  await page.getByLabel('Search shopping list').fill('not on list');
+  await expect(page.locator('.shopping-active-list').first()).toContainText('No items match your search.');
+  await page.getByLabel('Search shopping list').clear();
   await filters.getByRole('button', { name: /All/ }).tap();
   const purchased = page.locator('.shopping-purchased'); await expect(purchased).not.toHaveAttribute('open', '');
   await purchased.locator('summary').tap(); await expect(purchased).toContainText('Already purchased');

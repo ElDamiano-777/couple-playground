@@ -2,7 +2,7 @@ import { ProductIllustration, petFoodIllustrationName } from './ProductIllustrat
 import { useEffect, useState } from 'react';
 import { Symbol } from '../ui/Symbol';
 import type { ShoppingItem, SharedShoppingState } from './useSharedShopping';
-import ShoppingItemDetail, { shoppingPhoto } from './ShoppingItemDetail';
+import ShoppingItemDetail, { shoppingPhoto, shoppingDisplayName } from './ShoppingItemDetail';
 
 export default function UsShopping({ state, onCategory, onSignIn, onAdd }: { state: SharedShoppingState; onCategory: (category: ShoppingItem['category']) => void; onSignIn: () => void; onAdd: () => void }) {
   const [showAll, setShowAll] = useState(false);
@@ -16,7 +16,7 @@ export default function UsShopping({ state, onCategory, onSignIn, onAdd }: { sta
     {!state.authReady || state.loading ? <p role="status">Opening your shopping list…</p> : !state.session || !state.household ? <><p>{state.session ? 'Connect your home to see your shared list.' : 'Sign in to see your shared shopping list.'}</p><button className="text-action" onClick={onSignIn}>{state.session ? 'Connect home' : 'Sign in'} →</button></> : <>
       {active.length === 0 ? !state.error && <p className="us-shopping-empty">All caught up! Your shopping list is empty.</p> : <div className="us-shopping-list">{(showAll ? active : active.slice(0, 3)).map(item => <div className="us-shopping-item" key={item.id}>
         <input aria-label={`Mark ${item.name} as purchased`} type="checkbox" checked={item.bought} disabled={state.busy || !navigator.onLine} onChange={() => { void state.markBought(item).then(success => { if (success) setUndoItem(item); }); }} />
-        <button type="button" className="us-shopping-open" onClick={() => setDetail(item)}><span className="shopping-thumb" aria-hidden="true">{shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos) ? <img src={shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos)!} alt="" /> : <ProductIllustration name={item.pet_food_id ? petFoodIllustrationName(item.name, item.notes) : item.name} />}</span><span className="us-shopping-copy"><strong>{item.name}</strong><small className="us-shopping-details">{[item.category, item.notes].filter(Boolean).join(' · ')}</small></span></button>
+        <button type="button" className="us-shopping-open" onClick={() => setDetail(item)}><span className="shopping-thumb" aria-hidden="true">{shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos) ? <img src={shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos)!} alt="" /> : <ProductIllustration name={item.pet_food_id ? petFoodIllustrationName(item.name, item.notes) : item.name} />}</span><span className="us-shopping-copy"><strong>{shoppingDisplayName(item)}</strong><small className="us-shopping-details">{[item.category, item.notes].filter(Boolean).join(' · ')}</small></span></button>
       </div>)}{active.length > 3 && <button className="dashboard-show-all" onClick={() => setShowAll(!showAll)}>{showAll ? 'Show less' : `Show all (${active.length})`}</button>}</div>}
       <div className="us-shopping-shortcuts" role="group" aria-label="Shopping categories">{(['Home', 'Pets', 'Kids'] as const).map(category => <button key={category} onClick={() => onCategory(category)}><span>{category}</span><strong>{active.filter(item => item.category === category).length}</strong></button>)}</div>
       {state.error && <p className="feedback error-message" role="alert">{state.error}</p>}

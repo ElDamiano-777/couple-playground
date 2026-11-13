@@ -94,6 +94,7 @@ test('saved pet food keeps its photo and details when added', async ({ page, con
   await food.getByRole('button', { name: /Add Test food/ }).click();
   const row = page.locator('.shopping-list-row').filter({ hasText: 'Test food' });
   await expect(row.locator('img')).toHaveAttribute('src', photo!);
+  await expect(row.locator('.shopping-row-copy strong')).toHaveText('Example Test food');
   await expect(row).toContainText('Test pet');
 });
 test('saved favorites remain reusable from Shopping', async ({ page, context }) => {

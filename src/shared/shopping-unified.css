@@ -84,3 +84,36 @@
 :root[data-theme="dark"] .shopping-filters button[data-category="kids"] { background: #352a34; border-color: #594151; color: #e8c3d5; }
 :root[data-theme="dark"] .shopping-filters button[aria-pressed="true"] { border-color: #b68ddd; box-shadow: inset 0 0 0 1px #b68ddd; }
 :root[data-theme="dark"] .shopping-purchased > summary { color: #bdb7c8; }
+/* Dark, compact category cards and quieter shopping rows. */
+.shopping-unified .shopping-toolbar { gap: 8px; margin-block: 10px; }
+.shopping-unified .shopping-quick-primary { min-height: 44px; padding: 7px 12px; font-size: 13px; }
+.shopping-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.shopping-filters button { display: flex; flex-direction: row; justify-content: flex-start; gap: 7px; min-height: 53px; padding: 6px 8px; text-align: left; border-radius: 12px; }
+.shopping-filter-icon { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 9px; color: #805ca2; background: #eee6f4; }
+.shopping-filter-icon svg { width: 17px; height: 17px; }
+.shopping-filter-copy { display: grid; flex: 1; min-width: 0; gap: 1px; }
+.shopping-filter-copy > span { font-size: 12px; line-height: 1.2; }
+.shopping-filter-copy small { font-size: 10px; line-height: 1.25; font-weight: 500; color: #6f6574; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shopping-filters strong { display: grid; place-items: center; flex: none; min-width: 21px; height: 21px; padding-inline: 4px; border-radius: 7px; background: #e8e1ed; color: #654b76; }
+.shopping-filters button[data-category="home"], .shopping-filters button[data-category="pets"], .shopping-filters button[data-category="kids"] { background: #faf8fb; color: #473c4e; border-color: #ded5e3; }
+.shopping-filters button[data-category="pets"] .shopping-filter-icon { color: #4d8d7c; background: #e1f0ea; }
+.shopping-filters button[data-category="kids"] .shopping-filter-icon { color: #ab698c; background: #f4e6ee; }
+.shopping-list-row { gap: 8px; padding: 5px 8px; }
+.shopping-row-open { gap: 8px; }
+.shopping-row-copy { gap: 2px; }
+.shopping-row-copy small { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.shopping-row-category { flex: none; padding: 2px 5px; border-radius: 6px; background: #eee8f4; color: #6e4e86; font-size: 10px; line-height: 1.2; }
+.shopping-row-category[data-category="pets"] { background: #e2f0e9; color: #3e745f; }
+.shopping-row-category[data-category="kids"] { background: #f5e8ef; color: #8d5b73; }
+.shopping-row-details { display: -webkit-box; min-width: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+:root[data-theme="dark"] .shopping-filters button, :root[data-theme="dark"] .shopping-filters button[data-category] { background: #222129; border-color: #35323d; color: #f3eef6; }
+:root[data-theme="dark"] .shopping-filters button[aria-pressed="true"] { background: #292530; border-color: #a780c7; box-shadow: inset 0 0 0 1px #a780c7; }
+:root[data-theme="dark"] .shopping-filter-copy small { color: #b7aebe; }
+:root[data-theme="dark"] .shopping-filter-icon { background: #352c40; color: #cfa7f0; }
+:root[data-theme="dark"] .shopping-filters button[data-category="pets"] .shopping-filter-icon { background: #263e38; color: #9fd8c2; }
+:root[data-theme="dark"] .shopping-filters button[data-category="kids"] .shopping-filter-icon { background: #3f2c39; color: #e9adc9; }
+:root[data-theme="dark"] .shopping-filters strong { background: #37303e; color: #e1d0ef; }
+:root[data-theme="dark"] .shopping-row-category { background: #352c40; color: #d4b8eb; }
+:root[data-theme="dark"] .shopping-row-category[data-category="pets"] { background: #293f37; color: #a9d9bf; }
+:root[data-theme="dark"] .shopping-row-category[data-category="kids"] { background: #432f3b; color: #e6b6ce; }
+:root[data-theme="dark"] .shopping-list-row { background: #202027; border-color: #302f38; }

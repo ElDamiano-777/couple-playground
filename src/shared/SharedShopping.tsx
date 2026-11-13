@@ -1,10 +1,11 @@
+import { Symbol } from '../ui/Symbol';
 import { ProductIllustration, petFoodIllustrationName } from './ProductIllustration';
 import { useEffect, useState } from "react";
 import { euro, packPrice } from '../pricing/recipeCost';
 import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
 import QuickAdd from "./QuickAdd";
 import PetFoodShopping from "./PetFoodShopping";
-import ShoppingItemDetail, { shoppingPhoto } from './ShoppingItemDetail';
+import ShoppingItemDetail, { shoppingPhoto, shoppingDisplayName } from './ShoppingItemDetail';
 import './shopping-unified.css';
 
 export default function SharedShopping({
@@ -272,7 +273,7 @@ export default function SharedShopping({
             <button className="primary shopping-quick-primary" aria-label="+ Quick Add Item" onClick={() => setQuickOpen(true)}><span aria-hidden="true">＋</span> Quick Add Item</button>
             <label className="shopping-search-label" htmlFor="shopping-search">Search shopping list</label>
             <div className="shopping-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="shopping-search" type="search" placeholder="Search shopping list" value={search} onChange={event => setSearch(event.target.value)} /></div>
-            <div className="shopping-filters" role="group" aria-label="Shopping categories">{([null, 'Home', 'Pets', 'Kids'] as const).map(category => <button type="button" key={category ?? 'All'} data-category={(category ?? 'All').toLowerCase()} aria-pressed={filter === category} onClick={() => setFilter(category)}><span>{category ?? 'All'}</span><strong>{state.items.filter(item => !item.bought && (category === null || item.category === category)).length}</strong></button>)}</div>
+            <div className="shopping-filters" role="group" aria-label="Shopping categories">{([null, 'Home', 'Pets', 'Kids'] as const).map(category => <button type="button" key={category ?? 'All'} data-category={(category ?? 'All').toLowerCase()} aria-pressed={filter === category} onClick={() => setFilter(category)}><span className="shopping-filter-icon"><Symbol name={category === 'Home' ? 'home' : category === 'Pets' ? 'pet' : category === 'Kids' ? 'family' : 'shopping'} /></span><span className="shopping-filter-copy"><span>{category ?? 'All'}</span><small>{category === 'Home' ? 'Kitchen & living' : category === 'Pets' ? 'Pet essentials' : category === 'Kids' ? 'Essentials' : 'Everything'}</small></span><strong>{state.items.filter(item => !item.bought && (category === null || item.category === category)).length}</strong></button>)}</div>
           </div>
           {(state.draft.trim() || state.draftNotes.trim() || resumeDraft) && <section className="shopping-existing-draft">
             {!resumeDraft ? <button className="text-action" onClick={() => setResumeDraft(true)}>Resume unfinished item</button> : <form className="note-form" onSubmit={event => { event.preventDefault(); void state.add().then(success => { if (success) setResumeDraft(false); }); }}>
@@ -293,7 +294,7 @@ export default function SharedShopping({
             const unpriced = prices.filter(price => price === null).length;
             const row = (item: ShoppingItem) => <div className={`shopping-list-row${item.bought ? ' is-bought' : ''}`} key={item.id}>
               <input aria-label={item.bought ? `Return ${item.name} to active list` : `Mark ${item.name} as purchased`} type="checkbox" checked={item.bought} disabled={state.busy || !navigator.onLine} onChange={() => { void state.markBought(item).then(success => { if (success && !item.bought) setUndoItem(item); }); }} />
-              <button type="button" className="shopping-row-open" onClick={() => setDetail(item)}><span className="shopping-thumb" aria-hidden="true">{shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos) ? <img src={shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos)!} alt="" /> : <ProductIllustration name={item.pet_food_id ? petFoodIllustrationName(item.name, item.notes) : item.name} />}</span><span className="shopping-row-copy"><strong>{item.name}</strong><small><span className="shopping-row-category">{item.category}</span>{item.notes && <> · {item.notes}</>}</small></span></button>
+              <button type="button" className="shopping-row-open" onClick={() => setDetail(item)}><span className="shopping-thumb" aria-hidden="true">{shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos) ? <img src={shoppingPhoto(item, state.favoritePhotos, state.petFoodPhotos)!} alt="" /> : <ProductIllustration name={item.pet_food_id ? petFoodIllustrationName(item.name, item.notes) : item.name} />}</span><span className="shopping-row-copy"><strong>{shoppingDisplayName(item)}</strong><small><span className="shopping-row-category" data-category={item.category.toLowerCase()}>{item.category}</span>{item.notes && <span className="shopping-row-details">{item.notes}</span>}</small></span></button>
             </div>;
             return <>{total > 0 && <p className="shopping-total">Estimated total: <strong>≈ {euro(total)}</strong>{unpriced ? ` · ${unpriced} without price` : ''}</p>}<section className="shopping-active-list" aria-label="Items to buy">{active.length ? active.map(row) : <p className="shopping-empty">{query ? 'No items match your search.' : 'Your shopping list is empty.'}</p>}</section>
               {purchased.length > 0 && <details className="purchased-list shopping-purchased" open={purchasedOpen} onToggle={event => setPurchasedOpen(event.currentTarget.open)}><summary>Purchased ({purchased.length})</summary><div className="shopping-active-list">{purchased.map(row)}</div></details>}</>;

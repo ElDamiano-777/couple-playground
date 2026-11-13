@@ -83,3 +83,9 @@
 :root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(2) { background: #2b2535; }
 :root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(3) { background: #233129; }
 :root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(4) { background: #322925; }
+.home-dashboard .us-shopping { padding: 9px 11px; }
+.home-dashboard .us-shopping-list { gap: 3px; }
+.home-dashboard .us-shopping-item { padding: 2px 0; }
+.home-dashboard .us-shopping-shortcuts { margin: 4px 0 0; }
+:root[data-theme="dark"] .home-dashboard .us-shopping, :root[data-theme="dark"] .home-dashboard .us-shopping.dashboard-active { background: #202923; border-color: #34463b; }
+:root[data-theme="dark"] .home-dashboard .us-shopping-item { background: #1d2722; border-color: #33433a; }
