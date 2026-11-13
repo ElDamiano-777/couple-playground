@@ -4,7 +4,7 @@ import { readPhoto } from '../family/petPhoto';
 import type { ShoppingItem } from './useSharedShopping';
 import type { Favorite, FavoriteDraft } from './useShoppingFavorites';
 import { useShoppingFavorites } from './useShoppingFavorites';
-import { ProductIllustration } from './ProductIllustration';
+import { ProductIllustration, matchesProductSearch } from './ProductIllustration';
 import { recognizeBarcode, recognizeProduct } from './productRecognition';
 
 type FavoritesState = ReturnType<typeof useShoppingFavorites>;
@@ -25,7 +25,7 @@ export default function ShoppingFavorites({ category, data, selectedIds, onToggl
   const [recognition, setRecognition] = useState('');
   const [scanningBarcode, setScanningBarcode] = useState(false);
   const scannerVideo = useRef<HTMLVideoElement>(null);
-  const items = data.favorites.filter(item => item.category === category && `${item.name} ${item.brand} ${item.flavor} ${item.size} ${item.quantity} ${item.notes}`.toLocaleLowerCase().includes(query));
+  const items = data.favorites.filter(item => item.category === category && (`${item.name} ${item.brand} ${item.flavor} ${item.size} ${item.quantity} ${item.notes}`.toLocaleLowerCase().includes(query) || matchesProductSearch(item.name, query)));
   function start(item?: Favorite) {
     setEditingId(item?.id ?? null);
     setDraft(item ? { category: item.category, name: item.name, brand: item.brand, flavor: item.flavor ?? '', size: item.size ?? '', quantity: item.quantity, notes: item.notes, photo: item.photo } : emptyDraft(category));

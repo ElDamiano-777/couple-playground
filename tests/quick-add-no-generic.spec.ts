@@ -25,8 +25,8 @@ test('catalog groups contain specific items without removing saved generic favor
   }
   for (const name of ['Eggs', 'Milk', 'Rice']) await expect(modal.locator('.quick-group').getByRole('button', { name, exact: true })).toBeEnabled();
   await page.getByLabel('Search products').fill('Bread');
-  const breadGroup = modal.locator('.quick-subgroup-toggle').getByText('Bread', { exact: true }).locator('../..');
-  await expect(breadGroup.getByRole('button', { name: 'Toast bread', exact: true })).toBeVisible();
-  await expect(breadGroup.locator('.quick-product').getByRole('button', { name: 'Bread', exact: true })).toHaveCount(0);
+  const results = modal.locator('.quick-search-results');
+  await expect(results.getByRole('button', { name: 'Toast bread', exact: true })).toBeVisible();
+  await expect(results.getByRole('button', { name: 'Bread', exact: true })).toHaveCount(0);
   await expect(modal.locator('.favorite-card').filter({ hasText: 'Bread' })).toBeVisible();
 });

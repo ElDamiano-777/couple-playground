@@ -3,7 +3,7 @@ import type { ShoppingItem, SharedShoppingState } from './useSharedShopping';
 import ShoppingFavorites from './ShoppingFavorites';
 import { useShoppingFavorites, type Favorite } from './useShoppingFavorites';
 import { formatPetFoodDetails, usePetFoodShopping } from './usePetFoodShopping';
-import { ProductIllustration, petFoodIllustrationName } from './ProductIllustration';
+import { ProductIllustration, petFoodIllustrationName, matchesProductSearch } from './ProductIllustration';
 
 type CatalogItem = string | { title: string; items: string[] };
 type CatalogGroup = { title: string; items: CatalogItem[] };
@@ -23,6 +23,7 @@ const catalog: Record<ShoppingItem['category'], CatalogGroup[]> = {
     { title: 'Play & care', items: ['Toys', 'Shampoo', 'Hygiene products', 'Care products'] },
   ],
 };
+const categorySearchAliases: Record<string, string[]> = { Bread: ['brot', 'backwaren'], Meat: ['fleisch'], Vegetables: ['gemüse', 'gemuese', 'gemuse'], Fruit: ['obst', 'frucht'], Cheese: ['käse', 'kaese', 'kase'], Pasta: ['nudeln', 'teigwaren'] };
 const isCatalogSubgroup = (item: CatalogItem): item is Exclude<CatalogItem, string> => typeof item !== 'string';
 
 export default function QuickAdd({ category: initialCategory, state, onClose, dashboard = false }: { category: ShoppingItem['category']; state: SharedShoppingState; onClose: () => void; dashboard?: boolean }) {
@@ -30,6 +31,18 @@ export default function QuickAdd({ category: initialCategory, state, onClose, da
   const [showCustom, setShowCustom] = useState(false);
   const petFood = usePetFoodShopping(state.session?.user.id, state.household, dashboard && category === 'Pets');
   const [search, setSearch] = useState('');
+  const [selectedOpen, setSelectedOpen] = useState(false);
+  const [keyboard, setKeyboard] = useState<{ inset: number; height: number } | null>(null);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const update = () => {
+      const inset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      setKeyboard(inset > 100 ? { inset, height: viewport.height } : null);
+    };
+    viewport.addEventListener('resize', update); viewport.addEventListener('scroll', update);
+    return () => { viewport.removeEventListener('resize', update); viewport.removeEventListener('scroll', update); };
+  }, []);
   const [favoriteEditing, setFavoriteEditing] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const confirmDialog = useRef<HTMLDialogElement>(null);
@@ -43,11 +56,17 @@ export default function QuickAdd({ category: initialCategory, state, onClose, da
   const favorites = useShoppingFavorites(state.session?.user.id, state.household, category);
   const [expanded, setExpanded] = useState<string[]>([catalog[category][0].title]);
   const query = search.trim().toLocaleLowerCase();
-  const groups = catalog[category].map(group => ({ ...group, items: group.items.filter(item => typeof item === 'string' ? item.toLocaleLowerCase().includes(query) : item.title.toLocaleLowerCase().includes(query) || item.items.some(name => name.toLocaleLowerCase().includes(query)) ) })).filter(group => group.items.length > 0);
+  const groups = catalog[category];
+  const searchResults = query ? groups.flatMap(group => group.items.flatMap(item => {
+    if (typeof item === 'string') return matchesProductSearch(item, query) ? [item] : [];
+    return item.title.toLocaleLowerCase().includes(query) || (categorySearchAliases[item.title] ?? []).some(alias => alias.includes(query)) ? item.items : item.items.filter(name => matchesProductSearch(name, query));
+  })) : [];
+
   const selected = state.quickItems[category];
   const custom = state.quickCustom[category];
   const categories = ['Home', 'Pets', 'Kids'] as const;
   const total = dashboard ? categories.reduce((count, name) => count + state.quickItems[name].length, 0) : selected.length;
+  const selectedRows = (dashboard ? categories : [category]).flatMap(name => state.quickItems[name].map(item => ({ ...item, category: name })));
   const hasCustomDraft = dashboard ? categories.some(name => state.quickCustom[name].trim()) : !!custom.trim();
   const setSelected = (items: typeof selected) => state.setQuickItems(category, items);
   function requestClose() {
@@ -80,19 +99,19 @@ export default function QuickAdd({ category: initialCategory, state, onClose, da
     const saved = favorites.favorites.find(item => item.category === category && item.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase());
     return <div className={`quick-product${chosen ? ' is-selected' : ''}`} key={name}><button type="button" className="quick-tile" aria-pressed={chosen} disabled={state.busy} onClick={() => toggle(name)}><ProductIllustration name={name} /><span>{name}</span>{chosen && <span className="quick-check" aria-hidden="true">✓</span>}</button><button type="button" className="quick-favorite-product" aria-label={saved ? `Remove ${name} from favorites` : `Save ${name} as favorite`} aria-pressed={!!saved} disabled={state.busy || favorites.busy || favorites.loading || favoriteEditing} onClick={() => { if (saved) { if (window.confirm(`Remove “${saved.name}” from favorites for both of you?`)) void favorites.remove(saved); } else void favorites.save({ category, name, brand: '', flavor: '', size: '', quantity: '', notes: '', photo: null }, null); }}>{saved ? '★' : '☆'}</button></div>;
   }
-  return <section className="quick-add" aria-label={`${category} Quick Add`}>
+  return <section className="quick-add" aria-label={`${category} Quick Add`} style={keyboard ? { bottom: keyboard.inset + 8, height: `min(680px, ${Math.max(180, keyboard.height - 16)}px)` } : undefined}>
     <div className="quick-heading"><div><h2>Quick Add</h2></div><button ref={closeButton} className="quick-close" disabled={state.busy || favorites.busy} onClick={requestClose}>Close</button></div>
-    {dashboard && <div className="quick-category-tabs" role="group" aria-label="Quick Add categories">{categories.map(name => <button type="button" key={name} data-category={name.toLowerCase()} aria-pressed={category === name} disabled={state.busy || favorites.busy || favoriteEditing} onClick={() => { setCategory(name); setExpanded([catalog[name][0].title]); setExpandedProducts([]); setShowCustom(false); setSearch(''); }}>{name}</button>)}</div>}
+    <div className="quick-search-wrap"><label className="quick-search-label" htmlFor="quick-search">Search products</label><input id="quick-search" className="quick-search" type="search" placeholder="Search products…" value={search} onChange={event => setSearch(event.target.value)} /></div>
+    {dashboard && <div className="quick-category-tabs" role="group" aria-label="Quick Add categories">{categories.map(name => <button type="button" key={name} data-category={name.toLowerCase()} aria-pressed={category === name} disabled={state.busy || favorites.busy || favoriteEditing} onClick={() => { setCategory(name); setExpanded([catalog[name][0].title]); setExpandedProducts([]); setShowCustom(false); }}>{name}</button>)}</div>}
     <div className="quick-content">
-    <label className="quick-search-label" htmlFor="quick-search">Search products</label>
-    <input id="quick-search" className="quick-search" type="search" placeholder="Search products" value={search} onChange={event => setSearch(event.target.value)} />
     <ShoppingFavorites favoriteSeed={null} onSeedHandled={() => {}} category={category} data={favorites} selectedIds={selected.filter(item => item.id.startsWith('favorite:')).map(item => item.id.slice(9))} onToggle={toggleFavorite} editing={favoriteEditing} setEditing={setFavoriteEditing} isPoc={state.isPoc} query={query} disabled={state.busy} />
     {dashboard && category === 'Pets' && <section className="quick-pet-food" aria-label="Our Pets’ Food"><h3>Our Pets’ Food</h3>{petFood.loading && <p>Loading saved pet food…</p>}{petFood.error && <><p role="alert">{petFood.error}</p><button type="button" className="text-action" onClick={petFood.retry}>Try again</button></>}{petFood.foods.filter(food => `${food.name} ${food.brand} ${food.petNames.join(' ')}`.toLocaleLowerCase().includes(query)).map(food => {
       const id = `petfood:${food.id}`;
       return <button type="button" className="quick-pet-food-item" key={id} aria-pressed={selected.some(item => item.id === id)} disabled={state.busy} onClick={() => setSelected(selected.some(item => item.id === id) ? selected.filter(item => item.id !== id) : [...selected, { id, name: food.name, notes: formatPetFoodDetails(food), petFoodId: food.id, petFoodPhoto: food.photo }])}><span className="favorite-thumb">{food.photo ? <img src={food.photo} alt="" /> : <ProductIllustration name={petFoodIllustrationName(food.name, food.food_type)} />}</span><span className="favorite-copy"><strong>{food.name}</strong><small>{[food.brand, food.package_size, `For ${food.petNames.join(' & ')}`].filter(Boolean).join(' · ')}</small></span><span aria-hidden="true">{selected.some(item => item.id === id) ? '✓' : '+'}</span></button>;
     })}</section>}
-    {query && groups.length === 0 && !(dashboard && category === 'Pets' && petFood.foods.some(food => `${food.name} ${food.brand} ${food.petNames.join(' ')}`.toLocaleLowerCase().includes(query))) && !favorites.favorites.some(item => item.category === category && `${item.name} ${item.brand} ${item.flavor} ${item.size} ${item.quantity} ${item.notes}`.toLocaleLowerCase().includes(query)) && <p className="quick-no-results" role="status">No products found. You can add a custom product below.</p>}
-    {groups.map(group => {
+    {query && searchResults.length === 0 && !(dashboard && category === 'Pets' && petFood.foods.some(food => `${food.name} ${food.brand} ${food.petNames.join(' ')}`.toLocaleLowerCase().includes(query))) && !favorites.favorites.some(item => item.category === category && (`${item.name} ${item.brand} ${item.flavor} ${item.size} ${item.quantity} ${item.notes}`.toLocaleLowerCase().includes(query) || matchesProductSearch(item.name, query))) && <p className="quick-no-results" role="status">No products found. You can add a custom product below.</p>}
+    {query && searchResults.length > 0 && <div className="quick-tiles quick-search-results">{searchResults.map(name => product(name))}</div>}
+    {!query && groups.map(group => {
       const open = !!query || expanded.includes(group.title);
       return <div className="quick-group" data-group={group.title.toLowerCase()} data-category={category.toLowerCase()} key={group.title}><h3><button type="button" className="quick-group-toggle" aria-expanded={open} onClick={() => setExpanded(previous => previous.includes(group.title) ? previous.filter(title => title !== group.title) : [...previous, group.title])}><span>{group.title}</span><span className={`quick-chevron ${open ? 'is-open' : ''}`} aria-hidden="true">⌄</span></button></h3>{open && <div className="quick-tiles">{group.items.map(item => {
         if (!isCatalogSubgroup(item)) return product(item);
@@ -112,6 +131,6 @@ export default function QuickAdd({ category: initialCategory, state, onClose, da
       <p id="quick-confirm-message">{favoriteEditing && (total || hasCustomDraft) ? 'Your favorite hasn’t been saved, and your selected products haven’t been added to the shopping list yet.' : favoriteEditing ? 'Your favorite hasn’t been saved yet.' : hasCustomDraft && !total ? 'Your custom product hasn’t been added to the shopping list yet.' : 'Your selected products haven’t been added to the shopping list yet.'}</p>
       <div><button type="button" autoFocus onClick={() => setConfirmClose(false)}>{favoriteEditing ? 'Keep editing' : 'Keep selecting'}</button><button type="button" onClick={discardAndClose}>{favoriteEditing ? 'Discard changes' : 'Discard selection'}</button></div>
     </dialog>
-    <div className="quick-footer">{dashboard && hasCustomDraft && <p className="quick-custom-hint">Finish or clear the custom item in {categories.filter(name => state.quickCustom[name].trim()).join(', ')}.</p>}<button className="primary quick-save" disabled={state.busy || favorites.busy || favoriteEditing || !total || hasCustomDraft || !navigator.onLine} onClick={() => { void (dashboard ? state.addQuickAll() : state.addQuick(category)).then(success => { if (success) onClose(); }); }}>{state.busy ? 'Adding…' : `Add ${total} ${total === 1 ? 'item' : 'items'}`}</button></div>
+    <div className="quick-footer"><div className="quick-selected-panel"><div className="quick-selected-panel-heading"><button type="button" aria-expanded={selectedOpen} onClick={() => setSelectedOpen(!selectedOpen)}>Selected items ({total}) <span aria-hidden="true">{selectedOpen ? '⌃' : '⌄'}</span></button><button type="button" disabled={!total || state.busy} onClick={() => (dashboard ? categories : [category]).forEach(name => state.setQuickItems(name, []))}>Clear</button></div>{selectedOpen && <div className="quick-selected-chips">{selectedRows.length === 0 && <span className="quick-selected-empty">No items selected yet.</span>}{selectedRows.map(item => <span className="quick-selected-chip" key={`${item.category}:${item.id}`}><span className="quick-chip-image">{item.favoritePhoto || item.petFoodPhoto ? <img src={item.favoritePhoto || item.petFoodPhoto || undefined} alt="" /> : <ProductIllustration name={item.petFoodId ? petFoodIllustrationName(item.name, item.notes) : item.name} id={item.id} />}</span><span>{item.name}</span><button type="button" disabled={state.busy} aria-label={`Remove ${item.name} from selected items`} onClick={() => state.setQuickItems(item.category, state.quickItems[item.category].filter(row => row.id !== item.id))}>×</button></span>)}</div>}</div>{dashboard && hasCustomDraft && <p className="quick-custom-hint">Finish or clear the custom item in {categories.filter(name => state.quickCustom[name].trim()).join(', ')}.</p>}<button className="primary quick-save" disabled={state.busy || favorites.busy || favoriteEditing || !total || hasCustomDraft || !navigator.onLine} onClick={() => { void (dashboard ? state.addQuickAll() : state.addQuick(category)).then(success => { if (success) onClose(); }); }}>{state.busy ? 'Adding…' : `Add ${total} ${total === 1 ? 'item' : 'items'}`}</button></div>
   </section>;
 }
