@@ -24,8 +24,8 @@ test('compact home opens task details and reuses all three shared forms on phone
     await expect(sections).toHaveCount(4);
     await expect(sections.nth(0)).toContainText('Upcoming tasks');
     await expect(sections.nth(1)).toContainText('Shopping');
-    await expect(sections.nth(2)).toContainText('Tonight’s dinner');
-    await expect(sections.nth(3)).toContainText('Quick actions');
+    await expect(sections.nth(2)).toContainText('Quick actions');
+    await expect(sections.nth(3)).toContainText('Tonight’s dinner');
     const tasks = page.locator('.home-task');
     await expect(tasks).toHaveCount(2);
     await expect(tasks.nth(0)).toContainText('Past task');
