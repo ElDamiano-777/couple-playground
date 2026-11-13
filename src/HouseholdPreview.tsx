@@ -77,7 +77,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
 
   return <div className="household-preview">
     {[`tasks`, `expenses`, `calendar`, `children`, `wishlist`].includes(page) && <button className="text-action navigation-back" onClick={onBack}>← {backLabel}</button>}
-    {page === `shopping` ? <SharedShopping state={shopping} hasOtherDraft={family.dirty || collections.dirty} initialCategory={shoppingCategory} />
+    {page === `shopping` ? <SharedShopping state={shopping} initialCategory={shoppingCategory} />
       : page === `pets` ? <Pets onBack={onBack} backLabel={backLabel} key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
       : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
       : page === `recipes` ? <Recipes onBack={onBack} backLabel={backLabel} key={`${collections.userId}:${collections.household}`} state={collections} shopping={shopping} sharedRecipe={sharedRecipe} onClearSharedRecipe={onClearSharedRecipe} onSignIn={() => navigate(`shopping`)} />

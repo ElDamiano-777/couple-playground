@@ -9,11 +9,9 @@ import './shopping-unified.css';
 
 export default function SharedShopping({
   state,
-  hasOtherDraft = false,
   initialCategory = null,
 }: {
   state: SharedShoppingState;
-  hasOtherDraft?: boolean;
   initialCategory?: ShoppingItem[`category`] | null;
 }) {
   const [mode, setMode] = useState<`poc` | `signin` | `signup`>(`poc`);
@@ -167,37 +165,7 @@ export default function SharedShopping({
     );
   return (
     <section className="preview-page shared-shopping shopping-unified">
-      <h1>
-        Shopping<span>.</span>
-      </h1>
-      <p className="page-intro">
-        {state.household
-          ? `Our shared shopping list`
-          : `One of you creates a home. The other joins with an invitation code.`}
-      </p>
-      <div className="account-line">
-        <span>
-          Signed in as{" "}
-          {state.isPoc
-            ? `${state.pocUsername === `masha` ? `Masha` : `Damian`} · POC`
-            : state.session.user.email}
-        </span>
-        {state.household && <button disabled={state.busy} onClick={() => void state.refresh()}>Refresh</button>}
-        <button
-          disabled={state.busy}
-          onClick={() => {
-            if (
-              !(state.dirty || hasOtherDraft) ||
-              window.confirm(
-                `Sign out and discard unfinished text? Your saved items stay in your home.`,
-              )
-            )
-              void state.signOut().then(success => { if (success) { setFilter(null); setResumeDraft(false); setQuickOpen(false); } });
-          }}
-        >
-          Sign out
-        </button>
-      </div>
+      <div className="shopping-page-heading"><div><h1>Shopping<span>.</span></h1><p className="page-intro">{state.household ? 'Our shared shopping list' : 'One of you creates a home. The other joins with an invitation code.'}</p></div>{state.household && <button className="shopping-refresh" aria-label="Refresh shopping list" disabled={state.busy} onClick={() => void state.refresh()}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.5 9A7 7 0 0 1 19 7l1 5M4 12l1 5a7 7 0 0 0 12.5-2"/></svg></button>}</div>
       {state.isPoc && (
         <p className="notice">
           POC test space shared by the Masha and Damian accounts. Don’t enter
@@ -301,9 +269,9 @@ export default function SharedShopping({
             </section>
           )}
           <div className="shopping-toolbar">
-            <button className="primary shopping-quick-primary" onClick={() => setQuickOpen(true)}>+ Quick Add Item</button>
+            <button className="primary shopping-quick-primary" aria-label="+ Quick Add Item" onClick={() => setQuickOpen(true)}><span aria-hidden="true">＋</span> Quick Add Item</button>
             <label className="shopping-search-label" htmlFor="shopping-search">Search shopping list</label>
-            <input id="shopping-search" type="search" placeholder="Search shopping list" value={search} onChange={event => setSearch(event.target.value)} />
+            <div className="shopping-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="shopping-search" type="search" placeholder="Search shopping list" value={search} onChange={event => setSearch(event.target.value)} /></div>
             <div className="shopping-filters" role="group" aria-label="Shopping categories">{([null, 'Home', 'Pets', 'Kids'] as const).map(category => <button type="button" key={category ?? 'All'} aria-pressed={filter === category} onClick={() => setFilter(category)}><span>{category ?? 'All'}</span><strong>{state.items.filter(item => !item.bought && (category === null || item.category === category)).length}</strong></button>)}</div>
           </div>
           {(state.draft.trim() || state.draftNotes.trim() || resumeDraft) && <section className="shopping-existing-draft">

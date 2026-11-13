@@ -39,3 +39,32 @@
 .shopping-unified .account-line { gap: 8px; flex-wrap: wrap; }
 .shopping-unified .account-line span { min-width: 0; overflow-wrap: anywhere; }
 .shopping-row-open:focus-visible, .shopping-filters button:focus-visible { outline: 3px solid #ba94ee; outline-offset: 3px; }
+/* Shopping header and list polish. */
+.shopping-page-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.shopping-page-heading > div { min-width: 0; }
+.shopping-page-heading .page-intro { margin: 4px 0 0; }
+.shopping-refresh { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 12px; background: #f0e8f5; color: #633583; }
+.shopping-refresh svg, .shopping-search svg { width: 19px; height: 19px; }
+.shopping-unified .notice { margin: 8px 0; padding: 7px 10px; }
+.shopping-unified .shopping-toolbar { gap: 7px; margin: 10px 0 12px; }
+.shopping-unified .shopping-quick-primary { justify-self: start; width: auto; min-height: 44px; padding: 8px 15px; gap: 6px; font-size: 14px; }
+.shopping-quick-primary span { font-size: 19px; line-height: 1; }
+.shopping-search { position: relative; }
+.shopping-search svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #75667d; pointer-events: none; }
+.shopping-unified .shopping-toolbar .shopping-search input { min-height: 44px; padding: 8px 12px 8px 41px; }
+.shopping-filters { gap: 5px; }
+.shopping-filters button { min-height: 44px; padding: 5px 7px; border-radius: 11px; }
+.shopping-filters strong { color: #5c8068; }
+.shopping-active-list { gap: 6px; }
+.shopping-list-row { padding: 6px 9px; border-radius: 14px; }
+.shopping-row-open { gap: 9px; }
+.shopping-unified .shopping-thumb { width: 40px; height: 40px; }
+.shopping-purchased { margin-top: 8px; }
+.shopping-purchased > summary { display: flex; align-items: center; justify-content: space-between; list-style: none; padding: 9px 2px; }
+.shopping-purchased > summary::-webkit-details-marker { display: none; }
+.shopping-purchased > summary::after { content: ''; width: 8px; height: 8px; margin-right: 4px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+.shopping-purchased[open] > summary::after { transform: rotate(225deg); }
+:root[data-theme="dark"] .shopping-refresh { background: #292733; color: #cfc4d9; }
+:root[data-theme="dark"] .shopping-search svg { color: #bdb7c8; }
+:root[data-theme="dark"] .shopping-filters strong { color: #9cd4b4; }
+:root[data-theme="dark"] .shopping-unified .shopping-thumb { background: #26342e; color: #9cd4b4; }

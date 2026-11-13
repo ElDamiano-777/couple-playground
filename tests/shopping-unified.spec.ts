@@ -22,6 +22,8 @@ test('unified shopping filters, edits and shares purchases across phones', async
     await expect(filters.getByRole('button', { name: 'All 3' })).toHaveAttribute('aria-pressed', 'true');
     await expect(first.locator('.shopping-active-list').first().locator('.shopping-list-row')).toHaveCount(3);
     await expect(first.locator('.shopping-purchased')).not.toHaveAttribute('open');
+    await expect(first.getByRole('button', { name: 'Refresh shopping list' })).toBeVisible();
+    await expect(first.getByRole('button', { name: 'Sign out' })).toHaveCount(0);
     await filters.getByRole('button', { name: 'Pets 1' }).click();
     await expect(first.locator('.shopping-active-list').first()).toContainText('Cat litter');
     await expect(first.locator('.shopping-active-list').first()).not.toContainText('Oat milk');
@@ -130,4 +132,20 @@ test('existing favorite photo remains after adding and refreshing', async ({ pag
   await expect(page.locator('.shopping-list-row img')).toHaveAttribute('src', photo);
   await page.reload(); await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
   await expect(page.locator('.shopping-list-row img')).toHaveAttribute('src', photo);
+});
+test('sign out is available in Settings and protects unfinished shopping text', async ({ page, context }) => {
+  await transport().attach(context); await login(page, 'Masha');
+  await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
+  await page.getByRole('button', { name: '+ Quick Add Item' }).click();
+  await page.getByRole('button', { name: '+ Custom item' }).click();
+  await page.getByLabel('Custom product').fill('Unfinished item');
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
+  await page.locator('.more-shortcuts').getByRole('button', { name: 'Settings & notifications' }).click();
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  await expect(page.getByRole('heading', { name: 'Settings.' })).toBeVisible();
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
 });
