@@ -97,5 +97,7 @@ test('long collection stays scrollable on a narrow phone in light mode', async (
   expect(await list.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
   await list.locator('.occasion-item').last().scrollIntoViewIfNeeded();
   await expect(list.locator('.occasion-item').last()).toBeVisible();
+  await expect(list.getByRole('button', { name: '+ Add products' })).toBeInViewport();
+  await expect(list.getByRole('heading', { name: 'A long weekend shopping collection' })).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

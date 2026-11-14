@@ -42,3 +42,32 @@
 :root[data-theme="dark"] .occasion-title-icon[data-color="mint"] { background: #2b4a40; }
 :root[data-theme="dark"] .occasion-title-icon[data-color="peach"] { background: #503b30; }
 :root[data-theme="dark"] .occasion-title-icon[data-color="blue"] { background: #33465b; }
+/* Collection panels: a compact, themed surface with illustrated suggestions. */
+.occasion-panel-overlay { place-items: center; padding: max(12px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom)); }
+.occasion-panel-overlay .occasion-list { width: min(440px, 100%); max-height: min(680px, 100%); padding: 15px; border: 1px solid #ddcedf; border-radius: 20px; background: #fffaf6; box-shadow: 0 20px 65px #10091655; }
+.occasion-list .occasion-title { gap: 9px; }.occasion-list .occasion-title h2 { font-size: 20px; }.occasion-list .occasion-title button { min-height: 40px; padding: 6px 10px; font-size: 12px; }
+.occasion-panel-summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; }.occasion-panel-summary p { margin: 0; color: #6e6272; font-size: 12px; line-height: 1.3; }.occasion-panel-summary .occasion-add { min-height: 44px; margin: 0; padding: 7px 10px; font-size: 12px; white-space: nowrap; }
+.occasion-panel-empty { margin: 8px 0; color: #756a7a; font-size: 12px; line-height: 1.4; }
+.occasion-suggested h3 { margin: 12px 0 7px; font-size: 13px; color: #624d70; }
+.occasion-suggested .occasion-suggestions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0 0 10px; }
+.occasion-suggested .occasion-suggestions button { position: relative; display: flex; align-items: center; flex-direction: column; gap: 3px; min-width: 0; min-height: 86px; padding: 7px 6px; border: 1px solid #e1d4e8; border-radius: 13px; background: #f7effa; color: #493654; font-size: 11px; font-weight: 700; }
+.occasion-suggestion-art { display: grid; place-items: center; width: 38px; height: 38px; }.occasion-suggestion-art svg { width: 36px; height: 36px; }.occasion-suggestion-name { overflow-wrap: anywhere; line-height: 1.2; }.occasion-suggestion-plus { position: absolute; top: 4px; right: 7px; font-size: 17px; line-height: 1; }
+.occasion-list[data-color="pink"] { border-color: #d1a9bc; }.occasion-list[data-color="mint"] { border-color: #9ccbbb; }.occasion-list[data-color="peach"] { border-color: #d7ae99; }.occasion-list[data-color="blue"] { border-color: #a8bed5; }
+:root[data-theme="dark"] .occasion-panel-overlay .occasion-list { background: #25232c; border-color: #534158; }
+:root[data-theme="dark"] .occasion-panel-overlay .occasion-list[data-color="pink"] { background: #30242d; border-color: #82536b; }
+:root[data-theme="dark"] .occasion-panel-overlay .occasion-list[data-color="mint"] { background: #202d2a; border-color: #447968; }
+:root[data-theme="dark"] .occasion-panel-overlay .occasion-list[data-color="peach"] { background: #302723; border-color: #815c48; }
+:root[data-theme="dark"] .occasion-panel-overlay .occasion-list[data-color="blue"] { background: #252c35; border-color: #536d88; }
+:root[data-theme="dark"] .occasion-panel-summary p, :root[data-theme="dark"] .occasion-panel-empty { color: #cbbfd0; }
+:root[data-theme="dark"] .occasion-suggested h3 { color: #e5d9e8; }
+:root[data-theme="dark"] .occasion-suggested .occasion-suggestions button { background: #38313f; border-color: #54485a; color: #f7f2f8; }
+:root[data-theme="dark"] .occasion-list[data-color="pink"] .occasion-suggestions button { background: #44313d; border-color: #664656; }
+:root[data-theme="dark"] .occasion-list[data-color="mint"] .occasion-suggestions button { background: #2e403a; border-color: #456558; }
+:root[data-theme="dark"] .occasion-list[data-color="peach"] .occasion-suggestions button { background: #46352f; border-color: #6a5143; }
+:root[data-theme="dark"] .occasion-list[data-color="blue"] .occasion-suggestions button { background: #303d4b; border-color: #4b5f73; }
+.occasion-panel-header { position: sticky; top: -15px; z-index: 2; margin: -15px -15px 0; padding: 15px 15px 1px; background: #fffaf6; border-radius: 19px 19px 0 0; }
+:root[data-theme="dark"] .occasion-panel-header { background: #25232c; }
+:root[data-theme="dark"] .occasion-list[data-color="pink"] .occasion-panel-header { background: #30242d; }
+:root[data-theme="dark"] .occasion-list[data-color="mint"] .occasion-panel-header { background: #202d2a; }
+:root[data-theme="dark"] .occasion-list[data-color="peach"] .occasion-panel-header { background: #302723; }
+:root[data-theme="dark"] .occasion-list[data-color="blue"] .occasion-panel-header { background: #252c35; }
