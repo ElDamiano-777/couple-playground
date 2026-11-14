@@ -1,21 +1,21 @@
-.couple-page { margin-top: 12px; }
-.couple-page .our-time { margin: 12px 0 18px; padding: 16px; border-radius: 18px; }
+.couple-page { margin-top: 12px; margin-bottom: 20px; }
+.couple-page .our-time { margin: 10px 0 12px; padding: 12px; border-radius: 18px; }
 .our-time-header h2 { display: flex; align-items: center; gap: 8px; font-size: 17px; }
 .our-time-heart { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: #f3c6c6; color: #a34867; }
 .our-time-heart svg { width: 17px; height: 17px; }
-.our-time .our-time-duration { margin: 14px 0 4px; color: #5e334c; font: 600 21px/1.3 Georgia, serif; }
+.our-time .our-time-duration { margin: 7px 0 3px; color: #5e334c; font: 600 21px/1.3 Georgia, serif; }
 .our-time .our-time-since { margin: 0; }
-.our-time-countdown { margin-top: 13px; padding-top: 10px; border-top: 1px solid #deb9b0; }
+.our-time-countdown { margin-top: 7px; padding-top: 6px; border-top: 1px solid #deb9b0; }
 .our-time .our-time-anniversary { margin: 0; font-size: 12px; line-height: 1.5; }
-.our-time-progress { height: 5px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: #dfbcb9; }
+.our-time-progress { height: 5px; margin-top: 5px; overflow: hidden; border-radius: 999px; background: #dfbcb9; }
 .our-time-progress span { display: block; height: 100%; border-radius: inherit; background: #b65b78; }
-.couple-spaces-heading { margin: 0 0 10px; color: #493154; font: 600 18px/1.3 Georgia, serif; }
-.couple-grid { gap: 9px; }
-.couple-card { min-height: 142px; gap: 6px; padding: 13px; border-radius: 17px; }
-.couple-card strong { font: 600 17px/1.2 Georgia, serif; }
+.couple-spaces-heading { margin: 0 0 8px; color: #493154; font: 600 18px/1.3 Georgia, serif; }
+.couple-grid { gap: 7px; }
+.couple-card { min-height: 110px; gap: 3px; padding: 10px; border-radius: 17px; }
+.couple-card strong { font: 600 16px/1.2 Georgia, serif; }
 .couple-card small { font-size: 12px; line-height: 1.35; }
-.couple-card .dashboard-icon { width: 34px; height: 34px; border-radius: 11px; }
-.couple-card .dashboard-icon svg { width: 19px; height: 19px; }
+.couple-card .dashboard-icon { width: 28px; height: 28px; border-radius: 11px; }
+.couple-card .dashboard-icon svg { width: 17px; height: 17px; }
 .couple-card .couple-link { font-size: 11px; }
 .couple-card.couple-pets { background: #f9e5dd; border-color: #eccbc1; }
 .couple-card.couple-pets .dashboard-icon { color: #ad5d48; background: #f0cfc2; }
