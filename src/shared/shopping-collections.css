@@ -108,3 +108,24 @@
 :root[data-theme="dark"] .occasion-list[data-color="peach"] .occasion-panel-footer { background: #302723; }
 :root[data-theme="dark"] .occasion-list[data-color="blue"] .occasion-panel-footer { background: #252c35; }
 .collection-selected-detail { display: flex; align-items: end; gap: 6px; margin: 6px 0; }.collection-selected-detail label { flex: 1; min-width: 0; overflow-wrap: anywhere; }.collection-selected-detail label input { display: block; margin-top: 4px; }.collection-selected-detail > button { min-width: 44px; min-height: 44px; border-radius: 10px; background: transparent; color: inherit; font-size: 20px; }
+/* Keep the panel stable as categories open and leave room for its sticky controls. */
+.occasion-panel-overlay .occasion-list { height: min(620px, 100%); scroll-padding-top: 82px; scroll-padding-bottom: 78px; }
+.occasion-list .occasion-panel-summary { margin: 5px 0; }
+.occasion-list .occasion-panel-empty { margin: 5px 0; }
+.occasion-list .collection-picker { margin: 6px 0 8px; }
+.occasion-list .collection-picker-group { margin-top: 5px; }
+.occasion-list .collection-group-toggle { min-height: 44px; padding-block: 4px; }
+.occasion-list .collection-product-grid { gap: 5px; padding-block: 5px; }
+.occasion-list .collection-product-tile { min-height: 54px; scroll-margin-bottom: 78px; }
+.occasion-list .collection-product-art { width: 38px; height: 38px; border-radius: 8px; }
+.occasion-list .collection-product-art svg { width: 34px; height: 34px; }
+.occasion-list .collection-product-art.has-photo { padding: 3px; background: #f4f0eb; border: 1px solid #ddd5d0; overflow: hidden; }
+.occasion-list .collection-product-art.has-photo img { width: 100%; height: 100%; object-fit: contain; }
+.occasion-list .collection-picker-extra { margin-top: 5px; }
+.occasion-list .occasion-items { padding-bottom: 8px; }
+.occasion-panel-footer { padding-bottom: 6px; }
+.occasion-panel-footer .collection-picker-action { padding: 4px 0; }
+.occasion-panel-footer .primary { min-height: 44px; padding-block: 7px; }
+.occasion-panel-footer .primary:disabled { opacity: 1; background: #ddd7df; color: #625b66; }
+:root[data-theme="dark"] .occasion-list .collection-product-art.has-photo { background: #eee9e4; border-color: #b5aaa7; }
+:root[data-theme="dark"] .occasion-panel-footer .primary:disabled { background: #48434e; color: #c8c0cd; }

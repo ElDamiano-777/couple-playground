@@ -1,0 +1,56 @@
+import { expect, test } from '@playwright/test';
+import { transport, pocPassword } from './helpers/sharedTransport';
+import { mainNavigation } from './navigation';
+
+test.use({ serviceWorkers: 'block', viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+test('collection panel keeps photos, controls and saved items accessible', async ({ page, context }) => {
+  const server = transport();
+  const photo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5X0QAAAABJRU5ErkJggg==';
+  server.seedFavorite('A very long favorite product name for mobile screens', photo);
+  server.seedCollection('Birthday');
+  await server.attach(context); await page.goto('./');
+  await page.getByRole('button', { name: 'Masha', exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).tap();
+  await page.locator('.occasion-card').filter({ hasText: 'Party Time' }).tap();
+  const panel = page.getByRole('dialog', { name: 'Party Time' });
+  const before = await panel.boundingBox();
+  const add = panel.getByRole('button', { name: 'Add 0 items' }); await expect(add).toBeDisabled();
+  await panel.locator('.collection-group-toggle').filter({ hasText: 'Soft Drinks' }).tap();
+  expect((await panel.boundingBox())!.height).toBeCloseTo(before!.height, 0);
+  await panel.getByRole('button', { name: 'Water', exact: true }).scrollIntoViewIfNeeded();
+  await expect(panel.getByRole('button', { name: 'Water', exact: true })).toBeVisible();
+  await panel.getByRole('button', { name: 'Cola', exact: true }).tap();
+  await panel.getByRole('button', { name: 'Sprite', exact: true }).tap();
+  await panel.locator('.collection-group-toggle').filter({ hasText: 'Soft Drinks' }).tap();
+  await panel.locator('.collection-group-toggle').filter({ hasText: 'Party Supplies' }).tap();
+  await panel.getByRole('button', { name: 'Ice', exact: true }).tap();
+  await expect(panel.getByRole('button', { name: 'Add 3 items' })).toBeEnabled();
+  await panel.locator('.collection-picker-extra').filter({ hasText: 'Favorites' }).locator('summary').tap();
+  const favorite = panel.locator('.collection-product-tile').filter({ hasText: 'A very long favorite product' });
+  await expect(favorite.locator('img')).toHaveAttribute('src', photo);
+  await expect(favorite.locator('img')).toHaveCSS('object-fit', 'contain');
+  await expect(favorite.locator('.collection-product-art')).toHaveCSS('width', '38px');
+  await panel.getByRole('button', { name: 'Add 3 items' }).tap();
+  for (const kind of ['cola', 'sprite', 'ice']) await expect(panel.locator(`.occasion-item [data-illustration="${kind}"]`)).toBeVisible();
+  await panel.evaluate(el => { el.scrollTop = el.scrollHeight; });
+  const geometry = await panel.evaluate(el => { const last = el.querySelector('.occasion-item:last-child')!.getBoundingClientRect(); const footer = el.querySelector('.occasion-panel-footer')!.getBoundingClientRect(); return { last: last.bottom, footer: footer.top }; });
+  expect(geometry.last).toBeLessThanOrEqual(geometry.footer + 1);
+  await panel.getByLabel('Search collection products').focus();
+  await page.evaluate(() => { const viewport = window.visualViewport!; Object.defineProperty(viewport, 'height', { value: 460, configurable: true }); viewport.dispatchEvent(new Event('resize')); });
+  await expect.poll(async () => (await panel.boundingBox())!.y + (await panel.boundingBox())!.height).toBeLessThanOrEqual(460);
+  await expect(panel.getByRole('button', { name: 'Add 0 items' })).toBeInViewport();
+  await page.evaluate(() => { const viewport = window.visualViewport!; delete (viewport as unknown as { height?: number }).height; viewport.dispatchEvent(new Event('resize')); });
+  await panel.getByRole('button', { name: 'Close', exact: true }).tap();
+  for (const name of ['Daily Groceries', 'Movie Night', 'Cozy Weekend', 'Birthday']) {
+    await page.locator('.occasion-card').filter({ hasText: name }).tap();
+    const current = page.getByRole('dialog', { name });
+    await expect(current.getByRole('button', { name: 'Add 0 items' })).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await current.getByRole('button', { name: 'Close', exact: true }).tap();
+  }
+  await page.reload(); await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).tap();
+  await page.locator('.occasion-card').filter({ hasText: 'Party Time' }).tap();
+  await expect(panel.locator('.occasion-item')).toHaveCount(3);
+});
