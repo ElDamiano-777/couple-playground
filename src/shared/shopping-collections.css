@@ -71,3 +71,40 @@
 :root[data-theme="dark"] .occasion-list[data-color="mint"] .occasion-panel-header { background: #202d2a; }
 :root[data-theme="dark"] .occasion-list[data-color="peach"] .occasion-panel-header { background: #302723; }
 :root[data-theme="dark"] .occasion-list[data-color="blue"] .occasion-panel-header { background: #252c35; }
+/* Inline collection picker: one selection and one add action. */
+.collection-picker { margin: 8px 0 12px; }
+.collection-search-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.shared-shopping .collection-picker input, .shared-shopping .collection-picker select { width: 100%; min-height: 44px; font-size: 16px; }
+.collection-picker-group { margin-top: 6px; }
+.collection-group-toggle { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 46px; padding: 5px 9px; border: 1px solid #dfd2e5; border-radius: 11px; background: #f5eef7; color: #4f3a5b; text-align: left; font-weight: 700; }
+.collection-group-toggle > span:nth-child(2) { flex: 1; }
+.collection-group-icon, .collection-product-art { display: grid; place-items: center; flex: none; width: 32px; height: 32px; }
+.collection-group-icon svg, .collection-product-art svg, .collection-product-art img { width: 100%; height: 100%; object-fit: contain; }
+.collection-product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 6px 0; }
+.collection-product-tile { display: flex; align-items: center; gap: 7px; min-width: 0; min-height: 52px; padding: 6px 8px; border: 1px solid #dfd2e5; border-radius: 11px; background: #faf6fb; color: #423449; text-align: left; font-size: 12px; font-weight: 700; }
+.collection-product-tile > span:nth-child(2) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.collection-product-tile[aria-pressed="true"] { background: #dbeee2; border-color: #77ad8e; color: #284b35; }
+.collection-product-state { flex: none; font-size: 17px; }
+.collection-picker-extra { margin-top: 6px; padding: 0 9px 8px; border-radius: 11px; background: #f5eef7; }
+.collection-picker-extra summary { min-height: 44px; padding: 12px 0; cursor: pointer; font-weight: 700; font-size: 13px; }
+.collection-picker-extra label { margin: 4px 0; }
+.collection-custom-row { display: flex; gap: 6px; }.collection-custom-row button { min-width: 62px; border-radius: 10px; background: #e8d9ef; color: #573b67; }
+.collection-picker-action { position: sticky; bottom: -15px; z-index: 1; margin: 8px -5px 0; padding: 6px 5px; background: #fffaf6; }
+.collection-picker-action .primary { width: 100%; min-height: 44px; padding: 8px; }
+:root[data-theme="dark"] .collection-group-toggle, :root[data-theme="dark"] .collection-picker-extra { background: #39313f; border-color: #57475a; color: #f4edf6; }
+:root[data-theme="dark"] .collection-product-tile { background: #332d39; border-color: #534454; color: #f7f2f8; }
+:root[data-theme="dark"] .collection-product-tile[aria-pressed="true"] { background: #2c493b; border-color: #95d2ac; color: #f1fff4; }
+:root[data-theme="dark"] .collection-custom-row button { background: #57405f; color: #f5eaf8; }
+:root[data-theme="dark"] .collection-picker-action { background: #25232c; }
+:root[data-theme="dark"] .occasion-list[data-color="pink"] .collection-picker-action { background: #30242d; }
+:root[data-theme="dark"] .occasion-list[data-color="mint"] .collection-picker-action { background: #202d2a; }
+:root[data-theme="dark"] .occasion-list[data-color="peach"] .collection-picker-action { background: #302723; }
+:root[data-theme="dark"] .occasion-list[data-color="blue"] .collection-picker-action { background: #252c35; }
+.occasion-panel-footer { position: sticky; bottom: -15px; z-index: 3; margin: 0 -15px -15px; padding: 0 15px 10px; background: #fffaf6; border-radius: 0 0 19px 19px; }
+.occasion-panel-footer .collection-picker-action { position: static; margin: 0; padding: 6px 0; background: transparent; }
+:root[data-theme="dark"] .occasion-panel-footer { background: #25232c; }
+:root[data-theme="dark"] .occasion-list[data-color="pink"] .occasion-panel-footer { background: #30242d; }
+:root[data-theme="dark"] .occasion-list[data-color="mint"] .occasion-panel-footer { background: #202d2a; }
+:root[data-theme="dark"] .occasion-list[data-color="peach"] .occasion-panel-footer { background: #302723; }
+:root[data-theme="dark"] .occasion-list[data-color="blue"] .occasion-panel-footer { background: #252c35; }
+.collection-selected-detail { display: flex; align-items: end; gap: 6px; margin: 6px 0; }.collection-selected-detail label { flex: 1; min-width: 0; overflow-wrap: anywhere; }.collection-selected-detail label input { display: block; margin-top: 4px; }.collection-selected-detail > button { min-width: 44px; min-height: 44px; border-radius: 10px; background: transparent; color: inherit; font-size: 20px; }
