@@ -28,6 +28,12 @@ export function relationshipDates(startDate: string, todayDate: string) {
   if (stamp(anniversary) < stamp(today)) anniversary = clamp(today.year + 1, start.month, start.day);
   return { years, months, days, anniversary: iso(anniversary), daysUntil: Math.round((stamp(anniversary) - stamp(today)) / 86400000) };
 }
+export function anniversaryProgress(startDate: string, todayDate: string, nextDate: string) {
+  if (todayDate === nextDate) return 100;
+  const start = parse(startDate), next = parse(nextDate), today = parse(todayDate);
+  const previous = Math.max(stamp(start), stamp(clamp(next.year - 1, start.month, start.day)));
+  return Math.max(0, Math.min(100, (stamp(today) - previous) / (stamp(next) - previous) * 100));
+}
 export function displayDate(value: string) {
   const { year, month, day } = parse(value);
   return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));

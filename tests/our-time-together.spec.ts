@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { relationshipDates } from '../src/couple/relationshipDates';
+import { anniversaryProgress, relationshipDates } from '../src/couple/relationshipDates';
 import { mainNavigation } from './navigation';
 import { pocPassword, transport } from './helpers/sharedTransport';
 
@@ -10,6 +10,8 @@ test('calendar durations and anniversaries respect leap years and month ends', (
   expect(relationshipDates('2020-02-29', '2024-02-28')).toEqual({ years: 3, months: 11, days: 31, anniversary: '2024-02-29', daysUntil: 1 });
   expect(relationshipDates('2023-01-31', '2023-03-30')).toEqual({ years: 0, months: 1, days: 30, anniversary: '2024-01-31', daysUntil: 307 });
   expect(relationshipDates('2020-11-10', '2026-11-10')).toEqual({ years: 6, months: 0, days: 0, anniversary: '2026-11-10', daysUntil: 0 });
+  expect(anniversaryProgress('2020-02-29', '2025-02-28', '2025-02-28')).toBe(100);
+  expect(anniversaryProgress('2020-01-01', '2026-07-02', '2027-01-01')).toBeCloseTo(50, 0);
 });
 
 test('both partners can set and edit the shared date on narrow screens', async ({ browser }) => {
@@ -37,12 +39,14 @@ test('both partners can set and edit the shared date on narrow screens', async (
   await first.getByLabel('The day you got together').fill('2020-02-29');
   await first.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(first.locator('.our-time')).toContainText('6 years · 8 months · 13 days');
+  await expect(first.getByRole('progressbar', { name: 'Progress toward your anniversary' })).toHaveAttribute('aria-valuenow', /\d+/);
   await second.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(second.locator('.our-time')).toContainText('Together since 29 February 2020');
   await second.getByRole('button', { name: 'Edit date' }).click();
   await second.getByLabel('The day you got together').fill('2020-11-10');
   await second.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(second.locator('.our-time')).toContainText('Happy anniversary!');
+  await expect(second.getByRole('progressbar', { name: 'Progress toward your anniversary' })).toHaveAttribute('aria-valuenow', '100');
   await first.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(first.locator('.our-time')).toContainText('6 years · 0 months · 0 days');
   for (const page of pages) {

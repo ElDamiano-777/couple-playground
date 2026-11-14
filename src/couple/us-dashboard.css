@@ -1,0 +1,44 @@
+.couple-page { margin-top: 12px; }
+.couple-page .our-time { margin: 12px 0 18px; padding: 16px; border-radius: 18px; }
+.our-time-header h2 { display: flex; align-items: center; gap: 8px; font-size: 17px; }
+.our-time-heart { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: #f3c6c6; color: #a34867; }
+.our-time-heart svg { width: 17px; height: 17px; }
+.our-time .our-time-duration { margin: 14px 0 4px; color: #5e334c; font: 600 21px/1.3 Georgia, serif; }
+.our-time .our-time-since { margin: 0; }
+.our-time-countdown { margin-top: 13px; padding-top: 10px; border-top: 1px solid #deb9b0; }
+.our-time .our-time-anniversary { margin: 0; font-size: 12px; line-height: 1.5; }
+.our-time-progress { height: 5px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: #dfbcb9; }
+.our-time-progress span { display: block; height: 100%; border-radius: inherit; background: #b65b78; }
+.couple-spaces-heading { margin: 0 0 10px; color: #493154; font: 600 18px/1.3 Georgia, serif; }
+.couple-grid { gap: 9px; }
+.couple-card { min-height: 142px; gap: 6px; padding: 13px; border-radius: 17px; }
+.couple-card strong { font: 600 17px/1.2 Georgia, serif; }
+.couple-card small { font-size: 12px; line-height: 1.35; }
+.couple-card .dashboard-icon { width: 34px; height: 34px; border-radius: 11px; }
+.couple-card .dashboard-icon svg { width: 19px; height: 19px; }
+.couple-card .couple-link { font-size: 11px; }
+.couple-card.couple-pets { background: #f9e5dd; border-color: #eccbc1; }
+.couple-card.couple-pets .dashboard-icon { color: #ad5d48; background: #f0cfc2; }
+.couple-card.couple-memories { background: #e4f2eb; border-color: #c5dfd3; }
+.couple-card.couple-memories .dashboard-icon { color: #377d70; background: #cce9dc; }
+.couple-card.couple-wishlist { background: #ece8fa; border-color: #d7cff0; }
+.couple-card.couple-wishlist .dashboard-icon { color: #7252a2; background: #ded4f2; }
+:root[data-theme="dark"] .couple-page .our-time { background: linear-gradient(135deg, #3c2834, #30242e); border-color: #69414f; color: #f7f5fa; }
+:root[data-theme="dark"] .our-time-heart { background: #593441; color: #f2b0be; }
+:root[data-theme="dark"] .our-time .our-time-duration { color: #fff4f5; }
+:root[data-theme="dark"] .our-time .our-time-since, :root[data-theme="dark"] .our-time small { color: #d0bcc5; }
+:root[data-theme="dark"] .our-time-countdown { border-color: #694450; }
+:root[data-theme="dark"] .our-time-progress { background: #62434f; }
+:root[data-theme="dark"] .our-time-progress span { background: #e89aab; }
+:root[data-theme="dark"] .couple-spaces-heading { color: #f7f5fa; }
+:root[data-theme="dark"] .couple-page .couple-card { color: #f7f5fa; }
+:root[data-theme="dark"] .couple-page .couple-card small { color: #c8c1cc; }
+:root[data-theme="dark"] .couple-page .couple-people { background: #302634; border-color: #594153; }
+:root[data-theme="dark"] .couple-page .couple-people .dashboard-icon { color: #e6b3d7; background: #503646; }
+:root[data-theme="dark"] .couple-page .couple-pets { background: #322924; border-color: #65463c; }
+:root[data-theme="dark"] .couple-page .couple-pets .dashboard-icon { color: #f0ae9a; background: #53382f; }
+:root[data-theme="dark"] .couple-page .couple-memories { background: #22302e; border-color: #3d5b53; }
+:root[data-theme="dark"] .couple-page .couple-memories .dashboard-icon { color: #9ed9c6; background: #304c43; }
+:root[data-theme="dark"] .couple-page .couple-wishlist { background: #2b2738; border-color: #51455f; }
+:root[data-theme="dark"] .couple-page .couple-wishlist .dashboard-icon { color: #ccb0ef; background: #423650; }
+:root[data-theme="dark"] .couple-page .couple-link { color: #d3bddb; }

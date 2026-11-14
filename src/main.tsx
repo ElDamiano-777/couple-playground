@@ -7,6 +7,7 @@ import './theme.css';
 import './home.css';
 import './visual-refresh.css';
 import './shared/quick-add-redesign.css';
+import './couple/us-dashboard.css';
 
 createRoot(document.getElementById(`root`)!).render(<StrictMode><App /></StrictMode>);
 
