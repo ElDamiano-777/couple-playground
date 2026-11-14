@@ -17,8 +17,18 @@ test('collection panel keeps photos, controls and saved items accessible', async
   const panel = page.getByRole('dialog', { name: 'Party Time' });
   const before = await panel.boundingBox();
   const add = panel.getByRole('button', { name: 'Add 0 items' }); await expect(add).toBeDisabled();
+  expect(before!.y + before!.height - ((await add.boundingBox())!.y + (await add.boundingBox())!.height)).toBeLessThan(20);
+  await panel.locator('.collection-group-toggle').filter({ hasText: 'Soft Drinks' }).tap();
+  const expanded = await panel.boundingBox();
+  expect(expanded!.height).toBeGreaterThan(before!.height);
+  expect(expanded!.y + expanded!.height).toBeCloseTo(before!.y + before!.height, 0);
   await panel.locator('.collection-group-toggle').filter({ hasText: 'Soft Drinks' }).tap();
   expect((await panel.boundingBox())!.height).toBeCloseTo(before!.height, 0);
+  await panel.locator('.collection-group-toggle').filter({ hasText: 'Soft Drinks' }).tap();
+  await panel.locator('.collection-group-toggle').filter({ hasText: 'Snacks' }).tap();
+  expect(await panel.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+  await expect(add).toBeInViewport();
+  await panel.locator('.collection-group-toggle').filter({ hasText: 'Snacks' }).tap();
   await panel.getByRole('button', { name: 'Water', exact: true }).scrollIntoViewIfNeeded();
   await expect(panel.getByRole('button', { name: 'Water', exact: true })).toBeVisible();
   await panel.getByRole('button', { name: 'Cola', exact: true }).tap();
@@ -32,6 +42,9 @@ test('collection panel keeps photos, controls and saved items accessible', async
   await expect(favorite.locator('img')).toHaveAttribute('src', photo);
   await expect(favorite.locator('img')).toHaveCSS('object-fit', 'contain');
   await expect(favorite.locator('.collection-product-art')).toHaveCSS('width', '38px');
+  await panel.locator('.collection-picker-extra').filter({ hasText: 'Custom item' }).locator('summary').tap();
+  await panel.getByLabel('Product name').fill('Test product');
+  await expect(panel.getByRole('button', { name: 'Add 3 items' })).toBeInViewport();
   await panel.getByRole('button', { name: 'Add 3 items' }).tap();
   for (const kind of ['cola', 'sprite', 'ice']) await expect(panel.locator(`.occasion-item [data-illustration="${kind}"]`)).toBeVisible();
   await panel.evaluate(el => { el.scrollTop = el.scrollHeight; });
