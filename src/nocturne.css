@@ -1,0 +1,367 @@
+/*
+ * Nocturne dark redesign (Stitch "couples dark mode redesign").
+ * Loaded last so it can restyle the existing dark theme without touching layouts or behavior.
+ * Light theme stays untouched: every rule is scoped to the dark theme.
+ */
+:root[data-theme="dark"] {
+  --n-canvas: #121317;
+  --n-lowest: #0d0e12;
+  --n-low: #1a1b20;
+  --n-container: #1f1f24;
+  --n-high: #292a2e;
+  --n-highest: #343439;
+  --n-bright: #38393d;
+  --n-text: #e3e2e7;
+  --n-muted: #cec2d4;
+  --n-outline: #978d9e;
+  --n-hairline: rgba(255, 255, 255, 0.07);
+  --n-primary: #ddb8ff;
+  --n-primary-container: #9353d3;
+  --n-inverse-primary: #7d3cbc;
+  --n-rose: #ffb2b7;
+  --n-rose-container: #b50036;
+  --n-mint: #4edea3;
+  --n-mint-container: #00835a;
+  --n-serif: "Newsreader", Georgia, serif;
+  --n-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Re-point the existing dark tokens so every older dark rule follows the new palette. */
+  --dark-bg: var(--n-canvas);
+  --dark-card: var(--n-container);
+  --dark-elevated: var(--n-high);
+  --dark-purple: #2c2238;
+  --dark-green: #163329;
+  --dark-warm: #351d25;
+  --dark-blue: var(--n-high);
+  --dark-text: var(--n-text);
+  --dark-muted: var(--n-muted);
+  --dark-purple-text: var(--n-primary);
+  --dark-green-text: var(--n-mint);
+  --dark-warm-text: var(--n-rose);
+  --dark-border: #34343a;
+  --dark-accent: var(--n-primary);
+
+  background: var(--n-canvas);
+  color: var(--n-text);
+  font-family: var(--n-sans);
+  -webkit-font-smoothing: antialiased;
+}
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] button,
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea { font-family: var(--n-sans); }
+:root[data-theme="dark"] body { background: var(--n-canvas); }
+:root[data-theme="dark"] :is(.eyebrow, .page-intro, .intro, small) { font-family: var(--n-sans); }
+
+/* ---------- Header: frosted bar with logo, couple name and avatar ---------- */
+:root[data-theme="dark"] .header {
+  position: sticky; top: 0; z-index: 30;
+  height: auto; min-height: 64px;
+  margin: 0 -24px; padding: env(safe-area-inset-top) 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 0;
+  background: rgba(13, 14, 18, 0.8);
+  -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+}
+:root[data-theme="dark"] .header .wordmark {
+  display: flex; align-items: center; gap: 8px;
+  font: 600 18px/24px var(--n-sans); letter-spacing: -0.01em; color: var(--n-text);
+}
+:root[data-theme="dark"] .header .wordmark img { width: 32px; height: 32px; }
+:root[data-theme="dark"] .wordmark-copy { display: flex; flex-direction: column; }
+:root[data-theme="dark"] .header .wordmark .wordmark-name { display: flex; align-items: center; gap: 6px; color: var(--n-text); }
+:root[data-theme="dark"] .wordmark-status { width: 6px; height: 6px; border-radius: 50%; background: var(--n-mint); box-shadow: 0 0 8px var(--n-mint); }
+:root[data-theme="dark"] .wordmark-status.offline { background: var(--n-rose); box-shadow: 0 0 8px var(--n-rose); }
+:root[data-theme="dark"] .header .wordmark small { display: block; color: var(--n-muted); font: 600 11px/14px var(--n-sans); letter-spacing: 0.06em; }
+:root[data-theme="dark"] .header-tools { gap: 4px; padding: 0; }
+:root[data-theme="dark"] .header-tools > button { width: 44px; height: 44px; border-radius: 50%; color: var(--n-muted); }
+:root[data-theme="dark"] .header-tools > button:hover { background: var(--n-container); color: var(--n-text); }
+:root[data-theme="dark"] .header-tools > button svg { width: 22px; height: 22px; }
+:root[data-theme="dark"] .header-tools > .header-avatar {
+  width: 40px; height: 40px; margin-left: 4px;
+  background: linear-gradient(135deg, var(--n-primary-container), var(--n-rose-container));
+  color: #fff; font: 700 15px/1 var(--n-sans);
+  box-shadow: 0 0 0 2px var(--n-canvas), 0 0 0 3px rgba(221, 184, 255, 0.45);
+}
+:root[data-theme="dark"] .header-tools .edition { position: static; color: var(--n-muted); font-size: 12px; }
+
+/* ---------- Page titles ---------- */
+:root[data-theme="dark"] :is(.preview-page, .inner-page, .tasks-page, .meal-planner, .profile-choice) h1,
+:root[data-theme="dark"] .home-dashboard > h1 {
+  font-family: var(--n-serif); font-weight: 600;
+  font-size: 40px; line-height: 46px; letter-spacing: -0.02em; color: var(--n-text);
+}
+:root[data-theme="dark"] h1 > span { color: var(--n-primary); text-shadow: 0 0 12px rgba(221, 184, 255, 0.6); }
+:root[data-theme="dark"] .eyebrow { color: var(--n-rose); font: 600 12px/16px var(--n-sans); letter-spacing: 0.08em; text-transform: uppercase; }
+:root[data-theme="dark"] :is(.page-intro, .intro, .tasks-lead, .meal-lead, .notes-lead, .calendar-lead) { color: var(--n-muted); font-size: 15px; line-height: 22px; }
+:root[data-theme="dark"] :is(h2, h3) { font-family: var(--n-sans); color: var(--n-text); }
+:root[data-theme="dark"] .navigation-back { border-top: 0; color: var(--n-primary); font-weight: 600; }
+
+/* Notices become a quiet banner. */
+:root[data-theme="dark"] .notice,
+:root[data-theme="dark"] :is(.home-dashboard, .shopping-unified, .preview-page) .notice {
+  border: 0; border-radius: 16px; padding: 12px 14px;
+  background: linear-gradient(90deg, rgba(41, 42, 46, 0.9), rgba(31, 31, 36, 0.7), rgba(41, 42, 46, 0.9));
+  color: var(--n-muted); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- Cards: tonal surfaces with a soft colour bleed in one corner ---------- */
+:root[data-theme="dark"] :is(.dashboard-card, .couple-card, .our-time, .help-card, .settings-card, .notification-settings, .folder-tile, .start-card, .recipe-card, .pet-card, .meal-day, .task-row, .expense-list article, .expense-summary div, .calendar-connect, .calendar-agenda, .calendar-choices, .search-results article, .partner-note-list article, .collection-empty, .occasion-card, .shopping-category, .saved-note, .favorites-section, .pet-food-shopping) {
+  border-color: transparent;
+}
+:root[data-theme="dark"] .preview-page :is(.dashboard-card, .task-dashboard, .us-shopping, .dinner-dashboard, .saved-dashboard, .shopping-dashboard),
+:root[data-theme="dark"] .preview-page .home-dashboard :is(.task-dashboard, .us-shopping, .dinner-dashboard),
+:root[data-theme="dark"] .preview-page .home-dashboard :is(.task-dashboard, .us-shopping, .dinner-dashboard).dashboard-active,
+:root[data-theme="dark"] .preview-page :is(.task-dashboard, .us-shopping, .dinner-dashboard, .shopping-dashboard).dashboard-active,
+:root[data-theme="dark"] .preview-page .task-dashboard.dashboard-overdue {
+  position: relative; overflow: hidden; isolation: isolate;
+  border: 1px solid var(--n-hairline); border-radius: 24px;
+  background: var(--n-container); color: var(--n-text);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+:root[data-theme="dark"] .preview-page .home-dashboard .shopping-dashboard { border: 0; background: transparent; box-shadow: none; overflow: visible; }
+:root[data-theme="dark"] .preview-page :is(.task-dashboard, .us-shopping, .dinner-dashboard, .collection-empty)::before {
+  content: ""; position: absolute; z-index: -1; top: -40px; right: -40px; width: 128px; height: 128px; border-radius: 50%;
+  background: rgba(147, 83, 211, 0.22); filter: blur(32px); pointer-events: none;
+}
+:root[data-theme="dark"] .preview-page .us-shopping::before { right: auto; left: -48px; top: -48px; background: rgba(0, 131, 90, 0.24); }
+:root[data-theme="dark"] .preview-page .dinner-dashboard::before { background: rgba(181, 0, 54, 0.22); }
+:root[data-theme="dark"] .home-dashboard .dashboard-sections { gap: 16px; }
+:root[data-theme="dark"] .home-dashboard :is(.task-dashboard, .us-shopping, .dinner-dashboard) { padding: 16px; }
+
+/* Section icons: small rounded squares tinted by area. */
+:root[data-theme="dark"] .preview-page .dashboard-icon { width: 30px; height: 30px; border-radius: 9px; background: rgba(147, 83, 211, 0.2); color: var(--n-primary); }
+:root[data-theme="dark"] .preview-page :is(.us-shopping, .shopping-dashboard, .couple-memories) .dashboard-icon { background: rgba(0, 131, 90, 0.3); color: var(--n-mint); }
+:root[data-theme="dark"] .preview-page :is(.dinner-dashboard, .couple-people) .dashboard-icon { background: rgba(181, 0, 54, 0.3); color: var(--n-rose); }
+:root[data-theme="dark"] .preview-page .home-dashboard :is(.us-shopping, .dinner-dashboard, .task-dashboard) .dashboard-icon { color: inherit; }
+:root[data-theme="dark"] .preview-page .home-dashboard .task-dashboard .dashboard-icon { color: var(--n-primary); }
+:root[data-theme="dark"] .preview-page .home-dashboard .us-shopping .dashboard-icon { color: var(--n-mint); }
+:root[data-theme="dark"] .preview-page .home-dashboard .dinner-dashboard .dashboard-icon { color: var(--n-rose); }
+:root[data-theme="dark"] .home-dashboard :is(.dashboard-sections h2, .home-card-header h2, .us-shopping-heading h2) { font: 600 20px/26px var(--n-sans); letter-spacing: -0.01em; color: var(--n-text); }
+:root[data-theme="dark"] :is(.home-view-all, .dashboard-show-all, .home-dashboard .home-view-all) { color: var(--n-primary); font-weight: 600; }
+
+/* Nested rows sit one tone higher. */
+:root[data-theme="dark"] .home-dashboard .home-task,
+:root[data-theme="dark"] .home-dashboard .us-shopping-item,
+:root[data-theme="dark"] .home-dashboard .us-shopping-item:last-child,
+:root[data-theme="dark"] .shared-shopping .grocery-row,
+:root[data-theme="dark"] .shopping-list-row,
+:root[data-theme="dark"] .home-dashboard .home-shortcut {
+  border: 0; border-radius: 16px; background: var(--n-high); color: var(--n-text);
+}
+:root[data-theme="dark"] .home-dashboard .us-shopping-item { padding: 10px 12px; }
+:root[data-theme="dark"] .shopping-list-row { padding: 14px; border-radius: 20px; background: var(--n-container); border: 1px solid var(--n-hairline); }
+:root[data-theme="dark"] :is(.home-task strong, .us-shopping-copy strong, .shopping-row-copy strong, .grocery-copy strong, .home-shortcut-copy strong) { color: var(--n-text); font-family: var(--n-sans); }
+:root[data-theme="dark"] :is(.home-dashboard .home-shortcut-copy small, .home-dashboard .home-empty, .home-dashboard .shopping-count, .us-shopping-copy small, .shopping-row-copy small, .grocery-copy small, .shopping-empty) { color: var(--n-muted); }
+:root[data-theme="dark"] .shopping-row-category { color: var(--n-primary); }
+:root[data-theme="dark"] :is(.home-dashboard .us-shopping-item > input, .shopping-unified .shopping-list-row > input, .shared-shopping .grocery-row > input, .task-row input) {
+  appearance: none; -webkit-appearance: none; display: grid; place-items: center;
+  width: 22px; height: 22px; border: 0; border-radius: 6px; background: var(--n-highest);
+}
+:root[data-theme="dark"] :is(.home-dashboard .us-shopping-item > input, .shopping-unified .shopping-list-row > input, .shared-shopping .grocery-row > input, .task-row input):checked { background: #10b981; }
+:root[data-theme="dark"] :is(.home-dashboard .us-shopping-item > input, .shopping-unified .shopping-list-row > input, .shared-shopping .grocery-row > input, .task-row input):checked::after { content: "✓"; color: #fff; font: 700 14px/1 var(--n-sans); }
+:root[data-theme="dark"] .shopping-thumb { border-radius: 12px; background: var(--n-lowest); }
+
+/* Category pills (Home / Pets / Kids). */
+:root[data-theme="dark"] .home-dashboard .us-shopping-shortcuts button,
+:root[data-theme="dark"] .shopping-filters button {
+  min-height: 36px; border: 0; border-radius: 999px; padding: 4px 12px;
+  background: var(--n-high); color: var(--n-muted); font: 600 13px/16px var(--n-sans); letter-spacing: 0.04em;
+}
+:root[data-theme="dark"] .home-dashboard .us-shopping-shortcuts strong,
+:root[data-theme="dark"] .shopping-filters strong { min-width: 18px; height: 18px; border-radius: 999px; background: var(--n-highest); color: var(--n-muted); font-size: 10px; }
+:root[data-theme="dark"] .shopping-filters button[aria-pressed=true],
+:root[data-theme="dark"] .home-dashboard .us-shopping-shortcuts button[aria-pressed=true] { background: var(--n-mint-container); color: #003824; }
+:root[data-theme="dark"] .shopping-filters button[aria-pressed=true] strong { background: #003824; color: var(--n-mint); }
+:root[data-theme="dark"] .home-shopping-add { color: var(--n-mint); }
+:root[data-theme="dark"] .purchased-list { border-top: 0; border-radius: 12px; background: var(--n-low); padding: 0 12px; }
+:root[data-theme="dark"] .purchased-list summary { color: var(--n-muted); }
+
+/* Quick actions: two-column tiles with round tinted icons. */
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button,
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button:is(:nth-child(1), :nth-child(2), :nth-child(3), :nth-child(4)) {
+  flex-direction: column; align-items: flex-start; gap: 14px; min-height: 120px; padding: 16px;
+  border: 0; border-radius: 24px; background: var(--n-container); color: var(--n-text);
+  font: 600 16px/20px var(--n-sans); text-align: left; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button svg {
+  width: 40px; height: 40px; padding: 10px; border-radius: 50%; box-sizing: border-box;
+}
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(1) svg { background: rgba(181, 0, 54, 0.25); color: var(--n-rose); }
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(2) svg { background: rgba(147, 83, 211, 0.25); color: var(--n-primary); }
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(3) svg { background: rgba(0, 131, 90, 0.3); color: var(--n-mint); }
+:root[data-theme="dark"] .home-dashboard .home-quick-actions button:nth-child(4) svg { background: var(--n-highest); color: var(--n-text); }
+:root[data-theme="dark"] .home-dashboard .home-quick-actions h2 { font: 600 15px/20px var(--n-sans); }
+
+/* ---------- Buttons ---------- */
+:root[data-theme="dark"] :is(.primary, .shopping-quick-primary, .quick-open, .add-fab) {
+  border: 0; background: linear-gradient(90deg, var(--n-primary-container), var(--n-inverse-primary));
+  color: #fff; box-shadow: 0 8px 24px rgba(147, 83, 211, 0.3);
+}
+:root[data-theme="dark"] .shopping-unified .shopping-quick-primary { width: 100%; justify-self: stretch; min-height: 56px; border-radius: 16px; font: 600 16px/20px var(--n-sans); }
+:root[data-theme="dark"] .add-fab { border-radius: 999px; }
+:root[data-theme="dark"] :is(.shopping-refresh, .text-button, .our-time-button, .our-time-actions button) {
+  border: 1px solid rgba(255, 255, 255, 0.08); background: var(--n-high); color: var(--n-text); border-radius: 14px;
+}
+
+/* ---------- Inputs ---------- */
+:root[data-theme="dark"] :is(input:not([type=checkbox]):not([type=radio]), select, textarea) {
+  border: 1px solid var(--n-hairline); background-color: var(--n-low); color: var(--n-text);
+}
+:root[data-theme="dark"] :is(input, select, textarea):focus-visible { outline: 2px solid var(--n-primary-container); outline-offset: 1px; }
+:root[data-theme="dark"] :is(input, textarea)::placeholder { color: #8a8290; }
+:root[data-theme="dark"] .shopping-unified .shopping-toolbar .shopping-search input { min-height: 50px; border-radius: 16px; background: var(--n-low); }
+
+/* ---------- Shopping page ---------- */
+:root[data-theme="dark"] .shopping-unified .shopping-page-heading h1 { font-size: 48px; line-height: 52px; }
+:root[data-theme="dark"] :is(.shopping-category, .occasion-card) {
+  border-radius: 24px; background: var(--n-container); color: var(--n-text); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+:root[data-theme="dark"] :is(.shopping-category-icon, .occasion-icon) { border-radius: 12px; background: rgba(147, 83, 211, 0.22); }
+:root[data-theme="dark"] .occasion-card[data-color] .occasion-icon { background: var(--n-highest); }
+:root[data-theme="dark"] .occasion-heading h2 { font: 600 22px/28px var(--n-sans); }
+:root[data-theme="dark"] .occasion-heading button { color: var(--n-primary); }
+
+/* ---------- Us page ---------- */
+:root[data-theme="dark"] .couple-page .our-time {
+  position: relative; overflow: hidden; padding: 24px; border: 1px solid var(--n-hairline); border-radius: 24px;
+  background: radial-gradient(120% 90% at 100% 0%, rgba(181, 0, 54, 0.22), transparent 60%), radial-gradient(90% 80% at 0% 100%, rgba(147, 83, 211, 0.18), transparent 60%), var(--n-container);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+:root[data-theme="dark"] .our-time-header h2 { font: 500 22px/30px var(--n-sans); }
+:root[data-theme="dark"] .our-time-heart { background: transparent; color: var(--n-rose); }
+:root[data-theme="dark"] .our-time .our-time-duration { margin: 12px 0 6px; font: 600 36px/42px var(--n-serif); letter-spacing: -0.02em; color: var(--n-text); }
+:root[data-theme="dark"] .our-time .our-time-since, :root[data-theme="dark"] .our-time small { color: var(--n-muted); }
+:root[data-theme="dark"] .our-time-countdown { margin-top: 16px; padding: 14px; border: 1px solid var(--n-hairline); border-radius: 16px; background: rgba(13, 14, 18, 0.45); }
+:root[data-theme="dark"] .our-time-progress { height: 6px; background: var(--n-highest); }
+:root[data-theme="dark"] .our-time-progress span { background: linear-gradient(90deg, #e9b8ff, var(--n-rose), var(--n-mint)); }
+:root[data-theme="dark"] .our-time-edit { color: var(--n-primary); }
+:root[data-theme="dark"] .couple-spaces-heading { font: 500 22px/30px var(--n-sans); color: var(--n-text); }
+:root[data-theme="dark"] .couple-grid { gap: 14px; }
+:root[data-theme="dark"] .couple-page .couple-card,
+:root[data-theme="dark"] .couple-page :is(.couple-people, .couple-pets, .couple-memories, .couple-wishlist) {
+  position: relative; overflow: hidden; isolation: isolate; min-height: 180px; gap: 6px; padding: 18px;
+  border: 1px solid var(--n-hairline); border-radius: 24px; background: var(--n-container); color: var(--n-text);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+:root[data-theme="dark"] .couple-page .couple-card::before {
+  content: ""; position: absolute; z-index: -1; top: -30px; right: -30px; width: 110px; height: 110px; border-radius: 50%;
+  background: rgba(147, 83, 211, 0.2); filter: blur(30px);
+}
+:root[data-theme="dark"] .couple-page .couple-pets::before { background: rgba(181, 0, 54, 0.22); }
+:root[data-theme="dark"] .couple-page .couple-memories::before { right: auto; left: -30px; background: rgba(0, 131, 90, 0.24); }
+:root[data-theme="dark"] .couple-page .couple-card .dashboard-icon,
+:root[data-theme="dark"] .couple-page :is(.couple-people, .couple-pets, .couple-memories, .couple-wishlist) .dashboard-icon {
+  width: 44px; height: 44px; border-radius: 50%; background: var(--n-highest); color: var(--n-primary);
+}
+:root[data-theme="dark"] .couple-page .couple-pets .dashboard-icon { color: var(--n-rose); }
+:root[data-theme="dark"] .couple-page .couple-memories .dashboard-icon { background: rgba(0, 131, 90, 0.3); color: var(--n-mint); }
+:root[data-theme="dark"] .couple-page .couple-card .dashboard-icon svg { width: 22px; height: 22px; }
+:root[data-theme="dark"] .couple-page .couple-card strong { margin-top: 10px; font: 500 24px/30px var(--n-serif); color: var(--n-text); }
+:root[data-theme="dark"] .couple-page .couple-card small { color: var(--n-muted); font-size: 14px; line-height: 20px; }
+:root[data-theme="dark"] .couple-page .couple-link { margin-top: auto; color: var(--n-primary); font: 600 13px/16px var(--n-sans); letter-spacing: 0.04em; }
+:root[data-theme="dark"] .couple-page .couple-memories .couple-link { color: var(--n-mint); }
+:root[data-theme="dark"] .couple-page .couple-pets .couple-link { color: var(--n-primary); }
+
+/* ---------- Folders / Places ---------- */
+:root[data-theme="dark"] .collection-empty,
+:root[data-theme="dark"] .collection-page .dashboard-card {
+  position: relative; overflow: hidden; isolation: isolate;
+  border: 1px solid var(--n-hairline); border-radius: 24px; background: var(--n-container);
+}
+:root[data-theme="dark"] .collection-empty h2 { font: 500 24px/30px var(--n-serif); }
+:root[data-theme="dark"] .folder-tile { border-radius: 24px; background: var(--n-container); }
+
+/* ---------- More & generic tiles ---------- */
+:root[data-theme="dark"] .start-card,
+:root[data-theme="dark"] .create-card { border-radius: 20px; background: var(--n-container); color: var(--n-text); }
+:root[data-theme="dark"] .start-card > svg:first-child { color: var(--n-primary); }
+:root[data-theme="dark"] .help-card { border-radius: 24px; background: var(--n-container); }
+
+/* ---------- Floating island navigation ---------- */
+:root[data-theme="dark"] .bottom-nav {
+  bottom: calc(12px + env(safe-area-inset-bottom)); width: min(540px, calc(100% - 32px));
+  padding: 8px 6px; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 32px;
+  background: rgba(22, 24, 34, 0.88);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="dark"] .bottom-nav button { color: #a8a0ae; font: 500 12px/16px var(--n-sans); letter-spacing: 0.02em; background: transparent; }
+:root[data-theme="dark"] .bottom-nav button.active { color: var(--n-primary); background: transparent; }
+:root[data-theme="dark"] .bottom-nav .nav-us { color: #fff; }
+:root[data-theme="dark"] .bottom-nav .nav-us span { position: relative; z-index: 1; }
+:root[data-theme="dark"] .bottom-nav .nav-us svg,
+:root[data-theme="dark"] .bottom-nav .nav-us.active svg {
+  width: 64px; height: 64px; top: -24px; padding: 18px 18px 26px; border: 0; border-radius: 50%;
+  background: linear-gradient(135deg, #a86ae4, var(--n-primary-container));
+  color: #fff; box-shadow: 0 8px 32px rgba(147, 83, 211, 0.55);
+}
+:root[data-theme="dark"] .bottom-nav .nav-us span { margin-top: -6px; color: #fff; font-weight: 600; }
+@media (max-width: 760px) {
+  :root[data-theme="dark"] .bottom-nav { bottom: calc(10px + env(safe-area-inset-bottom)); padding-bottom: 8px; border-radius: 32px; }
+  :root[data-theme="dark"] .bottom-nav .nav-us svg,
+  :root[data-theme="dark"] .bottom-nav .nav-us.active svg { width: 64px; height: 64px; top: -22px; padding: 17px 17px 25px; }
+}
+
+/* Footer becomes the quiet italic sign-off from the design. */
+:root[data-theme="dark"] .footer { border-top: 0; color: var(--n-muted); font-family: var(--n-serif); font-style: italic; }
+:root[data-theme="dark"] .footer-heart { color: var(--n-rose); }
+
+/* ---------- Refinements after visual comparison ---------- */
+:root[data-theme="dark"] .header .wordmark .wordmark-name { font: 600 18px/24px var(--n-sans); letter-spacing: -0.01em; }
+:root[data-theme="dark"] .header .wordmark .wordmark-copy { display: flex; }
+:root[data-theme="dark"] .header-tools > .header-avatar { box-shadow: 0 0 0 2px rgba(221, 184, 255, 0.35); }
+:root[data-theme="dark"] .shopping-unified > .eyebrow { margin: 16px 0 4px; color: var(--n-primary); }
+
+/* Shopping filter tiles: neutral surfaces, selected tile lifts one tone with a violet count. */
+:root[data-theme="dark"] .shopping-unified .shopping-filters button {
+  justify-content: flex-start; min-height: 56px; padding: 8px 12px; border: 1px solid var(--n-hairline);
+  border-radius: 20px; background: var(--n-container); color: var(--n-text); letter-spacing: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+:root[data-theme="dark"] .shopping-unified .shopping-filters button[aria-pressed=true] { background: var(--n-highest); border-color: rgba(221, 184, 255, 0.25); color: var(--n-text); }
+:root[data-theme="dark"] .shopping-unified .shopping-filters button[aria-pressed=true] strong { background: var(--n-primary); color: #490081; }
+:root[data-theme="dark"] .shopping-unified .shopping-filters small { color: var(--n-muted); }
+:root[data-theme="dark"] .shopping-unified .shopping-filter-icon { border-radius: 12px; background: var(--n-highest); color: var(--n-primary); }
+
+/* Occasion tiles share one surface; their colour lives in a soft corner glow. */
+:root[data-theme="dark"] .occasion-card,
+:root[data-theme="dark"] .occasion-card[data-color] {
+  position: relative; overflow: hidden; isolation: isolate;
+  border: 1px solid var(--n-hairline); border-radius: 20px; background: var(--n-container); color: var(--n-text);
+}
+:root[data-theme="dark"] .occasion-card::before {
+  content: ""; position: absolute; z-index: -1; top: -30px; right: -30px; width: 90px; height: 90px; border-radius: 50%;
+  background: rgba(147, 83, 211, 0.24); filter: blur(26px);
+}
+:root[data-theme="dark"] .occasion-card[data-color="pink"]::before { background: rgba(181, 0, 54, 0.26); }
+:root[data-theme="dark"] .occasion-card[data-color="mint"]::before { background: rgba(0, 131, 90, 0.28); }
+:root[data-theme="dark"] .occasion-card[data-color="peach"]::before { background: rgba(255, 150, 110, 0.18); }
+:root[data-theme="dark"] .occasion-card[data-color="blue"]::before { background: rgba(90, 140, 255, 0.2); }
+:root[data-theme="dark"] .occasion-card .occasion-icon { border-radius: 12px; background: var(--n-highest); }
+:root[data-theme="dark"] .occasion-copy small { color: var(--n-muted); }
+:root[data-theme="dark"] .header .wordmark :is(.wordmark-copy, .wordmark-name, small) { margin: 0; padding: 0; }
+:root[data-theme="dark"] .eyebrow { color: var(--n-primary); }
+:root[data-theme="dark"] .preview-page:has(.couple-page) .eyebrow { color: var(--n-rose); }
+
+/* Full-bleed header without widening the page: extend the bar visually, then clip vertically. */
+:root[data-theme="dark"] .header {
+  margin: 0; padding-left: 0; padding-right: 0;
+  background: rgba(13, 14, 18, 0.86);
+  box-shadow: 0 0 0 100vmax rgba(13, 14, 18, 0.86), 0 1px 8px rgba(0, 0, 0, 0.25);
+  clip-path: inset(0 -100vmax -12px);
+}
+
+/* Each shared space keeps its own faint tint under the corner glow. */
+:root[data-theme="dark"] .couple-page .couple-people { background-color: #221e27; }
+:root[data-theme="dark"] .couple-page .couple-pets { background-color: #251e23; }
+:root[data-theme="dark"] .couple-page .couple-memories { background-color: #1c2421; }
+:root[data-theme="dark"] .couple-page .couple-wishlist { background-color: #211f2a; }
+
+/* Home shopping "Add item" becomes the full-width violet action from the design. */
+:root[data-theme="dark"] .home-dashboard .home-shopping-add {
+  width: 100%; min-height: 44px; margin-top: 10px; border-radius: 16px;
+  background: linear-gradient(90deg, var(--n-primary-container), var(--n-inverse-primary));
+  color: #fff; font: 600 14px/20px var(--n-sans); box-shadow: 0 4px 16px rgba(147, 83, 211, 0.25);
+}

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mainNavigation } from './navigation';
+import { mainNavigation, openMoreShortcut } from './navigation';
 import { pocPassword, transport } from './helpers/sharedTransport';
 
 test.use({ serviceWorkers: 'block' });
@@ -23,7 +23,7 @@ test('search cannot reveal unread notes or scheduled surprises for either partne
   await masha.getByLabel('Delivery date and time').fill(future); await masha.getByRole('button', { name: 'Schedule', exact: true }).click();
   async function search(page: typeof masha, value: string) {
     const response = page.waitForResponse(result => result.url().includes('/rpc/searchable_partner_notes') && result.ok());
-    await page.getByLabel('Search Together').click(); const payload = await (await response).json();
+    await openMoreShortcut(page, 'Search Together'); const payload = await (await response).json();
     await page.locator('.search-page input').fill(value); return payload as { body: string | null }[];
   }
   const receivedPayload = await search(damian, 'violet synthetic letter');

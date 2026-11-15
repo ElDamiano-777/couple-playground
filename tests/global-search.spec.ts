@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mainNavigation, openShoppingCategory } from './navigation';
+import { mainNavigation, openMoreShortcut, openShoppingCategory } from './navigation';
 import { pocPassword, transport } from './helpers/sharedTransport';
 
 test.use({ serviceWorkers: 'block' });
@@ -21,7 +21,7 @@ test('global search finds a recipe, shopping item, task and local note without l
   await page.getByRole('button', { name: '+ Add task', exact: true }).click();
   await page.getByRole('dialog', { name: 'New task' }).locator('input').first().fill('Searchable laundry');
   await page.getByRole('button', { name: 'Save task', exact: true }).click();
-  await page.getByLabel('Search Together').click();
+  await openMoreShortcut(page, 'Search Together');
   const search = page.locator('.search-page');
   await search.getByRole('textbox').fill('milk');
   await expect(search).toContainText('Milk');

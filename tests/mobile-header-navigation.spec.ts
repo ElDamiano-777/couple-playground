@@ -3,18 +3,17 @@ import { mainNavigation } from './navigation';
 
 test.use({ serviceWorkers: 'block' });
 
-test('mobile header greeting fits and Us stays centered in navigation', async ({ browser }) => {
+test('mobile header avatar fits and Us stays centered in navigation', async ({ browser }) => {
   for (const width of [320, 375, 390, 430]) {
     for (const name of ['masha', 'damian']) {
       const context = await browser.newContext({ viewport: { width, height: 844 }, serviceWorkers: 'block' });
       await context.addInitScript(value => localStorage.setItem('together.profile.v1', value), name);
       const page = await context.newPage(); await page.goto('./');
-      const greeting = page.locator('.header-profile');
-      await expect(greeting).toContainText(name === 'masha' ? 'Hi, Masha' : 'Hi, Damian');
-      expect(await greeting.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+      const greeting = page.locator('.header-avatar');
+      await expect(greeting).toHaveText(name === 'masha' ? 'M' : 'D');
       const geometry = await page.evaluate(() => {
         const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect().toJSON();
-        return { header: rect('.header'), logo: rect('.wordmark'), greeting: rect('.header-profile'), controls: [...document.querySelectorAll('.header-tools > button:not(.header-profile)')].map(item => item.getBoundingClientRect().toJSON()), heart: rect('.nav-us svg'), nav: rect('.bottom-nav'), width: innerWidth, overflow: document.documentElement.scrollWidth > innerWidth };
+        return { header: rect('.header'), logo: rect('.wordmark'), greeting: rect('.header-avatar'), controls: [...document.querySelectorAll('.header-tools > button:not(.header-avatar)')].map(item => item.getBoundingClientRect().toJSON()), heart: rect('.nav-us svg'), nav: rect('.bottom-nav'), width: innerWidth, overflow: document.documentElement.scrollWidth > innerWidth };
       });
       expect(geometry.overflow).toBe(false);
       expect(geometry.greeting.left).toBeGreaterThanOrEqual(geometry.header.left);

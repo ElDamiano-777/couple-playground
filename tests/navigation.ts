@@ -31,3 +31,8 @@ export async function closeAddForm(page: Page) {
 export async function openShoppingCategory(page: Page, category: 'Home' | 'Pets' | 'Kids') {
   await page.locator('.shopping-categories').getByRole('button', { name: new RegExp(`^${category}\\b`) }).click();
 }
+
+export async function openMoreShortcut(page: Page, name: string) {
+  await mainNavigation(page).getByRole('button', { name: 'More', exact: true }).click();
+  await page.locator('.more-shortcuts').getByRole('button', { name, exact: true }).click();
+}

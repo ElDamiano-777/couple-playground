@@ -167,7 +167,7 @@ export default function SharedShopping({
     );
   return (
     <section className="preview-page shared-shopping shopping-unified">
-      <div className="shopping-page-heading"><div><h1>Shopping<span>.</span></h1><p className="page-intro">{state.household ? 'Our shared shopping list' : 'One of you creates a home. The other joins with an invitation code.'}</p></div>{state.household && <button className="shopping-refresh" aria-label="Refresh shopping list" disabled={state.busy} onClick={() => void state.refresh()}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.5 9A7 7 0 0 1 19 7l1 5M4 12l1 5a7 7 0 0 0 12.5-2"/></svg></button>}</div>
+      <p className="eyebrow">The little things we need</p><div className="shopping-page-heading"><div><h1>Shopping<span>.</span></h1><p className="page-intro">{state.household ? 'Our shared shopping list' : 'One of you creates a home. The other joins with an invitation code.'}</p></div>{state.household && <button className="shopping-refresh" aria-label="Refresh shopping list" disabled={state.busy} onClick={() => void state.refresh()}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.5 9A7 7 0 0 1 19 7l1 5M4 12l1 5a7 7 0 0 0 12.5-2"/></svg></button>}</div>
       {state.isPoc && (
         <p className="notice">
           POC test space shared by the Masha and Damian accounts. Don’t enter

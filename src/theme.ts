@@ -7,7 +7,7 @@ export function readTheme(profile: string | null): Theme {
 }
 export function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#101014' : '#fff7ed');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#121317' : '#fff7ed');
 }
 export function saveTheme(profile: string, theme: Theme) {
   try { localStorage.setItem(prefix + profile, theme); } catch { /* Keep the selection for this session. */ }

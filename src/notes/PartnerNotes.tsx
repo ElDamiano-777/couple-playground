@@ -6,7 +6,7 @@ import './partner-notes.css';
 import OurNotes from './OurNotes';
 import { localScheduleValue, scheduledInstant, scheduleLabel } from './schedule';
 import { getNotePhotos, prepareNotePhoto } from './notePhotos';
-import NotePhotos from './NotePhotos';
+import NotePhotos from './NotePhotoGallery';
 import { useNoteInteractions } from './useNoteInteractions';
 
 export default function PartnerNotes({ userId, household, viewer, state, onBack, onDirty, backLabel = 'Us' }: { backLabel?: string; userId?: string; household: string | null; viewer: 'masha' | 'damian'; state: PartnerNotesState; onBack: () => void; onDirty: (dirty: boolean) => void }) {

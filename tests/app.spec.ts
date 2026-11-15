@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { mainNavigation, openHome, openChildren } from './navigation';
+import { mainNavigation, openHome, openChildren, openMoreShortcut } from './navigation';
 
 async function enterAs(page: Page, name: `Masha` | `Damian` = `Masha`) {
   await page.goto(`./`);
@@ -24,21 +24,21 @@ test(`personal welcome, navigation and narrow-screen layout work without script 
 
 test(`local note persists after reload and is honestly labelled as local`, async ({ page }) => {
   await enterAs(page);
-  await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await openMoreShortcut(page, `Personal notes`);
   await expect(page.getByText(`Only on this phone for now. Not shared with your partner yet.`)).toBeVisible();
   await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic test: walk by the sea`);
   await page.getByRole(`button`, { name: `Save thought` }).click();
   await expect(page.getByRole(`status`)).toHaveText(`Saved on this phone.`);
   await page.reload();
-  await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await openMoreShortcut(page, `Personal notes`);
   await expect(page.getByText(`Synthetic test: walk by the sea`, { exact: true })).toBeVisible();
 });
 
 test(`storage failure keeps draft and does not claim success`, async ({ page }) => {
   await page.addInitScript(() => { Storage.prototype.setItem = () => { throw new DOMException(`Full`, `QuotaExceededError`); }; });
   await enterAs(page);
-  await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await openMoreShortcut(page, `Personal notes`);
   await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic unsaved draft`);
   await page.getByRole(`button`, { name: `Save thought` }).click();
@@ -50,7 +50,7 @@ test(`storage failure keeps draft and does not claim success`, async ({ page }) 
 test(`unreadable saved data is not silently overwritten`, async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem(`ryadom.notes.v1`, `{bad json`));
   await enterAs(page);
-  await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await openMoreShortcut(page, `Personal notes`);
   await expect(page.getByRole(`status`)).toContainText(`we won’t overwrite them`);
   await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`New draft`);
@@ -60,7 +60,7 @@ test(`unreadable saved data is not silently overwritten`, async ({ page }) => {
 
 test(`notes render as text rather than executable markup`, async ({ page }) => {
   await enterAs(page);
-  await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await openMoreShortcut(page, `Personal notes`);
   const text = `<img src=x onerror="window.bad=true">`;
   await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(text);
@@ -106,7 +106,7 @@ test(`offline navigation has a clear fallback instead of a blank screen`, async 
 test(`update detection does not reload an unfinished draft`, async ({ page }) => {
   await page.route(`**/version.json*`, route => route.fulfill({ json: { commit: `f`.repeat(40) } }));
   await enterAs(page);
-  await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await openMoreShortcut(page, `Personal notes`);
   await page.getByRole(`button`, { name: `Add thought`, exact: true }).click();
   await page.getByLabel(`What would you like to remember?`).fill(`Synthetic unfinished thought`);
   await expect(page.getByRole(`button`, { name: `Update`, exact: true })).toBeDisabled();
@@ -118,15 +118,15 @@ test(`name choice is local, remembers the selection and can be changed`, async (
   await page.goto(`./`);
   await expect(page.getByText(`Your name fills in the login. Shopping still needs your password.`)).toBeVisible();
   await page.getByRole(`button`, { name: `Damian`, exact: true }).click();
-  await expect(page.getByText(`Hi, Damian`)).toBeVisible();
+  await expect(page.getByRole(`button`, { name: `Open settings`, exact: true })).toHaveText(`D`);
   await page.reload();
-  await expect(page.getByText(`Hi, Damian`)).toBeVisible();
+  await expect(page.getByRole(`button`, { name: `Open settings`, exact: true })).toHaveText(`D`);
   await expect(page.getByRole(`heading`, { name: `Home.`, exact: true })).toBeVisible();
   await page.getByRole(`button`, { name: `Open settings`, exact: true }).click();
   await page.getByRole(`button`, { name: `Change name` }).click();
   await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
   await page.reload();
-  await expect(page.getByText(`Hi, Masha`)).toBeVisible();
+  await expect(page.getByRole(`button`, { name: `Open settings`, exact: true })).toHaveText(`M`);
 });
 
 test(`older notes survive choosing a name`, async ({ page }) => {
@@ -135,7 +135,7 @@ test(`older notes survive choosing a name`, async ({ page }) => {
   await page.reload();
   await page.getByRole(`button`, { name: `Masha`, exact: true }).click();
   await page.reload();
-  await page.getByRole(`button`, { name: `Personal notes`, exact: true }).click();
+  await openMoreShortcut(page, `Personal notes`);
   await expect(page.getByText(`Earlier thought`, { exact: true })).toBeVisible();
 });
 

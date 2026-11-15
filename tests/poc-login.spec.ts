@@ -108,7 +108,7 @@ test(`wrong passwords and unknown usernames never unlock the shared list`, async
   await page.getByLabel(`Username`, { exact: true }).fill(` DaMiAn `);
   await page.getByLabel(`Password`, { exact: true }).fill(pocPassword);
   await page.getByRole(`button`, { name: `Sign in`, exact: true }).click();
-  await expect(page.getByText(`Hi, Damian`, { exact: true })).toBeVisible();
+  await expect(page.getByRole(`button`, { name: `Open settings`, exact: true })).toHaveText(`D`);
   await openShoppingCategory(page, `Home`);
   await page.getByRole(`button`, { name: `Add purchase`, exact: true }).click();
   await expect(page.getByLabel(`What do we need?`)).toBeVisible();

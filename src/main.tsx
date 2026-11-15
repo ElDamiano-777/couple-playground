@@ -9,6 +9,7 @@ import './visual-refresh.css';
 import './shared/quick-add-redesign.css';
 import './couple/us-dashboard.css';
 import './notes/love-notes-refresh.css';
+import './nocturne.css';
 
 createRoot(document.getElementById(`root`)!).render(<StrictMode><App /></StrictMode>);
 
