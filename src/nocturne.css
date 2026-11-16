@@ -232,7 +232,7 @@
 }
 :root[data-theme="dark"] .our-time-header h2 { font: 500 22px/30px var(--n-sans); }
 :root[data-theme="dark"] .our-time-heart { background: transparent; color: var(--n-rose); }
-:root[data-theme="dark"] .our-time .our-time-duration { margin: 12px 0 6px; font: 600 36px/42px var(--n-serif); letter-spacing: -0.02em; color: var(--n-text); }
+:root[data-theme="dark"] .our-time .our-time-duration { margin: 12px 0 6px; font: 600 clamp(18px, 5vw, 26px)/1.25 var(--n-serif); letter-spacing: -0.02em; color: var(--n-text); }
 :root[data-theme="dark"] .our-time .our-time-since, :root[data-theme="dark"] .our-time small { color: var(--n-muted); }
 :root[data-theme="dark"] .our-time-countdown { margin-top: 16px; padding: 14px; border: 1px solid var(--n-hairline); border-radius: 16px; background: rgba(13, 14, 18, 0.45); }
 :root[data-theme="dark"] .our-time-progress { height: 6px; background: var(--n-highest); }
@@ -350,7 +350,14 @@
   margin: 0; padding-left: 0; padding-right: 0;
   background: rgba(13, 14, 18, 0.86);
   box-shadow: 0 0 0 100vmax rgba(13, 14, 18, 0.86), 0 1px 8px rgba(0, 0, 0, 0.25);
-  clip-path: inset(0 -100vmax -12px);
+  clip-path: inset(0 -100vmax 0);
+}
+
+/* Keep page content in the document flow, clear of the sticky header and floating navigation. */
+:root[data-theme="dark"] { scroll-padding-top: calc(76px + env(safe-area-inset-top)); scroll-padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
+:root[data-theme="dark"] .main { display: flow-root; min-width: 0; padding-top: 4px; }
+@media (max-width: 760px) {
+  :root[data-theme="dark"] .app { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
 }
 
 /* Each shared space keeps its own faint tint under the corner glow. */

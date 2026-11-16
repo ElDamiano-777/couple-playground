@@ -1,7 +1,8 @@
 /* Offers page, Shopping strip and Home card. Light defaults, Nocturne dark overrides below. */
 .offers-page h1 { margin-bottom: 4px; }
-.offer-search { margin: 14px 0 10px; }
-.offer-stores { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+.offer-search { margin: 14px 0 10px; width: 100%; }
+.offer-search input { display: block; width: 100%; min-width: 0; min-height: 48px; padding: 9px 12px 9px 41px; border: 1px solid #d9c4e5; border-radius: 14px; background: #fff; color: inherit; font-size: 16px; }
+.offer-stores { display: flex; gap: 6px; width: 100%; min-width: 0; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 4px; }
 .offer-stores button { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 12px; border: 1px solid #d9c4e5; border-radius: 999px; background: #f7effa; color: #5d3c6f; font-weight: 700; font-size: 13px; }
 .offer-stores button[aria-pressed=true] { background: #e7d0f5; border-color: #af82c9; }
 .offer-stores small { font-size: 11px; opacity: .75; }
