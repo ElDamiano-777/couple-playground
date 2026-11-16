@@ -141,3 +141,9 @@
 .occasion-item input[aria-label^="Select "] { accent-color: #8051a1; }
 :root[data-theme="dark"] .occasion-copy-actions button { background: #3a3045; color: #e6d8ef; }
 :root[data-theme="dark"] .occasion-management summary { color: #d5b5f2; }
+.collection-picker .collection-custom { border: 1px solid #b998ca; background: #f0e3f6; }
+.collection-picker .collection-custom summary { color: #633583; }
+.collection-browse-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 44px; margin-top: 5px; padding: 10px; border: 0; border-radius: 11px; background: #f5eef7; color: #4f3a5b; text-align: left; font-size: 13px; font-weight: 700; }
+:root[data-theme="dark"] .collection-picker .collection-custom { background: #4a3453; border-color: #80638d; }
+:root[data-theme="dark"] .collection-picker .collection-custom summary { color: #f7e5ff; }
+:root[data-theme="dark"] .collection-browse-toggle { background: #39313f; color: #f4edf6; }
