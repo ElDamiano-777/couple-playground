@@ -6,3 +6,7 @@ major_version = 17
 [auth]
 site_url = "https://eldamiano-777.github.io/couple-playground/"
 additional_redirect_urls = ["https://eldamiano-777.github.io/couple-playground/"]
+
+# Called by pg_net and pg_cron with its own token header, never with a user JWT.
+[functions.push-delivery]
+verify_jwt = false

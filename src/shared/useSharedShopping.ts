@@ -426,6 +426,19 @@ export function useSharedShopping() {
       }
       await refresh();
     });
+  // One tap from the Offers page: a normal Home item whose notes keep store, price and date.
+  const addOffer = (name: string, notes: string) =>
+    perform(async () => {
+      if (!household || !navigator.onLine) throw new Error(`Offline`);
+      if (items.some(item => !item.bought && itemKey(item.category, item.name) === itemKey(`Home`, name)))
+        throw new Error(`Already active in your shared list`);
+      const result = await supabase.from(`shopping_items`).insert({ household_id: household, category: `Home`, name: name.trim(), notes: notes.trim() }).select().single();
+      if (result.error || !result.data) throw result.error ?? new Error(`No saved item`);
+      if (currentUser.current !== userId) return;
+      ++requestVersion.current;
+      setItems(previous => [result.data as ShoppingItem, ...previous]);
+      setNotice(`Added ${name.trim()} to your shared list.`);
+    });
   const addPetFood = (food: PetFoodForShopping) =>
     perform(async () => {
       if (!household || !navigator.onLine) throw new Error(`Offline`);
@@ -567,6 +580,7 @@ export function useSharedShopping() {
     addRecipeIngredients,
     addRecipeSelection,
     addPetFood,
+    addOffer,
     edit,
     startEdit: (item: ShoppingItem) => setEdit({ id: item.id, name: item.name, notes: item.notes ?? ``, category: item.category }),
     setEditName: (name: string) => setEdit(previous => previous && ({ ...previous, name })),

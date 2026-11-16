@@ -1,0 +1,91 @@
+/* Offers page, Shopping strip and Home card. Light defaults, Nocturne dark overrides below. */
+.offers-page h1 { margin-bottom: 4px; }
+.offer-search { margin: 14px 0 10px; }
+.offer-stores { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+.offer-stores button { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 12px; border: 1px solid #d9c4e5; border-radius: 999px; background: #f7effa; color: #5d3c6f; font-weight: 700; font-size: 13px; }
+.offer-stores button[aria-pressed=true] { background: #e7d0f5; border-color: #af82c9; }
+.offer-stores small { font-size: 11px; opacity: .75; }
+.offer-heading { display: flex; align-items: baseline; gap: 8px; margin: 22px 0 10px; font-size: 20px; }
+.offer-heading span { font-size: 13px; opacity: .65; }
+.offer-category { margin: 18px 0 6px; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; opacity: .7; }
+.offer-list { display: grid; gap: 8px; }
+
+.offer-card { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; grid-template-areas: "art copy side" "art actions actions"; gap: 6px 12px; padding: 12px; border: 1px solid #e6d6ee; border-radius: 18px; background: #fffaff; }
+.offer-card-sure { border-color: #b98ad6; box-shadow: inset 4px 0 #b98ad6; }
+.offer-card-maybe { border-style: dashed; }
+.offer-art { grid-area: art; width: 52px; height: 52px; border-radius: 14px; overflow: hidden; display: grid; place-items: center; background: #f3e9f8; }
+.offer-art :is(svg, img) { width: 100%; height: 100%; }
+.offer-copy { grid-area: copy; display: grid; gap: 2px; min-width: 0; }
+.offer-copy strong { font-size: 16px; line-height: 1.3; overflow-wrap: anywhere; }
+.offer-copy small { font-size: 12px; line-height: 1.35; color: #685c70; overflow-wrap: anywhere; }
+.offer-match-label { font-size: 11px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: #8a4bb4; }
+.offer-store { display: inline-block; padding: 1px 7px; border-radius: 999px; font-weight: 800; font-size: 11px; background: #ece2f2; color: #4b2f5c; }
+.offer-store[data-store=kaufland] { background: #fde2e2; color: #9b1c1c; }
+.offer-store[data-store=aldi_sued] { background: #dfe9fb; color: #1d3f8a; }
+.offer-store[data-store=lidl] { background: #fff3c4; color: #6b5200; }
+.offer-store[data-store=rewe] { background: #fde0e3; color: #a3142b; }
+.offer-store[data-store=netto] { background: #fff0cc; color: #7a4a00; }
+.offer-store[data-store=edeka] { background: #dff1e4; color: #1e5b33; }
+.offer-side { grid-area: side; display: grid; justify-items: end; align-content: start; gap: 2px; }
+.offer-price { font-size: 20px; font-weight: 800; white-space: nowrap; }
+.offer-regular { font-size: 12px; opacity: .65; white-space: nowrap; }
+.offer-actions { grid-area: actions; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.offer-actions button { min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid #c9a6de; background: #f3e6fb; color: #5d2f7c; font-weight: 700; font-size: 14px; }
+.offer-actions .offer-favorite { min-width: 44px; font-size: 18px; padding: 4px 10px; }
+.offer-actions .offer-reject { background: transparent; border-color: transparent; text-decoration: underline; font-weight: 600; font-size: 13px; padding: 6px 4px; }
+.offer-actions button:disabled { opacity: .55; }
+.offer-actions .offer-add:disabled, .offer-actions .offer-favorite[aria-pressed=true] { opacity: 1; background: #e3f4ea; border-color: #9dd3b4; color: #1e6b45; }
+.offer-more { width: 100%; min-height: 44px; margin-top: 10px; border-radius: 14px; border: 1px solid #d9c4e5; background: transparent; color: inherit; font-weight: 700; }
+
+.offer-brochures { margin-top: 14px; padding: 12px; border: 1px dashed #d1b5e2; border-radius: 18px; }
+.offer-brochures h2 { font-size: 16px; margin: 0 0 6px; }
+.offer-brochure { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.offer-brochure strong { flex: 1; }
+.offer-brochure a { font-size: 13px; font-weight: 700; color: inherit; }
+.offer-brochure button { min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 1px solid #c9a6de; background: #f3e6fb; color: #5d2f7c; font-weight: 700; font-size: 13px; }
+
+.offer-import { max-height: 88vh; overflow-y: auto; }
+.offer-import-help { font-size: 14px; line-height: 1.45; }
+.offer-brochure-link { display: block; margin: 10px 0; font-weight: 700; color: inherit; }
+.offer-file { position: relative; display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 14px; cursor: pointer; }
+.offer-file input { position: absolute; inset: 0; opacity: 0; }
+.offer-import-list { display: grid; gap: 6px; margin: 10px 0; }
+.offer-import-row { display: grid; grid-template-columns: 28px minmax(0, 1fr) 76px; gap: 6px; align-items: center; }
+.offer-import-row input[type=checkbox] { width: 22px; height: 22px; }
+.offer-import-row input:not([type=checkbox]) { min-height: 40px; padding: 6px 8px; border-radius: 10px; border: 1px solid #d9c4e5; font-size: 16px; min-width: 0; }
+.offer-import-invalid input:not([type=checkbox]) { border-color: #d0545f; }
+.offer-import-dates { display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+.offer-import-dates label { display: grid; gap: 4px; }
+.offer-import-dates input { min-height: 40px; font-size: 16px; }
+
+.offers-strip { display: flex; align-items: center; gap: 12px; width: 100%; margin: 12px 0 4px; padding: 12px 14px; border-radius: 18px; border: 1px solid #c9a6de; background: linear-gradient(120deg, #f3e6fb, #fbeff1); color: inherit; text-align: left; }
+.offers-strip-badge, .offers-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: #8a4bb4; color: #fff; font-weight: 800; font-size: 17px; flex: 0 0 auto; }
+.offers-strip-copy { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.offers-strip-copy strong { font-size: 16px; }
+.offers-strip-copy small { font-size: 12px; opacity: .8; }
+.home-offers .dashboard-icon.offers-icon { width: 32px; height: 32px; font-size: 15px; }
+.home-offer-list { display: grid; gap: 6px; margin-top: 10px; }
+.home-offer { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 6px 0; background: transparent; color: inherit; text-align: left; border: 0; border-top: 1px solid #e6d6ee; }
+.home-offer span { display: grid; gap: 2px; min-width: 0; }
+.home-offer small { font-size: 12px; opacity: .75; }
+.home-offer b { font-size: 17px; white-space: nowrap; }
+
+:root[data-theme="dark"] .offer-card { background: var(--n-container); border-color: var(--n-hairline); }
+:root[data-theme="dark"] .offer-card-sure { border-color: var(--n-primary-container); box-shadow: inset 4px 0 var(--n-primary); }
+:root[data-theme="dark"] .offer-art { background: var(--n-high); }
+:root[data-theme="dark"] .offer-copy small, :root[data-theme="dark"] .home-offer small { color: var(--n-muted); }
+:root[data-theme="dark"] .offer-match-label { color: var(--n-primary); }
+:root[data-theme="dark"] .offer-store { background: var(--n-highest); color: var(--n-text); }
+:root[data-theme="dark"] .offer-store[data-store=kaufland], :root[data-theme="dark"] .offer-store[data-store=rewe] { background: #4a1d24; color: #ffb2b7; }
+:root[data-theme="dark"] .offer-store[data-store=aldi_sued] { background: #1c2b4a; color: #b6ccff; }
+:root[data-theme="dark"] .offer-store[data-store=lidl], :root[data-theme="dark"] .offer-store[data-store=netto] { background: #3d3214; color: #ffe08a; }
+:root[data-theme="dark"] .offer-store[data-store=edeka] { background: #163329; color: var(--n-mint); }
+:root[data-theme="dark"] :is(.offer-stores button, .offer-actions button, .offer-brochure button, .offer-more) { background: var(--n-high); border-color: var(--n-hairline); color: var(--n-text); }
+:root[data-theme="dark"] .offer-stores button[aria-pressed=true] { background: var(--n-primary-container); color: #fff; }
+:root[data-theme="dark"] .offer-actions .offer-reject { background: transparent; color: var(--n-muted); }
+:root[data-theme="dark"] :is(.offer-actions .offer-add:disabled, .offer-actions .offer-favorite[aria-pressed=true]) { background: #163329; border-color: #1f5a43; color: var(--n-mint); }
+:root[data-theme="dark"] .offer-brochures { border-color: var(--n-highest); }
+:root[data-theme="dark"] .offers-strip { background: linear-gradient(120deg, #2c2238, #351d25); border-color: var(--n-hairline); }
+:root[data-theme="dark"] :is(.offers-strip-badge, .offers-icon) { background: var(--n-primary-container); }
+:root[data-theme="dark"] .home-offer { border-top-color: var(--n-hairline); }
+:root[data-theme="dark"] .offer-import-row input:not([type=checkbox]) { background: var(--n-high); border-color: var(--n-hairline); color: var(--n-text); }

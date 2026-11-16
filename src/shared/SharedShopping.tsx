@@ -1,6 +1,6 @@
 import { Symbol } from '../ui/Symbol';
 import { ProductIllustration, petFoodIllustrationName } from './ProductIllustration';
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { euro, packPrice } from '../pricing/recipeCost';
 import type { ShoppingItem, SharedShoppingState } from "./useSharedShopping";
 import QuickAdd from "./QuickAdd";
@@ -12,9 +12,11 @@ import './shopping-unified.css';
 export default function SharedShopping({
   state,
   initialCategory = null,
+  offersStrip = null,
 }: {
   state: SharedShoppingState;
   initialCategory?: ShoppingItem[`category`] | null;
+  offersStrip?: ReactNode;
 }) {
   const [mode, setMode] = useState<`poc` | `signin` | `signup`>(`poc`);
   const [resumeDraft, setResumeDraft] = useState(false);
@@ -270,6 +272,7 @@ export default function SharedShopping({
               )}
             </section>
           )}
+          {offersStrip}
           <div className="shopping-toolbar">
             <button className="primary shopping-quick-primary" aria-label="+ Quick Add Item" onClick={() => setQuickOpen(true)}><span aria-hidden="true">＋</span> Quick Add Item</button>
             <label className="shopping-search-label" htmlFor="shopping-search">Search shopping list</label>

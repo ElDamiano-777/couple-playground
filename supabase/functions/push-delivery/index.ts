@@ -1,9 +1,12 @@
 import webpush from 'npm:web-push@3.6.7';
 import { createClient } from 'npm:@supabase/supabase-js@2.118.0';
+import { matchFavorites, weeklyOfferMessage, type MatchableOffer } from '../_shared/offerMatching.ts';
 
 type Event = { id: string; household_id: string; actor_id: string | null; kind: 'item_added' | 'item_purchased' | 'task_added'; item_name: string; created_at: string; processed_at: string | null };
 type Subscription = { id: string; user_id: string; endpoint: string; p256dh: string; auth: string };
-type Preferences = { user_id: string; household_id: string; new_item_enabled: boolean; purchased_enabled: boolean; reminder_enabled: boolean; reminder_weekday: number; reminder_time: string; timezone: string };
+type Preferences = { user_id: string; household_id: string; new_item_enabled: boolean; purchased_enabled: boolean; reminder_enabled: boolean; reminder_weekday: number; reminder_time: string; timezone: string; offers_enabled?: boolean };
+// Bumped when the deployed behaviour changes; GET returns it so a deploy can be checked without the token.
+const version = 'offers-1';
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 const url = Deno.env.get('SUPABASE_URL')!;
@@ -22,9 +25,9 @@ async function reserve(dedupeKey: string, values: Omit<Record<string, unknown>, 
   return result.data?.id ?? null;
 }
 
-async function send(subscription: Subscription, deliveryId: string, title: string, body: string) {
+async function send(subscription: Subscription, deliveryId: string, title: string, body: string, url = '/couple-playground/') {
   try {
-    await webpush.sendNotification({ endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } }, JSON.stringify({ title, body, url: '/couple-playground/' }), { TTL: 60 * 60 });
+    await webpush.sendNotification({ endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } }, JSON.stringify({ title, body, url }), { TTL: 60 * 60 });
     await admin.from('push_deliveries').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', deliveryId);
   } catch (error) {
     const statusCode = Number((error as { statusCode?: number }).statusCode ?? 0) || null;
@@ -83,12 +86,38 @@ async function sendReminders() {
   }
 }
 
+// Monday 08:00 in the member's timezone: one push listing Favorites on Offer this week.
+async function sendOfferDigests() {
+  const preferences = await admin.from('notification_preferences').select('*').eq('offers_enabled', true);
+  if (preferences.error) throw preferences.error;
+  for (const pref of preferences.data as Preferences[] ?? []) {
+    let local: ReturnType<typeof localParts>;
+    try { local = localParts(pref.timezone); } catch { continue; }
+    if (local.weekday !== 1 || local.time !== '08:00') continue;
+    const weekEnd = new Date(`${local.date}T12:00:00Z`); weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+    const [favorites, offers, rejections] = await Promise.all([
+      admin.from('shopping_favorites').select('id,name,brand').eq('household_id', pref.household_id),
+      admin.from('offers').select('id,store,title,brand,price_cents').gte('valid_to', local.date).lte('valid_from', weekEnd.toISOString().slice(0, 10)).or(`household_id.is.null,household_id.eq.${pref.household_id}`).range(0, 4999),
+      admin.from('offer_match_rejections').select('favorite_id,offer_key').eq('household_id', pref.household_id),
+    ]);
+    if (favorites.error || offers.error || rejections.error) continue;
+    const message = weeklyOfferMessage(matchFavorites(offers.data as MatchableOffer[], favorites.data ?? [], rejections.data ?? []));
+    if (!message) continue;
+    const subscriptions = await admin.from('push_subscriptions').select('*').eq('user_id', pref.user_id);
+    for (const subscription of subscriptions.data as Subscription[] ?? []) {
+      const deliveryId = await reserve(`offers:${pref.user_id}:${local.date}:subscription:${subscription.id}`, { recipient_id: pref.user_id, subscription_id: subscription.id, kind: 'offers_weekly' });
+      if (deliveryId) await send(subscription, deliveryId, 'Together', message, '/couple-playground/?offers');
+    }
+  }
+}
+
 Deno.serve(async request => {
+  if (request.method === 'GET') return json({ version });
   if (request.method !== 'POST' || request.headers.get('x-together-push-token') !== Deno.env.get('PUSH_DELIVERY_TOKEN')) return json({ error: 'Not authorized.' }, 401);
   const body = await request.json().catch(() => ({})) as { mode?: string; event_id?: string };
   try {
     if (body.mode === 'event' && body.event_id) await processPending(body.event_id);
-    else if (body.mode === 'scheduled') { await processPending(); await sendReminders(); await admin.from('push_deliveries').delete().lt('created_at', new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString()); }
+    else if (body.mode === 'scheduled') { await processPending(); await sendReminders(); await sendOfferDigests(); await admin.from('push_deliveries').delete().lt('created_at', new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString()); }
     else return json({ error: 'Invalid request.' }, 400);
     return json({ ok: true });
   } catch (error) { console.error('Push delivery failed', error); return json({ error: 'Delivery failed.' }, 500); }

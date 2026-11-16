@@ -38,6 +38,18 @@ export default function NotificationSettings({ active }: { active: boolean }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [offersEnabled, setOffersEnabled] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    void supabase.rpc('offer_notifications_enabled').then(({ data }) => setOffersEnabled(data === true));
+  }, [active]);
+  // Saved on its own right away; the other options keep their Save button.
+  async function changeOfferNotifications(enabled: boolean) {
+    setOffersEnabled(enabled);
+    const { error } = await supabase.rpc('set_offer_notifications', { enabled });
+    if (error) { setOffersEnabled(!enabled); setMessage('Could not save the offers setting. Try again.'); }
+    else setMessage(enabled ? 'You will get a push on Monday morning when favorites are on offer.' : 'Weekly offers push is off.');
+  }
   const supported = useMemo(() => typeof window !== 'undefined' && window.isSecureContext && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window, []);
 
   useEffect(() => {
@@ -112,6 +124,7 @@ export default function NotificationSettings({ active }: { active: boolean }) {
             <label><input type="checkbox" checked={preferences.purchased_enabled} onChange={event => setPreferences(current => ({ ...current, purchased_enabled: event.target.checked }))} /> Purchased items</label>
             <label><input type="checkbox" checked={preferences.reminder_enabled} onChange={event => setPreferences(current => ({ ...current, reminder_enabled: event.target.checked }))} /> Weekly Shopping reminder</label>
             {preferences.reminder_enabled && <div className="notification-reminder-time"><label>Day<select value={preferences.reminder_weekday} onChange={event => setPreferences(current => ({ ...current, reminder_weekday: Number(event.target.value) }))}>{weekdays.map((day, index) => <option value={index} key={day}>{day}</option>)}</select></label><label>Time<input type="time" value={preferences.reminder_time} onChange={event => setPreferences(current => ({ ...current, reminder_time: event.target.value }))} /></label></div>}
+            <label><input type="checkbox" checked={offersEnabled} onChange={event => { void changeOfferNotifications(event.target.checked); }} /> Favorites on offer (Monday morning)</label>
             <button className="primary" type="button" onClick={() => { void savePreferences(); }}>Save notification settings</button>
           </fieldset>
           <details className="notification-help"><summary>Set up on iPhone</summary><ol><li>Open Together in Safari.</li><li>Tap Share, then Add to Home Screen.</li><li>Open Together from its Home Screen icon.</li><li>Tap Enable notifications above and allow notifications.</li></ol></details>

@@ -1,7 +1,7 @@
 import { Symbol, type SymbolName } from '../ui/Symbol';
 import './folders.css';
 
-export type FolderPage = `folders` | `home` | `shopping` | `recipes` | `meals` | `tasks` | `expenses` | `partner-notes` | `calendar` | `pets` | `children` | `wishlist` | `places`;
+export type FolderPage = `folders` | `home` | `shopping` | `offers` | `recipes` | `meals` | `tasks` | `expenses` | `partner-notes` | `calendar` | `pets` | `children` | `wishlist` | `places`;
 type Navigate = (page: FolderPage) => void;
 
 export function HomeNavigation({ page, navigate }: { page: FolderPage; navigate: Navigate }) {

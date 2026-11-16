@@ -23,6 +23,8 @@ import PartnerNotes from './notes/PartnerNotes';
 import { usePartnerNotes } from './notes/usePartnerNotes';
 import './notes/partner-notes.css';
 import OurTimeTogether from './couple/OurTimeTogether';
+import Offers, { HomeOffersCard, OffersStrip } from './offers/Offers';
+import { useOffers, type OffersState } from './offers/useOffers';
 
 export { Symbol } from './ui/Symbol';
 export type HouseholdPage = FolderPage | `activity`;
@@ -44,6 +46,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   onClearSharedRecipe: () => void;
   onNotesDirty: (dirty: boolean) => void;
 }) {
+  const offers = useOffers(shopping.session?.user.id, shopping.household, page === 'home' || page === 'shopping' || page === 'offers');
   const loveNotes = usePartnerNotes(shopping.session?.user.id, shopping.household, page === 'folders' || page === 'partner-notes');
   const [dinnerToOpen, setDinnerToOpen] = useState<MealPlanItem | null>(null);
   const [dinnerToPlan, setDinnerToPlan] = useState<MealPlanItem | { day_index: number; meal_slot: MealSlot } | null>(null);
@@ -64,7 +67,9 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     <div className="notification-note"><Symbol name="bell" /><p>Phone notifications aren’t connected yet. We’ll set them up after your shared space is ready.</p></div>
   </section>;
 
-  if (page === `home`) return <Dashboard key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} navigate={navigate} shopping={shopping} meals={meals} tasks={tasks} collections={collections} onShoppingCategory={onShoppingCategory} onDinner={meal => { setDinnerToOpen(meal); navigate('meals'); }} onPlan={meal => { setDinnerToPlan(meal); navigate('meals'); }} onTask={task => { setTaskToOpen(task); navigate('tasks'); }} onAddTask={() => { setAddTask(true); navigate('tasks'); }} />;
+  if (page === `offers`) return <Offers offers={offers} shopping={shopping} onBack={onBack} backLabel={backLabel} />;
+
+  if (page === `home`) return <Dashboard key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} navigate={navigate} shopping={shopping} offers={offers} meals={meals} tasks={tasks} collections={collections} onShoppingCategory={onShoppingCategory} onDinner={meal => { setDinnerToOpen(meal); navigate('meals'); }} onPlan={meal => { setDinnerToPlan(meal); navigate('meals'); }} onTask={task => { setTaskToOpen(task); navigate('tasks'); }} onAddTask={() => { setAddTask(true); navigate('tasks'); }} />;
 
   if (page === `folders`) {
     const pets = family.profiles.filter(item => item.kind === 'pet').map(item => item.name);
@@ -77,7 +82,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
 
   return <div className="household-preview">
     {[`tasks`, `expenses`, `calendar`, `children`, `wishlist`].includes(page) && <button className="text-action navigation-back" onClick={onBack}>← {backLabel}</button>}
-    {page === `shopping` ? <SharedShopping state={shopping} initialCategory={shoppingCategory} />
+    {page === `shopping` ? <SharedShopping state={shopping} initialCategory={shoppingCategory} offersStrip={<OffersStrip offers={offers} onOpen={() => navigate('offers')} />} />
       : page === `pets` ? <Pets onBack={onBack} backLabel={backLabel} key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
       : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
       : page === `recipes` ? <Recipes onBack={onBack} backLabel={backLabel} key={`${collections.userId}:${collections.household}`} state={collections} shopping={shopping} sharedRecipe={sharedRecipe} onClearSharedRecipe={onClearSharedRecipe} onSignIn={() => navigate(`shopping`)} />
@@ -91,7 +96,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
   </div>;
 }
 
-function Dashboard({ navigate, shopping, meals, tasks, collections, onShoppingCategory, onDinner, onPlan, onTask, onAddTask }: { onShoppingCategory: (category: ShoppingItem['category']) => void; navigate: (page: HouseholdPage) => void; shopping: SharedShoppingState; meals: MealPlanState; tasks: HouseholdTasksState; collections: FolderEntriesState; onDinner: (meal: MealPlanItem) => void; onPlan: (meal: MealPlanItem | { day_index: number; meal_slot: MealSlot }) => void; onTask: (task: HouseholdTask) => void; onAddTask: () => void }) {
+function Dashboard({ navigate, shopping, offers, meals, tasks, collections, onShoppingCategory, onDinner, onPlan, onTask, onAddTask }: { onShoppingCategory: (category: ShoppingItem['category']) => void; navigate: (page: HouseholdPage) => void; shopping: SharedShoppingState; offers: OffersState; meals: MealPlanState; tasks: HouseholdTasksState; collections: FolderEntriesState; onDinner: (meal: MealPlanItem) => void; onPlan: (meal: MealPlanItem | { day_index: number; meal_slot: MealSlot }) => void; onTask: (task: HouseholdTask) => void; onAddTask: () => void }) {
   const [addingShopping, setAddingShopping] = useState(false);
   const now = new Date(); const today = localDate(now); const todayIndex = (now.getDay() + 6) % 7;
   const dinner = meals.items.find(item => item.week_start === monday(now) && item.day_index === todayIndex && activeMealSlots.includes(item.meal_slot));
@@ -112,6 +117,7 @@ function Dashboard({ navigate, shopping, meals, tasks, collections, onShoppingCa
         <div className="home-card-header"><h2 id="dashboard-tasks-title"><span className="dashboard-icon"><Symbol name="plans" /></span>Upcoming tasks</h2><button className="home-view-all" onClick={() => navigate('tasks')}>View all</button></div>
         {openTasks.length ? <div className="home-task-list">{openTasks.slice(0, 2).map(task => <button className="home-task" key={task.id} onClick={() => onTask(task)}><strong>{task.title}</strong><TaskBadges task={task} /></button>)}</div> : <p className="home-empty">No open tasks.</p>}
       </section>
+      <HomeOffersCard offers={offers} onOpen={() => navigate('offers')} />
       <section className={`shopping-dashboard${active.length ? ' dashboard-active' : ''}`}><UsShopping state={shopping} onCategory={onShoppingCategory} onSignIn={() => navigate('shopping')} onAdd={openShopping} /></section>
       <section className="home-quick-actions" aria-labelledby="home-actions-title"><h2 id="home-actions-title">Quick actions</h2><div><button onClick={() => navigate('partner-notes')}><Symbol name="heart" />Love Note</button><button onClick={onAddTask}><Symbol name="plans" />Add task</button><button onClick={openShopping}><Symbol name="shopping" />Add shopping item</button><button disabled={!dinnerReady} onClick={planDinner}><Symbol name="utensils" />Plan dinner</button></div></section>
       <button className={`dashboard-card home-shortcut dinner-dashboard${dinner ? ' dashboard-active' : ''}`} disabled={!dinnerReady} onClick={() => dinner ? onDinner(dinner) : planDinner()}><span className="dashboard-icon"><Symbol name="utensils" /></span>{dinnerPhoto && <img className="home-dinner-photo" src={dinnerPhoto} alt="" referrerPolicy="no-referrer" />}<span className="home-shortcut-copy"><strong>Tonight’s dinner</strong><small>{dinner ? dinner.title : 'Plan dinner'}</small></span><span className="home-arrow" aria-hidden="true">›</span></button>

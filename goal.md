@@ -24,6 +24,7 @@ Hält unpersönlich fest, was die Nutzerin mit der App erreichen will und was da
 - Kinder- und Tierkarten können optional ein Geburtsdatum enthalten. Es wird gemeinsam angezeigt, über die Datumswahl hinzugefügt/geändert und kann wieder geleert werden.
 - Für Kinder und Tiere wird aus dem Geburtsdatum automatisch das Alter in Jahren, Monaten und Tagen angezeigt und täglich aktualisiert. Name und Geburtsdatum können unter Наш дом → Дети beziehungsweise Животные angelegt und bearbeitet werden.
 
+- Angebote (Shopping → This week’s offers): Kaufland Düren und ALDI SÜD werden montags und donnerstags automatisch gelesen; Lidl, REWE, Netto und EDEKA kommen per Prospekt-Screenshot dazu. Angebote lassen sich per Tipp auf die Einkaufsliste setzen oder als Favorit speichern; Favoriten im Angebot erscheinen oben und auf Home, optional als Push am Montagmorgen. Plan: `docs/offers-plan.md`.
 - Mobile PWA mit Home-Bildschirm-Symbol, Offline-Hinweis und sicheren Aktualisierungen.
 - Englische Oberfläche mit persönlicher Begrüßung, lokalen Notizen und einfacher Anleitung zur Weiterentwicklung. Die Sprache der Begrüßung ist davon unabhängig.
 - Lokale Notizen bleiben im aktuellen Browser. Sie sind kein gemeinsamer Datenspeicher und kein Beweis für eine Paarverbindung.
