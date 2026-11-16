@@ -129,3 +129,15 @@
 .occasion-panel-footer .primary:disabled { opacity: 1; background: #ddd7df; color: #625b66; }
 :root[data-theme="dark"] .occasion-list .collection-product-art.has-photo { background: #eee9e4; border-color: #b5aaa7; }
 :root[data-theme="dark"] .occasion-panel-footer .primary:disabled { background: #48434e; color: #c8c0cd; }
+/* The collection list and product picker share one panel, with the header always accessible. */
+.occasion-add-products { width: 100%; min-height: 44px; margin: 6px 0; padding: 8px 12px; font-size: 14px; }
+.occasion-copy-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.occasion-copy-actions button, .occasion-management summary { min-height: 44px; padding: 8px 10px; border-radius: 10px; background: #eee4f4; color: #65447b; font-size: 13px; font-weight: 700; }
+.occasion-management { margin-top: 6px; }
+.occasion-management summary { display: flex; align-items: center; cursor: pointer; list-style: none; background: transparent; }
+.occasion-management summary::after { content: '⌄'; margin-left: auto; }
+.occasion-management[open] summary::after { content: '⌃'; }
+.occasion-management .occasion-tools { margin: 0 0 6px; }
+.occasion-item input[aria-label^="Select "] { accent-color: #8051a1; }
+:root[data-theme="dark"] .occasion-copy-actions button { background: #3a3045; color: #e6d8ef; }
+:root[data-theme="dark"] .occasion-management summary { color: #d5b5f2; }

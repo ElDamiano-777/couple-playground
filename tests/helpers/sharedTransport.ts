@@ -452,7 +452,7 @@ export function transport() {
         if (!homeFor(user)) return reply({ message: `Forbidden` }, 403);
         if (method === `GET`)
           return reply(
-            rows.filter((row) => row.household_id === homeFor(user)),
+            rows.filter((row) => row.household_id === homeFor(user) && (!url.searchParams.has('bought') || row.bought === (url.searchParams.get('bought') === 'eq.true'))),
           );
         if (method === `POST`) {
           if (failSave)

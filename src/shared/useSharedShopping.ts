@@ -359,6 +359,30 @@ export function useSharedShopping() {
     });
   const addQuick = (target: ShoppingCategory) => addQuickCategories([target]);
   const addQuickAll = () => addQuickCategories([`Home`, `Pets`, `Kids`]);
+  const copyCollectionItems = (selected: (QuickItem & { category: ShoppingCategory })[]) =>
+    perform(async () => {
+      if (!household || !selected.length || !navigator.onLine) throw new Error(`Offline`);
+      const existing = await supabase.from(`shopping_items`).select(`name,category`).eq(`household_id`, household).eq(`bought`, false);
+      if (existing.error || !existing.data) throw existing.error ?? new Error(`Could not load shopping list`);
+      const active = new Set((existing.data as Pick<ShoppingItem, 'name' | 'category'>[]).map(item => itemKey(item.category, item.name)));
+      const newItems = selected.filter(item => {
+        const key = itemKey(item.category, item.name);
+        if (active.has(key)) return false;
+        active.add(key);
+        return true;
+      });
+      if (newItems.length) {
+        const result = await supabase.from(`shopping_items`).insert(newItems.map(item => ({ household_id: household, category: item.category, name: item.name.trim(), notes: item.notes.trim(), favorite_id: item.favoriteId ?? null, pet_food_id: item.petFoodId ?? null }))).select();
+        if (result.error || !result.data) throw result.error ?? new Error(`No saved items`);
+        if (currentUser.current !== userId) return;
+        ++requestVersion.current;
+        setItems(previous => [...result.data as ShoppingItem[], ...previous]);
+        setFavoritePhotos(previous => ({ ...previous, ...Object.fromEntries(newItems.filter(item => item.favoriteId).map(item => [item.favoriteId!, item.favoritePhoto ?? null])) }));
+        setPetFoodPhotos(previous => ({ ...previous, ...Object.fromEntries(newItems.filter(item => item.petFoodId).map(item => [item.petFoodId!, item.petFoodPhoto ?? null])) }));
+      }
+      const skipped = selected.length - newItems.length;
+      setNotice(`${newItems.length} ${newItems.length === 1 ? `item` : `items`} added to Shopping.${skipped ? ` ${skipped} already on the list.` : ``}`);
+    });
   const addRecipeIngredients = (ingredients: { name: string; notes: string }[]) =>
     perform(async () => {
       if (!household || !ingredients.length || !navigator.onLine) throw new Error(`Offline`);
@@ -577,6 +601,7 @@ export function useSharedShopping() {
     setQuickCustom: (target: ShoppingCategory, value: string) => setQuickCustom(previous => ({ ...previous, [target]: value })),
     addQuick,
     addQuickAll,
+    copyCollectionItems,
     addRecipeIngredients,
     addRecipeSelection,
     addPetFood,
