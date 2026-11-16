@@ -1,8 +1,8 @@
-import { expect, test } from '@playwright/test';
+import { devices, expect, test } from '@playwright/test';
 import { mainNavigation } from './navigation';
 import { pocPassword, transport } from './helpers/sharedTransport';
 
-test.use({ serviceWorkers: 'block', viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
+test.use({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, userAgent: devices['iPhone 13'].userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
 
 test('custom collection items retain details through selection, editing and copying', async ({ page, context }) => {
   const server = transport();
@@ -14,21 +14,30 @@ test('custom collection items retain details through selection, editing and copy
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
   await page.locator('.occasion-card').filter({ hasText: 'Weihnachten' }).click();
+  await expect(page.locator('body')).toHaveCSS('position', 'fixed');
+  const frozenTop = await page.locator('body').evaluate(el => el.style.top);
   const panel = page.getByRole('dialog', { name: 'Weihnachten' });
   await panel.getByRole('button', { name: '+ Add products' }).click();
   await panel.getByText('+ Add custom item', { exact: true }).click();
   await panel.getByLabel('Product name').fill('Test Item');
+  await page.evaluate(() => { Object.defineProperty(window, 'innerHeight', { value: 452, configurable: true }); const viewport = window.visualViewport!; Object.defineProperty(viewport, 'height', { value: 420, configurable: true }); Object.defineProperty(viewport, 'offsetTop', { value: 32, configurable: true }); viewport.dispatchEvent(new Event('resize')); });
+  await expect.poll(async () => (await panel.boundingBox())!.y + (await panel.boundingBox())!.height).toBeLessThanOrEqual(452);
+  const scrollBeforeWheel = await page.evaluate(() => window.scrollY);
+  await page.mouse.move(2, 200);
+  await page.mouse.wheel(0, 400);
+  expect(await page.locator('body').evaluate(el => el.style.top)).toBe(frozenTop);
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollBeforeWheel);
   await panel.getByText('More details', { exact: true }).click();
   await panel.getByLabel('Quantity', { exact: true }).fill('3');
   await panel.getByRole('combobox', { name: 'Unit', exact: true }).selectOption('bottles');
   await panel.getByLabel('Store', { exact: true }).fill('REWE');
   await panel.getByLabel('Price per unit (€)').fill('2.50');
   await panel.getByLabel('Notes', { exact: true }).fill('For the holiday');
-  await page.evaluate(() => { const viewport = window.visualViewport!; Object.defineProperty(viewport, 'height', { value: 460, configurable: true }); viewport.dispatchEvent(new Event('resize')); });
-  await expect.poll(async () => (await panel.boundingBox())!.y + (await panel.boundingBox())!.height).toBeLessThanOrEqual(460);
+  const note = panel.getByRole('textbox', { name: 'Notes', exact: true });
+  await expect.poll(async () => (await note.boundingBox())!.y + (await note.boundingBox())!.height - (await panel.locator('.occasion-panel-footer').boundingBox())!.y).toBeLessThanOrEqual(1);
   await expect(panel.getByRole('button', { name: 'Add 0 items' })).toBeInViewport();
-  await page.evaluate(() => { const viewport = window.visualViewport!; delete (viewport as unknown as { height?: number }).height; viewport.dispatchEvent(new Event('resize')); });
   await panel.getByRole('button', { name: 'Select', exact: true }).click();
+  await page.evaluate(() => { delete (window as unknown as { innerHeight?: number }).innerHeight; const viewport = window.visualViewport!; delete (viewport as unknown as { height?: number }).height; delete (viewport as unknown as { offsetTop?: number }).offsetTop; viewport.dispatchEvent(new Event('resize')); });
   const selection = panel.locator('.collection-selected-details');
   await expect(selection).toHaveAttribute('open', '');
   await expect(selection).toContainText('Test Item');
@@ -49,6 +58,7 @@ test('custom collection items retain details through selection, editing and copy
   await panel.getByRole('button', { name: 'Add 1 item' }).click();
   await expect(panel.locator('.occasion-item')).toContainText('3 bottles');
   await panel.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(page.locator('body')).not.toHaveCSS('position', 'fixed');
   await page.locator('.occasion-card').filter({ hasText: 'Weihnachten' }).click();
   await expect(panel.locator('.occasion-item')).toContainText('€2.50');
   await panel.locator('.occasion-item-copy').filter({ hasText: 'Test Item' }).click();

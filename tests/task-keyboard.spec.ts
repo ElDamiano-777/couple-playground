@@ -1,7 +1,7 @@
-import { expect, test } from '@playwright/test';
+import { devices, expect, test } from '@playwright/test';
 import { pocPassword, transport } from './helpers/sharedTransport';
 
-test.use({ serviceWorkers: 'block', viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
+test.use({ serviceWorkers: 'block', viewport: { width: 390, height: 844 }, userAgent: devices['iPhone 13'].userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
 
 test('task editor scrolls within the visible viewport when the keyboard opens', async ({ page, context }) => {
   const server = transport(); await server.attach(context);
@@ -10,6 +10,13 @@ test('task editor scrolls within the visible viewport when the keyboard opens', 
   await page.locator('.task-dashboard').getByRole('button', { name: 'View all' }).click();
   await page.getByRole('button', { name: '+ Add task' }).click();
   const editor = page.getByRole('dialog', { name: 'New task' });
+  await expect(page.locator('body')).toHaveCSS('position', 'fixed');
+  const frozenTop = await page.locator('body').evaluate(el => el.style.top);
+  const scrollBeforeWheel = await page.evaluate(() => window.scrollY);
+  await page.mouse.move(2, 200);
+  await page.mouse.wheel(0, 500);
+  expect(await page.locator('body').evaluate(el => el.style.top)).toBe(frozenTop);
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrollBeforeWheel);
   const task = editor.getByLabel('Task', { exact: true });
   await task.fill('Keyboard test');
   await page.evaluate(() => {
@@ -29,6 +36,7 @@ test('task editor scrolls within the visible viewport when the keyboard opens', 
   await save.focus();
   await expect.poll(async () => (await save.boundingBox())!.y + (await save.boundingBox())!.height).toBeLessThanOrEqual(452);
   await save.click();
+  await expect(page.locator('body')).not.toHaveCSS('position', 'fixed');
   await expect(page.locator('.task-row').filter({ hasText: 'Keyboard test' })).toContainText('Weekly');
   await page.getByRole('button', { name: '+ Add task' }).click();
   await page.evaluate(() => {
@@ -37,6 +45,6 @@ test('task editor scrolls within the visible viewport when the keyboard opens', 
     delete (window.visualViewport as unknown as { offsetTop?: number }).offsetTop;
     window.visualViewport!.dispatchEvent(new Event('resize'));
   });
-  await expect.poll(async () => (await editor.boundingBox())!.y + (await editor.boundingBox())!.height).toBeLessThanOrEqual(812);
+  await expect.poll(async () => (await editor.boundingBox())!.y + (await editor.boundingBox())!.height).toBeLessThanOrEqual(844);
   await editor.getByRole('button', { name: 'Close' }).click();
 });

@@ -161,3 +161,6 @@
 .collection-selected-copy textarea { display: block; width: 100%; }
 .occasion-item-copy small { white-space: pre-line; }
 :root[data-theme="dark"] .collection-custom-select { background: #57405f; color: #f5eaf8; }
+.occasion-overlay { grid-template-rows: minmax(0, 1fr); }
+.occasion-dialog { min-height: 0; max-height: min(85dvh, 750px, 100%); }
+.occasion-panel-overlay .occasion-list { max-height: min(680px, 100%); }
