@@ -42,7 +42,7 @@ test('shared collections keep independent purchases and survive refresh', async 
     await custom.click();
     await christmasPicker.getByLabel('Product name').fill('Holiday candles');
     await christmasPicker.getByRole('button', { name: 'Select', exact: true }).click();
-    await christmasPicker.getByText('Selected items (1)').click();
+    await christmasPicker.locator('.collection-selected-detail').filter({ hasText: 'Holiday candles' }).getByText('Edit', { exact: true }).click();
     await christmasPicker.getByLabel('Details for Holiday candles').fill('2 large, unscented');
     await christmasPicker.getByRole('button', { name: 'Browse categories' }).click();
     await christmasPicker.getByRole('button', { name: 'Browse categories' }).click();
