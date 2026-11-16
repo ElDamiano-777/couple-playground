@@ -9,3 +9,5 @@
 .task-badge.badge-low,.task-main .badge-low{background:#e1e9ee;color:#465e6b}
 .task-row{grid-template-columns:auto minmax(0,1fr) auto}
 .task-row .task-main{width:100%}
+.task-badge.badge-repeat,.task-main .badge-repeat{background:#e7e3f4;color:#5d4a77;white-space:normal}
+:root[data-theme="dark"] .task-badge.badge-repeat{background:#40344c;color:#e7d7f2}

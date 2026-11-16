@@ -4,6 +4,8 @@ import './task-badges.css';
 
 const assigneeLabel = { masha: 'Masha', damian: 'Damian', both: 'Both' };
 const priorityLabel = { high: 'High', normal: 'Normal', low: 'Low' };
+const repeatLabel = { never: '', daily: 'Daily', weekly: 'Weekly', biweekly: 'Every 2 weeks', monthly: 'Monthly', weekdays: 'Custom weekdays' };
+const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function TaskBadges({ task }: { task: HouseholdTask }) {
   const overdue = !!task.due_date && !task.completed_at && task.due_date < localDate(new Date());
@@ -12,5 +14,6 @@ export default function TaskBadges({ task }: { task: HouseholdTask }) {
     <span className="task-badge badge-assignee"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>{assigneeLabel[task.assignee]}</span>
     {due && <span className={`task-badge badge-due${overdue ? ' badge-overdue' : ''}`} aria-label={`${overdue ? 'Overdue' : 'Due'} ${due}`}><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 2v6m10-6v6M3 10h18" /></svg>{overdue ? `Overdue · ${due}` : due}</span>}
     <span className={`task-badge badge-priority badge-${task.priority}`} aria-label={`${priorityLabel[task.priority]} priority`}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 22V3m0 1c5-3 9 3 14 0v10c-5 3-9-3-14 0" /></svg>{priorityLabel[task.priority]}</span>
+    {task.repeat_rule && task.repeat_rule !== 'never' && <span className="task-badge badge-repeat"><span aria-hidden="true">↻</span>{task.repeat_rule === 'weekdays' ? (task.repeat_days ?? []).slice().sort((a, b) => (a || 7) - (b || 7)).map(day => days[day]).join(', ') : repeatLabel[task.repeat_rule]}</span>}
   </span>;
 }

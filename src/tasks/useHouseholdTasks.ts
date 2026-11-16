@@ -3,7 +3,8 @@ import { supabase } from '../shared/client';
 
 export type TaskAssignee = 'masha' | 'damian' | 'both';
 export type TaskPriority = 'low' | 'normal' | 'high';
-export type HouseholdTask = { id: string; household_id: string; title: string; assignee: TaskAssignee; due_date: string | null; priority: TaskPriority; completed_at: string | null; created_at: string };
+export type TaskRepeat = 'never' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'weekdays';
+export type HouseholdTask = { id: string; household_id: string; title: string; assignee: TaskAssignee; due_date: string | null; priority: TaskPriority; completed_at: string | null; created_at: string; notes?: string; repeat_rule?: TaskRepeat; repeat_days?: number[]; repeat_anchor?: number | null };
 const failure = 'We couldn’t update this task. Check your connection and try again.';
 export function useHouseholdTasks({ userId, household }: { userId?: string; household: string | null }) {
   const [items, setItems] = useState<HouseholdTask[]>([]); const [loading, setLoading] = useState(false); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [notice, setNotice] = useState('');
@@ -19,16 +20,16 @@ export function useHouseholdTasks({ userId, household }: { userId?: string; hous
     const channel = supabase.channel(`together-tasks-${household}`).on('postgres_changes', { event: '*', schema: 'public', table: 'household_tasks', filter: `household_id=eq.${household}` }, () => { void refresh(); }).subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [household, refresh]);
-  const save = async (draft: { id?: string; title: string; assignee: TaskAssignee; dueDate: string; priority: TaskPriority }) => {
-    if (!household || busy || !navigator.onLine || !draft.title.trim()) return false;
+  const save = async (draft: { id?: string; title: string; assignee: TaskAssignee; dueDate: string; priority: TaskPriority; notes: string; repeat: TaskRepeat; repeatDays: number[]; repeatAnchor: number | null }) => {
+    if (!household || busy || !navigator.onLine || !draft.title.trim() || (draft.repeat !== 'never' && (!draft.dueDate || (draft.repeat === 'weekdays' && !draft.repeatDays.length)))) return false;
     setBusy(true); setError(''); setNotice('');
-    try { const values = { title: draft.title.trim(), assignee: draft.assignee, due_date: draft.dueDate || null, priority: draft.priority }; const result = draft.id ? await supabase.from('household_tasks').update(values).eq('id', draft.id).eq('household_id', household).select().single() : await supabase.from('household_tasks').insert({ household_id: household, ...values }).select().single(); if (result.error || !result.data) throw result.error; const saved = result.data as HouseholdTask; setItems(previous => [saved, ...previous.filter(item => item.id !== saved.id)]); setNotice('Task saved.'); return true; }
+    try { const values = { title: draft.title.trim(), assignee: draft.assignee, due_date: draft.dueDate || null, priority: draft.priority, notes: draft.notes.trim(), repeat_rule: draft.repeat, repeat_days: draft.repeat === 'weekdays' ? draft.repeatDays : [], repeat_anchor: draft.repeat === 'monthly' ? draft.repeatAnchor : null }; const result = draft.id ? await supabase.from('household_tasks').update(values).eq('id', draft.id).eq('household_id', household).select().single() : await supabase.from('household_tasks').insert({ household_id: household, ...values }).select().single(); if (result.error || !result.data) throw result.error; const saved = result.data as HouseholdTask; setItems(previous => [saved, ...previous.filter(item => item.id !== saved.id)]); setNotice('Task saved.'); return true; }
     catch { setError(failure); return false; } finally { setBusy(false); }
   };
   const complete = async (task: HouseholdTask, completed: boolean) => {
     if (busy || !navigator.onLine) return false;
     setBusy(true); setError('');
-    try { const result = await supabase.from('household_tasks').update({ completed_at: completed ? new Date().toISOString() : null }).eq('id', task.id).eq('household_id', task.household_id).select().single(); if (result.error || !result.data) throw result.error; const saved = result.data as HouseholdTask; setItems(previous => previous.map(item => item.id === saved.id ? saved : item)); setNotice(completed ? 'Task completed.' : 'Task restored.'); return true; }
+    try { const result = await supabase.from('household_tasks').update({ completed_at: completed ? new Date().toISOString() : null }).eq('id', task.id).eq('household_id', task.household_id).select().single(); if (result.error || !result.data) throw result.error; const saved = result.data as HouseholdTask; setItems(previous => previous.map(item => item.id === saved.id ? saved : item)); if (completed && task.repeat_rule && task.repeat_rule !== 'never') await refresh(); setNotice(completed ? 'Task completed.' : 'Task restored.'); return true; }
     catch { setError(failure); return false; } finally { setBusy(false); }
   };
   const remove = async (task: HouseholdTask) => { if (busy || !navigator.onLine) return false; setBusy(true); setError(''); try { const result = await supabase.from('household_tasks').delete().eq('id', task.id).eq('household_id', task.household_id).select('id').single(); if (result.error) throw result.error; setItems(previous => previous.filter(item => item.id !== task.id)); setNotice('Task removed.'); return true; } catch { setError(failure); return false; } finally { setBusy(false); } };

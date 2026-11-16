@@ -269,7 +269,22 @@ export function transport() {
         }
         const id = url.searchParams.get(`id`)?.replace(`eq.`, ``); const row = householdTasks.find(item => item.id === id && item.household_id === household);
         if (!row) return reply({ message: `Not found` }, 404);
-        if (method === `PATCH`) { Object.assign(row, data); return reply(row); }
+        if (method === `PATCH`) {
+          const justCompleted = !row.completed_at && !!data.completed_at;
+          Object.assign(row, data);
+          if (justCompleted && row.repeat_rule && row.repeat_rule !== 'never' && !householdTasks.some(item => item.recurrence_parent_id === row.id)) {
+            const date = new Date(`${row.due_date}T00:00:00Z`);
+            if (row.repeat_rule === 'monthly') {
+              const anchor = row.repeat_anchor || date.getUTCDate();
+              date.setUTCDate(1); date.setUTCMonth(date.getUTCMonth() + 1);
+              date.setUTCDate(Math.min(anchor, new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)).getUTCDate()));
+            } else if (row.repeat_rule === 'weekdays') {
+              do { date.setUTCDate(date.getUTCDate() + 1); } while (!row.repeat_days.includes(date.getUTCDay()));
+            } else date.setUTCDate(date.getUTCDate() + (row.repeat_rule === 'daily' ? 1 : row.repeat_rule === 'weekly' ? 7 : 14));
+            householdTasks.push({ ...row, id: crypto.randomUUID(), due_date: date.toISOString().slice(0, 10), completed_at: null, recurrence_parent_id: row.id, created_by: user, created_at: new Date().toISOString() });
+          }
+          return reply(row);
+        }
         if (method === `DELETE`) { householdTasks = householdTasks.filter(item => item !== row); return reply({ id }); }
       }
       if (url.pathname === `/rest/v1/shared_love_notes`) {

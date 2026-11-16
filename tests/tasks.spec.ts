@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mainNavigation, openShopping } from './navigation';
+import { mainNavigation } from './navigation';
 import { pocPassword, transport } from './helpers/sharedTransport';
 
 test.use({ serviceWorkers: 'block' });
@@ -8,14 +8,14 @@ test('shared tasks support assignment, due date, completion and restore on iPhon
   const server = transport(); await server.attach(context);
   await page.goto('./'); await page.getByRole('button', { name: 'Masha', exact: true }).click();
   await page.getByLabel('Password', { exact: true }).fill(pocPassword); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await openShopping(page); await page.getByRole('button', { name: 'Tasks', exact: true }).click();
+  await page.locator('.task-dashboard').getByRole('button', { name: 'View all' }).click();
   await page.getByRole('button', { name: '+ Add task', exact: true }).click();
   const editor = page.getByRole('dialog', { name: 'New task' });
   await editor.locator('input').first().fill('Synthetic laundry'); await editor.locator('select').nth(0).selectOption('damian'); await editor.locator('input[type="date"]').fill('2026-11-12'); await editor.locator('select').nth(1).selectOption('high');
   await page.getByRole('button', { name: 'Save task', exact: true }).click();
   const task = page.locator('.task-row').filter({ hasText: 'Synthetic laundry' });
   await expect(task.locator('.badge-assignee')).toHaveText('Damian'); await expect(task.locator('.badge-due')).toHaveAttribute('aria-label', /Due|Overdue/);
-  await page.getByRole('button', { name: 'Assigned to Partner', exact: true }).click(); await expect(page.getByText('Synthetic laundry', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /^Damian/ }).click(); await expect(page.getByText('Synthetic laundry', { exact: true })).toBeVisible();
   await page.getByLabel('Complete Synthetic laundry').click(); await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Undo', exact: true }).click(); await expect(page.getByLabel('Complete Synthetic laundry')).toBeVisible();
   await mainNavigation(page).getByRole('button', { name: 'Home', exact: true }).click(); await expect(page.getByRole('heading', { name: 'Upcoming tasks' })).toBeVisible(); await expect(page.getByText('Synthetic laundry', { exact: true })).toBeVisible();
@@ -109,7 +109,7 @@ test('task badges show English dates, priorities and overdue state on narrow pho
     await expect(undated.locator('.badge-normal')).toHaveText('Normal');
     const colors = await page.locator('.task-row .badge-priority').evaluateAll(badges => badges.map(badge => getComputedStyle(badge).backgroundColor));
     expect(new Set(colors).size).toBe(3);
-    await page.getByRole('button', { name: 'Completed', exact: true }).click();
+    await page.getByRole('button', { name: /^Completed/ }).click();
     const completed = page.locator('.task-row').filter({ hasText: 'Completed task' });
     await expect(completed.locator('.badge-due')).toHaveText('20 Mar');
     await expect(completed.locator('.badge-overdue')).toHaveCount(0);

@@ -1,0 +1,23 @@
+.household-preview:has(.tasks-page) { padding-top: 4px; }
+.tasks-page { padding-top: 2px; }
+.tasks-page .eyebrow { margin-bottom: 6px; }
+.tasks-lead { margin: 7px 0 12px; }
+.tasks-actions { gap: 8px; margin-bottom: 12px; }
+.task-filters { gap: 4px; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+.task-filters button { min-height: 40px; padding: 6px 9px; font-size: 12px; }
+.task-filters button span { margin-left: 3px; font-size: 11px; opacity: .8; }
+.task-overlay { z-index: 60; padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)); }
+.task-editor { display: grid; gap: 8px; width: min(560px, 100%); max-height: 100%; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 16px; border-radius: 20px; }
+.task-editor :is(input, select, textarea, button) { scroll-margin-block: 16px 24px; }
+.task-editor textarea { width: 100%; min-height: 70px; padding: 10px 12px; border: 1px solid #cfabe4; border-radius: 12px; background: #fff; color: #33283c; font: inherit; font-size: 16px; }
+.task-weekdays { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 0; padding: 0; border: 0; }
+.task-weekdays legend { margin-bottom: 4px; font-size: 13px; font-weight: 700; }
+.task-editor .task-weekdays label { display: inline-flex; align-items: center; gap: 5px; min-height: 40px; }
+.task-editor .task-weekdays input { width: 20px; min-height: 20px; height: 20px; padding: 0; accent-color: #8040be; }
+.task-repeat-help { margin: 0; font-size: 12px; line-height: 1.4; }
+:root[data-theme="dark"] .task-editor textarea { border-color: var(--dark-border); background: var(--dark-card); color: var(--dark-text); }
+:root[data-theme="dark"] .task-main .badge-high { background: #523532; color: #ffd0c5; }
+:root[data-theme="dark"] .task-main .badge-normal { background: #40344c; color: #e7d7f2; }
+:root[data-theme="dark"] .task-main .badge-low { background: #303e47; color: #c9dce8; }
+.task-main .badge-repeat > span { display: inline; margin: 0; font-size: 14px; }
+@media (max-width: 760px) { .task-editor { padding: 16px; border-radius: 20px; } }
