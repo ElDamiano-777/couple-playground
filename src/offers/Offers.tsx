@@ -9,10 +9,13 @@ import './offers.css';
 const stores: StoreId[] = [...automaticStores, ...screenshotStores];
 const pageSize = 40;
 
+// "Sat 21.11." – English weekday, German day.month like the brochures.
 function shortDate(iso: string) {
   const date = new Date(`${iso}T12:00:00`);
-  return date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace(',', '');
+  return `${date.toLocaleDateString('en-GB', { weekday: 'short' })} ${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.`;
 }
+// Kaufland writes "1 kg = 1.66"; show German decimals like the prices.
+const germanDecimals = (text: string) => text.replace(/(\d)\.(\d{2})(?!\d)/g, '$1,$2');
 export function validity(offer: Pick<Offer, 'valid_from' | 'valid_to'>, today = offerWeek().today) {
   return offer.valid_from > today ? `from ${shortDate(offer.valid_from)}` : `until ${shortDate(offer.valid_to)}`;
 }
@@ -32,7 +35,7 @@ function OfferCard({ offer, offers, shopping, match }: { offer: Offer; offers: O
       {match && <span className="offer-match-label">{match.confidence === 'sure' ? 'Your favorite' : 'Might match'} · {match.favorite.name}</span>}
       <strong>{offer.title}</strong>
       <small>{[offer.brand, offer.quantity_text].filter(Boolean).join(' · ')}</small>
-      <small className="offer-meta"><span className="offer-store" data-store={offer.store}>{storeNames[offer.store]}</span> {validity(offer)}{offer.base_price_text ? ` · ${offer.base_price_text}` : ''}</small>
+      <small className="offer-meta"><span className="offer-store" data-store={offer.store}>{storeNames[offer.store]}</span> {validity(offer)}{offer.base_price_text ? ` · ${germanDecimals(offer.base_price_text)}` : ''}</small>
     </div>
     <div className="offer-side">
       <strong className="offer-price">{euro(offer.price_cents)}</strong>
