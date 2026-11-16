@@ -6,13 +6,12 @@ import { occasions, useShoppingCollections, type Collection, type CollectionItem
 import './shopping-collections.css';
 
 const icons: Record<string, string> = { heart: '♥', star: '★', gift: '🎁', home: '⌂', pet: '🐾' };
-const descriptions: Record<string, string> = { party: 'Snacks & party supplies', daily: 'Everyday staples', movie: 'Snacks & drinks', weekend: 'Breakfast & treats' };
 
 export default function ShoppingCollections({ state }: { state: SharedShoppingState }) {
   const data = useShoppingCollections(state.session?.user.id, state.household);
   const [active, setActive] = useState<Collection | null>(null);
   const [pickerFooter, setPickerFooter] = useState<HTMLDivElement | null>(null);
-  const [editor, setEditor] = useState<{ id?: string; name: string; icon: string; color: string } | null>(null);
+  const [editor, setEditor] = useState<{ id?: string; name: string; icon: string; color: string; event_date: string } | null>(null);
   const [editingItem, setEditingItem] = useState<{ item: CollectionItem; name: string; notes: string } | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [keyboardBounds, setKeyboardBounds] = useState<{ top: number; bottom: number } | null>(null);
@@ -27,30 +26,30 @@ export default function ShoppingCollections({ state }: { state: SharedShoppingSt
     return () => { viewport.removeEventListener('resize', update); viewport.removeEventListener('scroll', update); };
   }, []);
   const custom = data.collections.filter(row => row.archived === showArchived);
+  const recovered = showArchived ? [] : occasions.filter(row => data.items.some(item => item.builtin_key === row.builtin));
   const selected = active ? data.items.filter(item => active.builtin ? item.builtin_key === active.builtin : item.collection_id === active.id) : [];
   const count = (c: Collection) => data.items.filter(item => c.builtin ? item.builtin_key === c.builtin : item.collection_id === c.id);
   function save(event: FormEvent) {
     event.preventDefault();
     if (!editor?.name.trim()) return;
-    void data.saveCollection({ name: editor.name.trim(), icon: editor.icon, color: editor.color }, editor.id).then(ok => { if (ok) setEditor(null); });
+    const previousDate = data.collections.find(collection => collection.id === editor.id)?.event_date;
+    void data.saveCollection({ name: editor.name.trim(), icon: editor.icon, color: editor.color, ...(editor.event_date || previousDate ? { event_date: editor.event_date || null } : {}) }, editor.id).then(ok => { if (ok) setEditor(null); });
   }
   function card(c: Collection) {
     const entries = count(c), remaining = entries.filter(item => !item.bought).length;
-    return <button className="occasion-card" data-color={c.color} key={c.id} onClick={() => setActive(c)}><span className="occasion-icon" aria-hidden="true">{c.builtin ? c.icon : icons[c.icon]}</span><span className="occasion-copy"><strong>{c.name}</strong><small>{c.builtin ? descriptions[c.id] : `${remaining} remaining · ${entries.length - remaining} purchased`}</small></span><span className="occasion-count">{remaining}</span></button>;
+    return <button className="occasion-card" data-color={c.color} key={c.id} onClick={() => setActive(c)}><span className="occasion-icon" aria-hidden="true">{c.builtin ? c.icon : icons[c.icon]}</span><span className="occasion-copy"><strong>{c.name}</strong><small>{remaining} remaining · {entries.length - remaining} purchased{c.event_date ? ` · ${new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${c.event_date}T00:00:00Z`))}` : ''}</small></span><span className="occasion-count">{remaining}</span></button>;
   }
   return <section className="shopping-collections" aria-label="Shopping collections">
-    <div className="occasion-heading"><h2>Shop by occasion</h2></div>
-    <div className="occasion-grid">{occasions.map(card)}</div>
-    <div className="occasion-heading"><h2>Your collections</h2><button type="button" onClick={() => setEditor({ name: '', icon: 'heart', color: 'purple' })}>+ New Collection</button></div>
-    <div className="occasion-grid">{custom.map(card)}</div>
-    {!custom.length && (showArchived ? <p className="occasion-empty">No archived collections.</p> : <button type="button" className="occasion-empty-invite" onClick={() => setEditor({ name: '', icon: 'heart', color: 'purple' })}><span aria-hidden="true">✦</span><span><strong>Make it yours</strong><small>Create a list for something special</small></span><span aria-hidden="true">＋</span></button>)}
+    <div className="occasion-heading"><h2>Our Collections</h2><button type="button" onClick={() => setEditor({ name: '', icon: 'heart', color: 'purple', event_date: '' })}>+ New Collection</button></div>
+    <div className="occasion-grid">{[...custom, ...recovered].map(card)}</div>
+    {!custom.length && !recovered.length && (showArchived ? <p className="occasion-empty">No archived collections.</p> : <button type="button" className="occasion-empty-invite" onClick={() => setEditor({ name: '', icon: 'heart', color: 'purple', event_date: '' })}><span aria-hidden="true">✦</span><span><strong>Make it yours</strong><small>Create a list for something special</small></span><span aria-hidden="true">＋</span></button>)}
     {(showArchived || data.collections.some(c => c.archived)) && <button className="occasion-archive-toggle" onClick={() => setShowArchived(!showArchived)}>{showArchived ? 'Show active collections' : 'Show archived collections'}</button>}
     {data.error && <p className="feedback error-message" role="alert">{data.error}</p>}
-    {editor && <div className="occasion-overlay" style={keyboardBounds ?? undefined}><form className="occasion-dialog" role="dialog" aria-modal="true" aria-label={editor.id ? 'Edit collection' : 'New collection'} onSubmit={save}><h2>{editor.id ? 'Edit collection' : 'New collection'}</h2><label htmlFor="occasion-name">Collection name</label><input id="occasion-name" value={editor.name} maxLength={100} required onChange={e => setEditor({ ...editor, name: e.target.value })} /><label htmlFor="occasion-icon">Icon</label><select id="occasion-icon" value={editor.icon} onChange={e => setEditor({ ...editor, icon: e.target.value })}>{Object.entries(icons).map(([key, icon]) => <option key={key} value={key}>{icon} {key}</option>)}</select><label htmlFor="occasion-color">Color</label><select id="occasion-color" value={editor.color} onChange={e => setEditor({ ...editor, color: e.target.value })}>{['purple', 'mint', 'peach', 'pink', 'blue'].map(color => <option key={color} value={color}>{color[0].toUpperCase() + color.slice(1)}</option>)}</select><div className="occasion-actions"><button className="primary" disabled={data.busy || !editor.name.trim()}>Save</button><button type="button" onClick={() => setEditor(null)}>Cancel</button></div></form></div>}
+    {editor && <div className="occasion-overlay" style={keyboardBounds ?? undefined}><form className="occasion-dialog" role="dialog" aria-modal="true" aria-label={editor.id ? 'Edit collection' : 'New collection'} onSubmit={save}><h2>{editor.id ? 'Edit collection' : 'New collection'}</h2><label htmlFor="occasion-name">Collection name</label><input id="occasion-name" value={editor.name} maxLength={100} required onChange={e => setEditor({ ...editor, name: e.target.value })} /><label htmlFor="occasion-icon">Icon</label><select id="occasion-icon" value={editor.icon} onChange={e => setEditor({ ...editor, icon: e.target.value })}>{Object.entries(icons).map(([key, icon]) => <option key={key} value={key}>{icon} {key}</option>)}</select><label htmlFor="occasion-color">Color</label><select id="occasion-color" value={editor.color} onChange={e => setEditor({ ...editor, color: e.target.value })}>{['purple', 'mint', 'peach', 'pink', 'blue'].map(color => <option key={color} value={color}>{color[0].toUpperCase() + color.slice(1)}</option>)}</select><label htmlFor="occasion-date">Date (optional)</label><input id="occasion-date" type="date" value={editor.event_date} onChange={e => setEditor({ ...editor, event_date: e.target.value })} /><div className="occasion-actions"><button className="primary" disabled={data.busy || !editor.name.trim()}>Save</button><button type="button" onClick={() => setEditor(null)}>Cancel</button></div></form></div>}
     {active && <div className="occasion-overlay occasion-panel-overlay" style={keyboardBounds ?? undefined}><section className="occasion-dialog occasion-list" data-color={active.color} role="dialog" aria-modal="true" aria-label={active.name}>
       <div className="occasion-panel-header"><div className="occasion-title"><span className="occasion-title-icon" data-color={active.color} aria-hidden="true">{active.builtin ? active.icon : icons[active.icon]}</span><h2>{active.name}</h2><button onClick={() => setActive(null)}>Close</button></div>
       <div className="occasion-panel-summary"><p>{selected.filter(item => !item.bought).length} remaining · {selected.filter(item => item.bought).length} purchased</p></div></div>
-      {!active.builtin && <div className="occasion-tools"><button onClick={() => { setEditor({ id: active.id, name: active.name, icon: active.icon, color: active.color }); setActive(null); }}>Edit</button><button onClick={() => { if (active.archived || window.confirm(`Archive “${active.name}”? Its items will be kept.`)) void data.archive(active).then(ok => { if (ok) setActive(null); }); }}>{active.archived ? 'Unarchive' : 'Archive'}</button><button onClick={() => { if (window.confirm('Delete this collection and its own items? Your main shopping list will stay unchanged.')) void data.removeCollection(active).then(ok => { if (ok) setActive(null); }); }}>Delete</button></div>}
+      {!active.builtin && <div className="occasion-tools"><button onClick={() => { setEditor({ id: active.id, name: active.name, icon: active.icon, color: active.color, event_date: active.event_date ?? '' }); setActive(null); }}>Edit</button><button onClick={() => { if (active.archived || window.confirm(`Archive “${active.name}”? Its items will be kept.`)) void data.archive(active).then(ok => { if (ok) setActive(null); }); }}>{active.archived ? 'Unarchive' : 'Archive'}</button><button onClick={() => { if (window.confirm('Delete this collection and its own items? Your main shopping list will stay unchanged.')) void data.removeCollection(active).then(ok => { if (ok) setActive(null); }); }}>Delete</button></div>}
       {!selected.length && <p className="occasion-panel-empty">No items yet. Choose products to get started.</p>}
       <CollectionPicker key={active.id} builtin={active.builtin} state={state} busy={data.busy} error={data.error} footer={pickerFooter} onAdd={items => data.addItems(active, items)} />
 

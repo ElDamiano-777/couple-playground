@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from './client';
 import type { QuickItem, ShoppingItem } from './useSharedShopping';
 
-export type Collection = { id: string; name: string; icon: string; color: string; archived: boolean; builtin?: string };
+export type Collection = { id: string; name: string; icon: string; color: string; archived: boolean; event_date?: string | null; builtin?: string };
 export type CollectionItem = { id: string; collection_id: string | null; builtin_key: string | null; name: string; category: ShoppingItem['category']; notes: string; bought: boolean; favorite_id: string | null; pet_food_id: string | null };
 export const occasions: Collection[] = [
   { id: 'party', builtin: 'party', name: 'Party Time', icon: '🎉', color: 'pink', archived: false },
@@ -47,7 +47,7 @@ export function useShoppingCollections(userId: string | undefined, household: st
     catch { if (current.current === scope) setError('Could not save collection changes. Please try again.'); return false; }
     finally { if (current.current === scope) { mutationPending.current = false; setBusy(false); } }
   }
-  const saveCollection = (draft: Pick<Collection, 'name' | 'icon' | 'color'>, id?: string) => run(() => id ? supabase.from('shopping_collections').update(draft).eq('id', id).eq('household_id', household!) : supabase.from('shopping_collections').insert({ ...draft, household_id: household! }));
+  const saveCollection = (draft: Pick<Collection, 'name' | 'icon' | 'color' | 'event_date'>, id?: string) => run(() => id ? supabase.from('shopping_collections').update(draft).eq('id', id).eq('household_id', household!) : supabase.from('shopping_collections').insert({ ...draft, household_id: household! }));
   const archive = (collection: Collection) => run(() => supabase.from('shopping_collections').update({ archived: !collection.archived }).eq('id', collection.id).eq('household_id', household!));
   const removeCollection = (collection: Collection) => run(() => supabase.from('shopping_collections').delete().eq('id', collection.id).eq('household_id', household!));
   const addItems = (collection: Collection, selected: (QuickItem & { category: ShoppingItem['category'] })[]) => run(() => supabase.from('shopping_collection_items').insert(selected.map(item => ({ household_id: household!, collection_id: collection.builtin ? null : collection.id, builtin_key: collection.builtin ?? null, name: item.name.trim(), category: item.category, notes: item.notes.trim(), favorite_id: item.favoriteId ?? null, pet_food_id: item.petFoodId ?? null }))));

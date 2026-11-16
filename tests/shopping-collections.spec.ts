@@ -10,6 +10,7 @@ async function login(page: Page, name: 'Masha' | 'Damian') {
 }
 test('shared collections keep independent purchases and survive refresh', async ({ browser }) => {
   const server = transport(); server.seedShopping('Existing milk', '', false, 'Home');
+  server.seedOccasionItem('movie', 'Existing popcorn');
   server.seedFavorite('Favorite cocoa', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO5X0QAAAABJRU5ErkJggg==');
   const a = await browser.newContext({ viewport: { width: 375, height: 812 }, serviceWorkers: 'block' });
   const b = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
@@ -17,18 +18,13 @@ test('shared collections keep independent purchases and survive refresh', async 
   const first = await a.newPage(), second = await b.newPage();
   try {
     await login(first, 'Masha');
-    await expect(first.getByRole('heading', { name: 'Shop by occasion' })).toBeVisible();
+    await expect(first.getByRole('heading', { name: 'Our Collections' })).toBeVisible();
+    await expect(first.getByRole('heading', { name: 'Shop by occasion' })).toHaveCount(0);
     await expect(first.getByRole('heading', { name: /Shopping list/ })).toBeVisible();
-    const colors = await first.locator('.occasion-grid').first().locator('.occasion-card').evaluateAll(cards => cards.map(card => getComputedStyle(card).backgroundColor));
-    expect(new Set(colors).size).toBe(4);
-    await expect(first.getByRole('button', { name: /Make it yours/ })).toBeVisible();
-    if (process.env.TOGETHER_SCREENSHOTS) await first.screenshot({ path: `${process.env.TOGETHER_SCREENSHOTS}/occasions.png` });
-    for (const name of ['Party Time', 'Daily Groceries', 'Movie Night', 'Cozy Weekend']) await expect(first.locator('.occasion-card').filter({ hasText: name })).toBeVisible();
+    for (const name of ['Party Time', 'Daily Groceries', 'Cozy Weekend']) await expect(first.locator('.occasion-card').filter({ hasText: name })).toHaveCount(0);
     await first.locator('.occasion-card').filter({ hasText: 'Movie Night' }).click();
     const movie = first.getByRole('dialog', { name: 'Movie Night' });
-    await movie.locator('.collection-group-toggle').filter({ hasText: 'Popcorn' }).click();
-    await movie.locator('.collection-product-tile').getByText('Popcorn', { exact: true }).click();
-    await movie.getByRole('button', { name: 'Add 1 item' }).click();
+    await expect(movie).toContainText('Existing popcorn');
     await expect(movie).toContainText('1 remaining');
     await first.getByRole('dialog', { name: 'Movie Night' }).getByRole('button', { name: 'Close' }).click();
     await first.getByRole('button', { name: '+ New Collection' }).click();
@@ -38,7 +34,16 @@ test('shared collections keep independent purchases and survive refresh', async 
     await first.evaluate(() => { const viewport = window.visualViewport!; delete (viewport as unknown as { height?: number }).height; viewport.dispatchEvent(new Event('resize')); });
     await editor.getByLabel('Collection name').fill('Birthday');
     await editor.getByLabel('Icon').selectOption('gift'); await editor.getByLabel('Color').selectOption('pink');
+    await editor.getByLabel('Date (optional)').fill('2027-05-20');
     await editor.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(first.locator('.occasion-card').filter({ hasText: 'Birthday' })).toContainText('20 May 2027');
+    await first.getByRole('button', { name: '+ New Collection' }).click();
+    const secondEditor = first.getByRole('dialog', { name: 'New collection' });
+    await secondEditor.getByLabel('Collection name').fill('Weekend');
+    await secondEditor.getByRole('button', { name: 'Save', exact: true }).click();
+    await first.locator('.occasion-card').filter({ hasText: 'Weekend' }).click();
+    await expect(first.getByRole('dialog', { name: 'Weekend' })).toContainText('0 remaining · 0 purchased');
+    await first.getByRole('dialog', { name: 'Weekend' }).getByRole('button', { name: 'Close' }).click();
     await first.locator('.occasion-card').filter({ hasText: 'Birthday' }).click();
     const collection = first.getByRole('dialog', { name: 'Birthday' });
     await expect(collection).toContainText('No items yet');
