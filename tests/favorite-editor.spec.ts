@@ -63,9 +63,44 @@ test('photo picker saves a recognized product image with the favorite', async ({
   await page.getByLabel('Product photo (optional)').setInputFiles({ name: 'product.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64') });
   await expect(page.getByAltText('Product photo preview')).toHaveAttribute('src', photoUrl, { timeout: 20000 });
   await expect(page.getByLabel('Product name')).toHaveValue('Photo cereal');
+  const savedRequest = page.waitForRequest(request => request.url().includes('/rest/v1/shopping_favorites') && request.method() === 'POST');
   await page.getByRole('button', { name: 'Save favorite' }).click();
+  expect((await savedRequest).postDataJSON()).toMatchObject({ name: 'Photo cereal', brand: 'Example', quantity: '1 kg', photo: photoUrl });
   await expect(page.locator('.favorite-card').filter({ hasText: 'Photo cereal' }).locator('img')).toHaveAttribute('src', photoUrl);
   await page.reload(); await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
   await page.getByRole('button', { name: '+ Quick Add Item' }).click();
   await expect(page.locator('.favorite-card').filter({ hasText: 'Photo cereal' }).locator('img')).toHaveAttribute('src', photoUrl);
+});
+
+test('a scanned barcode saves its product and photo with one tap', async ({ page, context }) => {
+  const server = transport(); await server.attach(context);
+  const photoUrl = 'https://images.openfoodfacts.org/images/products/590/front.jpg';
+  await page.route('https://world.openfoodfacts.org/**', route => route.fulfill({ json: { status: 1, product: { product_name: 'Scanned cereal', brands: 'Example', quantity: '1 kg', image_front_url: photoUrl } } }));
+  await page.route('https://images.openfoodfacts.org/**', route => route.fulfill({ path: 'public/icons/icon-192.png', contentType: 'image/png' }));
+  const digits = '5901234123457';
+  const left = ['0001101', '0011001', '0010011', '0111101', '0100011', '0110001', '0101111', '0111011', '0110111', '0001011'];
+  const even = ['0100111', '0110011', '0011011', '0100001', '0011101', '0111001', '0000101', '0010001', '0001001', '0010111'];
+  const parity = 'LGGLLG';
+  const bars = '101' + [...digits.slice(1, 7)].map((digit, index) => (parity[index] === 'L' ? left : even)[Number(digit)]).join('') + '01010' + [...digits.slice(7)].map(digit => [...left[Number(digit)]].map(bit => bit === '0' ? '1' : '0').join('')).join('') + '101';
+  const width = 600, height = 300;
+  const bits = Array.from({ length: width * height }, (_, i) => { const x = i % width; const bar = Math.floor((x - 62) / 5); return bar >= 0 && bar < bars.length && bars[bar] === '1' ? 1 : 0; });
+  await page.addInitScript(({ pixels, width, height }) => {
+    Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: async () => {
+      const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+      const context = canvas.getContext('2d')!; context.fillStyle = 'white'; context.fillRect(0, 0, width, height); context.fillStyle = 'black';
+      for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) if (pixels[y * width + x]) context.fillRect(x, y, 1, 1);
+      return canvas.captureStream(10);
+    } });
+  }, { pixels: bits, width, height });
+  await openEditor(page);
+  await page.locator('.favorite-editor').getByRole('button', { name: 'Scan barcode' }).click();
+  await expect(page.getByLabel('Product name')).toHaveValue('Scanned cereal', { timeout: 15000 });
+  await expect(page.getByAltText('Product photo preview')).toHaveAttribute('src', photoUrl);
+  const request = page.waitForRequest(request => request.url().includes('/rest/v1/shopping_favorites') && request.method() === 'POST');
+  await page.getByRole('button', { name: 'Save favorite' }).click();
+  expect((await request).postDataJSON()).toMatchObject({ name: 'Scanned cereal', brand: 'Example', quantity: '1 kg', photo: photoUrl });
+  await expect(page.locator('.favorite-card').filter({ hasText: 'Scanned cereal' }).locator('img')).toHaveAttribute('src', photoUrl);
+  await page.reload(); await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
+  await page.getByRole('button', { name: '+ Quick Add Item' }).click();
+  await expect(page.locator('.favorite-card').filter({ hasText: 'Scanned cereal' }).locator('img')).toHaveAttribute('src', photoUrl);
 });

@@ -134,3 +134,30 @@ delete from public.shopping_favorites where id = :'favorite';
 do $$ begin
   if not exists(select 1 from public.shopping_items where id = current_setting('test.linked_item')::uuid and favorite_id is null and name = 'Renamed tea') then raise exception 'Favorite deletion changed shopping item'; end if;
 end $$;
+-- Reproduce the scanner failure, then verify the fix preserves existing photos and access rules.
+insert into public.shopping_favorites(household_id, category, name, photo) values(public.current_household(), 'Home', 'Existing photo', 'data:image/jpeg;base64,YQ==') returning id as existing_photo \gset
+do $$ begin
+  begin
+    insert into public.shopping_favorites(household_id, category, name, photo) values(public.current_household(), 'Home', 'Scanned product', 'https://images.openfoodfacts.org/images/products/590/front.jpg');
+    raise exception 'Expected the old photo constraint to reject a barcode image URL';
+  exception when check_violation then null; end;
+end $$;
+reset role;
+\ir ../migrations/20261117010000_favorite_barcode_photos.sql
+set role authenticated;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000001', false);
+insert into public.shopping_favorites(household_id, category, name, brand, quantity, photo) values(public.current_household(), 'Home', 'Scanned product', 'Example', '1 kg', 'https://images.openfoodfacts.org/images/products/590/front.jpg') returning id as barcode_favorite \gset
+select set_config('test.barcode_favorite', :'barcode_favorite', false);
+select set_config('test.existing_photo', :'existing_photo', false);
+do $$ begin
+  if not exists(select 1 from public.shopping_favorites where id = current_setting('test.existing_photo')::uuid and photo = 'data:image/jpeg;base64,YQ==') then raise exception 'Existing photo changed'; end if;
+  begin insert into public.shopping_favorites(household_id, category, name, photo) values(public.current_household(), 'Home', 'Unsafe photo', 'https://images.openfoodfacts.org.attacker.test/front.jpg'); raise exception 'Unsafe photo accepted'; exception when check_violation then null; end;
+  begin insert into public.shopping_favorites(household_id, category, name, photo) values(public.current_household(), 'Home', 'Insecure photo', 'http://images.openfoodfacts.org/front.jpg'); raise exception 'Insecure photo accepted'; exception when check_violation then null; end;
+  begin insert into public.shopping_favorites(household_id, category, name, brand, photo) values(public.current_household(), 'Home', 'Scanned product', 'Example', 'https://images.openfoodfacts.org/front.jpg'); raise exception 'Duplicate accepted'; exception when unique_violation then null; end;
+end $$;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000002', false);
+do $$ begin
+  if not exists(select 1 from public.shopping_favorites where id = current_setting('test.barcode_favorite')::uuid and name = 'Scanned product' and brand = 'Example' and quantity = '1 kg' and photo = 'https://images.openfoodfacts.org/images/products/590/front.jpg') then raise exception 'Partner cannot read scanned favorite'; end if;
+end $$;
+select set_config('request.jwt.claim.sub', '40000000-0000-4000-8000-000000000003', false);
+do $$ begin if exists(select 1 from public.shopping_favorites where id = current_setting('test.barcode_favorite')::uuid) then raise exception 'Foreign household can read scanned favorite'; end if; end $$;

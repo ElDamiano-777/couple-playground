@@ -412,8 +412,10 @@ export function transport() {
           return reply(favorites.filter(row => row.household_id === household && (!selectedCategory || row.category === selectedCategory) && (!selectedIds || selectedIds.includes(row.id))));
         }
         const key = (item: any) => [item.category, item.name, item.brand, item.flavor, item.size].map(value => String(value ?? '').trim().toLowerCase()).join('|');
+        const validPhoto = (photo: unknown) => photo == null || (typeof photo === 'string' && photo.length <= 1400000 && (/^data:image\/(jpeg|png|webp);base64,/.test(photo) || /^https:\/\/([a-z0-9-]+\.)*openfoodfacts\.org(?::[0-9]{1,5})?\/[^\s]*$/i.test(photo)));
         if (method === `POST`) {
           if (data.household_id !== household) return reply({ message: `Forbidden` }, 403);
+          if (!validPhoto(data.photo)) return reply({ code: '23514', message: 'Invalid photo' }, 400);
           if (favorites.some(item => item.household_id === household && key(item) === key(data))) return reply({ code: `23505`, message: `Duplicate` }, 409);
           const row = { flavor: '', size: '', ...data, id: crypto.randomUUID(), created_at: new Date().toISOString(), created_by: user };
           favorites.push(row); return reply(row, 201);
@@ -423,6 +425,7 @@ export function transport() {
         if (!row) return reply({ message: `Not found` }, 404);
         if (method === `PATCH`) {
           const next = { ...row, ...data };
+          if (!validPhoto(next.photo)) return reply({ code: '23514', message: 'Invalid photo' }, 400);
           if (key(next) !== key(row) && favorites.some(item => item.id !== id && item.household_id === household && key(item) === key(next))) return reply({ code: `23505`, message: `Duplicate` }, 409);
           Object.assign(row, data); return reply(row);
         }

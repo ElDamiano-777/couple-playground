@@ -40,7 +40,7 @@ function productPhoto(product: Record<string, unknown>) {
   const candidate = typeof product.image_front_url === 'string' ? product.image_front_url : typeof product.image_url === 'string' ? product.image_url : '';
   try {
     const url = new URL(candidate);
-    return url.protocol === 'https:' && url.hostname.endsWith('openfoodfacts.org') ? url.href : null;
+    return url.protocol === 'https:' && !url.username && !url.password && (url.hostname === 'openfoodfacts.org' || url.hostname.endsWith('.openfoodfacts.org')) ? url.href : null;
   } catch { return null; }
 }
 
