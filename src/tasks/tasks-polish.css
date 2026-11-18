@@ -9,6 +9,7 @@
 .task-overlay { z-index: 60; grid-template-rows: minmax(0, 1fr); padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)); }
 .task-editor { display: grid; align-self: end; gap: 8px; width: min(560px, 100%); min-height: 0; max-height: 100%; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 16px; border-radius: 20px; }
 .task-editor :is(input, select, textarea, button) { scroll-margin-block: 16px 24px; }
+.task-editor > button.primary:last-child { position: sticky; bottom: -16px; z-index: 2; }
 .task-editor textarea { width: 100%; min-height: 70px; padding: 10px 12px; border: 1px solid #cfabe4; border-radius: 12px; background: #fff; color: #33283c; font: inherit; font-size: 16px; }
 .task-weekdays { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 0; padding: 0; border: 0; }
 .task-weekdays legend { margin-bottom: 4px; font-size: 13px; font-weight: 700; }

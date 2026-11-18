@@ -10,6 +10,7 @@ test('task editor scrolls within the visible viewport when the keyboard opens', 
   await page.locator('.task-dashboard').getByRole('button', { name: 'View all' }).click();
   await page.getByRole('button', { name: '+ Add task' }).click();
   const editor = page.getByRole('dialog', { name: 'New task' });
+  await expect(page.locator('.bottom-nav')).toBeHidden();
   await expect(page.locator('body')).toHaveCSS('position', 'fixed');
   const app = page.locator('.page-scroll');
   const appScroll = await app.evaluate(el => el.scrollTop);
@@ -30,16 +31,18 @@ test('task editor scrolls within the visible viewport when the keyboard opens', 
   });
   await expect.poll(async () => (await editor.boundingBox())!.y + (await editor.boundingBox())!.height).toBeLessThanOrEqual(452);
   expect(await editor.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+  const save = editor.getByRole('button', { name: 'Save task' });
+  await expect.poll(async () => (await save.boundingBox())!.y + (await save.boundingBox())!.height).toBeLessThanOrEqual(452);
   await editor.getByLabel('Due date (optional)').fill('2027-01-04');
   const repeat = editor.getByRole('combobox', { name: 'Repeat', exact: true });
   await repeat.focus();
   await expect.poll(async () => (await repeat.boundingBox())!.y + (await repeat.boundingBox())!.height).toBeLessThanOrEqual(452);
   await repeat.selectOption('weekly');
-  const save = editor.getByRole('button', { name: 'Save task' });
   await save.focus();
   await expect.poll(async () => (await save.boundingBox())!.y + (await save.boundingBox())!.height).toBeLessThanOrEqual(452);
   await save.click();
   await expect(page.locator('body')).not.toHaveCSS('position', 'fixed');
+  await expect(page.locator('.bottom-nav')).toBeVisible();
   await expect(page.locator('.task-row').filter({ hasText: 'Keyboard test' })).toContainText('Weekly');
   await page.getByRole('button', { name: '+ Add task' }).click();
   await page.evaluate(() => {

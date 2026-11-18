@@ -14,6 +14,7 @@ test('custom collection items retain details through selection, editing and copy
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).click();
   await page.locator('.occasion-card').filter({ hasText: 'Weihnachten' }).click();
+  await expect(page.locator('.bottom-nav')).toBeHidden();
   await expect(page.locator('body')).toHaveCSS('position', 'fixed');
   const frozenTop = await page.locator('body').evaluate(el => el.style.top);
   const panel = page.getByRole('dialog', { name: 'Weihnachten' });
@@ -59,6 +60,7 @@ test('custom collection items retain details through selection, editing and copy
   await expect(panel.locator('.occasion-item')).toContainText('3 bottles');
   await panel.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(page.locator('body')).not.toHaveCSS('position', 'fixed');
+  await expect(page.locator('.bottom-nav')).toBeVisible();
   await page.locator('.occasion-card').filter({ hasText: 'Weihnachten' }).click();
   await expect(panel.locator('.occasion-item')).toContainText('€2.50');
   await panel.locator('.occasion-item-copy').filter({ hasText: 'Test Item' }).click();

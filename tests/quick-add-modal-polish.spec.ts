@@ -14,6 +14,7 @@ test('modal keeps favorite and catalog milk separate with compact editable detai
   await mainNavigation(page).getByRole('button', { name: 'Shopping', exact: true }).tap();
   await page.getByRole('button', { name: '+ Quick Add Item' }).tap();
   const modal = page.locator('.quick-add');
+  await expect(page.locator('.bottom-nav')).toBeHidden();
   await expect(page.locator('.quick-modal-layer')).toHaveCSS('position', 'fixed');
   expect(await page.evaluate(() => { const nav = document.querySelector('.bottom-nav')!.getBoundingClientRect(); return document.elementFromPoint(nav.x + 20, nav.y + 20)?.closest('.quick-modal-layer') !== null; })).toBe(true);
   const search = modal.getByLabel('Search products');
@@ -35,6 +36,7 @@ test('modal keeps favorite and catalog milk separate with compact editable detai
   await expect(search).not.toBeFocused();
   await modal.getByRole('button', { name: 'Add 2 items' }).tap();
   await expect(page.locator('.quick-modal-layer')).toHaveCount(0);
+  await expect(page.locator('.bottom-nav')).toBeVisible();
   await expect(page.locator('.shopping-active-list').first().locator('.shopping-list-row').filter({ hasText: 'Milk' })).toHaveCount(1);
   await expect(page.locator('.shopping-active-list').first()).toContainText('Two cartons');
 });

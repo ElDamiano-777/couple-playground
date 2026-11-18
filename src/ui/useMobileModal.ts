@@ -13,7 +13,7 @@ export function useMobileModal(open: boolean, panelSelector: string) {
       if (!panel) return;
       const box = panel.getBoundingClientRect(), target = focused.getBoundingClientRect();
       const header = panel.querySelector<HTMLElement>('.occasion-panel-header');
-      const footer = panel.querySelector<HTMLElement>('.occasion-panel-footer');
+      const footer = panel.querySelector<HTMLElement>('.occasion-panel-footer, .task-editor > button.primary:last-child');
       const top = header && !header.contains(focused) ? Math.max(box.top, header.getBoundingClientRect().bottom) : box.top;
       const footerTop = footer?.getBoundingClientRect().top;
       const bottom = footer && !footer.contains(focused) && footerTop !== undefined && footerTop > box.top && footerTop < box.bottom ? footerTop : box.bottom;

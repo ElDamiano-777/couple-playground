@@ -408,6 +408,11 @@ html, body, #root { height: 100%; overflow: hidden; }
 :root[data-theme="dark"] .bottom-nav-region { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
 :root[data-theme="dark"] .bottom-nav { bottom: auto; }
 body:has([role="dialog"][aria-modal="true"]) .page-scroll { overflow-y: hidden; }
+/* Keep the navigation in its reserved space but out of every modal's way. */
+body:has([role="dialog"][aria-modal="true"], dialog[open], .add-sheet) .bottom-nav {
+  visibility: hidden;
+  pointer-events: none;
+}
 @media (max-width: 760px) {
   .bottom-nav-region { margin-inline: -20px; }
   :root[data-theme="dark"] .app, .app { padding-bottom: 0; }

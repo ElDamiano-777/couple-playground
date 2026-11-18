@@ -10,6 +10,7 @@ import { monday, useMealPlan } from './meals/useMealPlan';
 import { useHouseholdTasks } from './tasks/useHouseholdTasks';
 import GlobalSearch from './search/GlobalSearch';
 import Settings from './settings/Settings';
+import LayoutDiagnostics from './ui/LayoutDiagnostics';
 import { applyTheme, readTheme, saveTheme, type Theme } from './theme';
 
 type Page = HouseholdPage | `notes` | `more` | `welcome` | `search` | `settings`;
@@ -53,6 +54,8 @@ export default function App() {
   const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : new URLSearchParams(window.location.search).has(`calendar`) ? `calendar` : new URLSearchParams(window.location.search).has(`offers`) ? `offers` : `home`);
   const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
+  const [showLayoutDiagnostics, setShowLayoutDiagnostics] = useState(() => new URLSearchParams(window.location.search).get(`layout-debug`) === `1`);
+  const diagnosticTaps = useRef<number[]>([]);
   const appRef = useRef<HTMLDivElement>(null);
   const navigationRef = useRef<HTMLElement>(null);
   const navigationRegionRef = useRef<HTMLDivElement>(null);
@@ -238,9 +241,10 @@ export default function App() {
   const activeFolder = roots.includes(page) ? page : [...history].reverse().find(item => roots.includes(item)) ?? (page === 'offers' ? 'shopping' : ['pets', 'partner-notes', 'wishlist'].includes(page) ? 'folders' : 'more');
 
   return <div className="app">
+    {showLayoutDiagnostics && <LayoutDiagnostics />}
     <a className="skip-link" href="#main">Skip to content</a>
     <header className={`header${page === 'home' ? ' home-header' : ''}`}>
-      <a className="wordmark" href={config.basePath} aria-label="Together — Home" onClick={event => { event.preventDefault(); navigate(`home`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" /><span className="wordmark-copy"><span className="wordmark-name">{config.name}<i className={`wordmark-status${online ? `` : ` offline`}`} role="img" aria-label={online ? `Device online` : `Device offline`} /></span><small>Damian &amp; Masha</small></span></a>
+      <a className="wordmark" href={config.basePath} aria-label="Together — Home" onClick={event => { event.preventDefault(); const now = Date.now(); diagnosticTaps.current = [...diagnosticTaps.current.filter(time => now - time < 4000), now]; if (diagnosticTaps.current.length >= 5) { setShowLayoutDiagnostics(true); diagnosticTaps.current = []; } navigate(`home`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" /><span className="wordmark-copy"><span className="wordmark-name">{config.name}<i className={`wordmark-status${online ? `` : ` offline`}`} role="img" aria-label={online ? `Device online` : `Device offline`} /></span><small>Damian &amp; Masha</small></span></a>
       <div className="header-tools">{profile ? <><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button><button className="header-avatar" aria-label="Open settings" title={`Hi, ${profile === `masha` ? `Masha` : `Damian`}`} onClick={() => navigate(`settings`)}>{profile === `masha` ? `M` : `D`}</button></> : <span className="edition">Your story starts here</span>}</div>
     </header>
 
