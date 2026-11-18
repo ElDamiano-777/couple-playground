@@ -11,12 +11,15 @@ test('task editor scrolls within the visible viewport when the keyboard opens', 
   await page.getByRole('button', { name: '+ Add task' }).click();
   const editor = page.getByRole('dialog', { name: 'New task' });
   await expect(page.locator('body')).toHaveCSS('position', 'fixed');
+  const app = page.locator('.app');
+  const appScroll = await app.evaluate(el => el.scrollTop);
   const frozenTop = await page.locator('body').evaluate(el => el.style.top);
   const scrollBeforeWheel = await page.evaluate(() => window.scrollY);
   await page.mouse.move(2, 200);
   await page.mouse.wheel(0, 500);
   expect(await page.locator('body').evaluate(el => el.style.top)).toBe(frozenTop);
   expect(await page.evaluate(() => window.scrollY)).toBe(scrollBeforeWheel);
+  expect(await app.evaluate(el => el.scrollTop)).toBe(appScroll);
   const task = editor.getByLabel('Task', { exact: true });
   await task.fill('Keyboard test');
   await page.evaluate(() => {

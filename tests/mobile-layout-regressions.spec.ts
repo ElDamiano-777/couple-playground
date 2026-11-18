@@ -31,7 +31,7 @@ test('sticky header, floating navigation and offers remain usable on narrow phon
     expect(await page.locator('.our-time-duration').evaluate(el => el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight))).toBeLessThan(1.2);
     await nav.getByRole('button', { name: 'Shopping', exact: true }).click();
     expect((await page.getByRole('heading', { name: 'Shopping.' }).boundingBox())!.y).toBeGreaterThanOrEqual((await header.boundingBox())!.y + (await header.boundingBox())!.height);
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.locator('.app').evaluate(el => el.scrollTo(0, el.scrollHeight));
     const row = page.locator('.shopping-list-row').filter({ hasText: 'Milk' });
     expect((await row.boundingBox())!.y + (await row.boundingBox())!.height).toBeLessThan((await nav.boundingBox())!.y);
     await page.getByRole('button', { name: /This week’s offers/ }).click();
@@ -47,21 +47,30 @@ test('sticky header, floating navigation and offers remain usable on narrow phon
       await nav.getByRole('button', { name, exact: true }).click();
       await expect(nav.getByRole('button', { name, exact: true })).toHaveAttribute('aria-current', 'page');
       await expect(page.locator('.bottom-nav')).toHaveCount(1);
+      const app = page.locator('.app');
+      await app.evaluate(el => el.scrollTo(0, 0));
       const initial = await nav.boundingBox();
-      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-      const bottom = await nav.boundingBox();
-      expect(Math.abs(bottom!.y - initial!.y)).toBeLessThan(1);
-      await page.evaluate(() => window.scrollTo(0, 0));
-      expect(Math.abs((await nav.boundingBox())!.y - initial!.y)).toBeLessThan(1);
+      for (let pass = 0; pass < 3; pass++) {
+        await app.evaluate(el => el.scrollTo(0, el.scrollHeight));
+        expect(Math.abs((await nav.boundingBox())!.y - initial!.y)).toBeLessThan(1);
+        const last = page.locator('main button:visible, main a:visible, main input:visible').last();
+        if (await last.count()) {
+          const box = await last.boundingBox();
+          expect(box!.y + box!.height).toBeLessThanOrEqual(initial!.y);
+        }
+        await app.evaluate(el => el.scrollTo(0, 0));
+        expect(Math.abs((await nav.boundingBox())!.y - initial!.y)).toBeLessThan(1);
+      }
     }
-    // Model the visible viewport changing as browser chrome or the keyboard moves.
+    // Viewport scroll events must not reposition the navigation during page scrolling.
+    const beforeViewportEvent = await nav.boundingBox();
     await page.evaluate(() => {
       const viewport = window.visualViewport!;
       Object.defineProperty(viewport, 'height', { configurable: true, value: 640 });
       Object.defineProperty(viewport, 'offsetTop', { configurable: true, value: 20 });
       viewport.dispatchEvent(new Event('resize'));
     });
-    expect(Math.abs((await nav.boundingBox())!.y + (await nav.boundingBox())!.height - 650)).toBeLessThan(1);
+    expect(Math.abs((await nav.boundingBox())!.y - beforeViewportEvent!.y)).toBeLessThan(1);
     await page.evaluate(() => {
       const viewport = window.visualViewport!;
       delete (viewport as unknown as Record<string, unknown>).height;

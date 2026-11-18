@@ -54,27 +54,7 @@ export default function App() {
   const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : new URLSearchParams(window.location.search).has(`calendar`) ? `calendar` : new URLSearchParams(window.location.search).has(`offers`) ? `offers` : `home`);
   const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
-  const navigationRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const navigation = navigationRef.current;
-    const viewport = window.visualViewport;
-    if (!profile || !navigation || !viewport) return;
-    // Safari's visible viewport can change independently of the layout viewport
-    // as its browser chrome or the keyboard opens and closes.
-    const positionNavigation = () => {
-      navigation.style.setProperty(`--navigation-visible-bottom`, `${viewport.offsetTop + viewport.height}px`);
-    };
-    positionNavigation();
-    navigation.setAttribute(`data-visual-viewport`, ``);
-    viewport.addEventListener(`resize`, positionNavigation);
-    viewport.addEventListener(`scroll`, positionNavigation);
-    window.addEventListener(`resize`, positionNavigation);
-    return () => {
-      viewport.removeEventListener(`resize`, positionNavigation);
-      viewport.removeEventListener(`scroll`, positionNavigation);
-      window.removeEventListener(`resize`, positionNavigation);
-    };
-  }, [profile]);
+  const appRef = useRef<HTMLDivElement>(null);
   const [theme, setTheme] = useState<Theme>(() => readTheme(readProfile()));
   useEffect(() => { const next = readTheme(profile); setTheme(next); applyTheme(next); }, [profile]);
   const changeTheme = (next: Theme) => { setTheme(next); if (profile) saveTheme(profile, next); else applyTheme(next); };
@@ -219,12 +199,12 @@ export default function App() {
     if (next === `places`) collections.setKind(`place`);
     setPage(next);
     if (!loadFailed) setMessage(``);
-    window.scrollTo({ top: 0, behavior: `instant` });
+    appRef.current?.scrollTo({ top: 0, behavior: `instant` });
   }
 
   const activeFolder = roots.includes(page) ? page : [...history].reverse().find(item => roots.includes(item)) ?? (page === 'offers' ? 'shopping' : ['pets', 'partner-notes', 'wishlist'].includes(page) ? 'folders' : 'more');
 
-  return <div className="app">
+  return <div className="app" ref={appRef}>
     <a className="skip-link" href="#main">Skip to content</a>
     <header className={`header${page === 'home' ? ' home-header' : ''}`}>
       <a className="wordmark" href={config.basePath} aria-label="Together — Home" onClick={event => { event.preventDefault(); navigate(`home`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" /><span className="wordmark-copy"><span className="wordmark-name">{config.name}<i className={`wordmark-status${online ? `` : ` offline`}`} role="img" aria-label={online ? `Device online` : `Device offline`} /></span><small>Damian &amp; Masha</small></span></a>
@@ -250,7 +230,7 @@ export default function App() {
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
       {([`folders`, `home`, `shopping`, `offers`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} onBack={goBack} backLabel={backLabel} shopping={shopping} family={family} onNotesDirty={setLoveNotesDirty} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
-      {page === `settings` && profile && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button><Settings signedIn={!!shopping.session} onSignOut={() => { if (!hasDraft || window.confirm(`Sign out and discard unfinished text? Your saved items stay in your home.`)) void shopping.signOut().then(success => { if (success) navigate(`shopping`); }); }} theme={theme} onThemeChange={changeTheme} name={profile === `masha` ? `Masha` : `Damian`} notificationsActive={!!shopping.household} poc={shopping.isPoc} busy={shopping.busy} onChangeName={() => { setProfile(null); setPage(`folders`); window.scrollTo({ top: 0, behavior: `instant` }); }} onDeleteAccount={() => { if (window.confirm(`Permanently delete your account? This cannot be undone.`)) void shopping.deleteAccount(); }} /></>}
+      {page === `settings` && profile && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button><Settings signedIn={!!shopping.session} onSignOut={() => { if (!hasDraft || window.confirm(`Sign out and discard unfinished text? Your saved items stay in your home.`)) void shopping.signOut().then(success => { if (success) navigate(`shopping`); }); }} theme={theme} onThemeChange={changeTheme} name={profile === `masha` ? `Masha` : `Damian`} notificationsActive={!!shopping.household} poc={shopping.isPoc} busy={shopping.busy} onChangeName={() => { setProfile(null); setPage(`folders`); appRef.current?.scrollTo({ top: 0, behavior: `instant` }); }} onDeleteAccount={() => { if (window.confirm(`Permanently delete your account? This cannot be undone.`)) void shopping.deleteAccount(); }} /></>}
       {page === `welcome` && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button>
         <section className="hero welcome-hero" lang="en">
           <div className="hero-copy">
@@ -324,7 +304,7 @@ export default function App() {
     </main>
 
     {page !== `home` && page !== `tasks` && <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>}
-    {profile && createPortal(<nav ref={navigationRef} className="bottom-nav" aria-label="Main navigation" lang="en">
+    {profile && createPortal(<nav className="bottom-nav" aria-label="Main navigation" lang="en">
       {([{ id: `home`, icon: `home`, label: `Home` }, { id: `shopping`, icon: `shopping`, label: `Shopping` }, { id: `folders`, icon: `heart`, label: `Us` }, { id: `places`, icon: `pin`, label: `Places` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={`${item.id === `folders` ? `nav-us ` : ``}${activeFolder === item.id ? `active` : ``}`} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
     </nav>, document.body)}
   </div>;

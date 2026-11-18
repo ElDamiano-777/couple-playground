@@ -373,20 +373,17 @@
   color: #fff; font: 600 14px/20px var(--n-sans); box-shadow: 0 4px 16px rgba(147, 83, 211, 0.25);
 }
 
-/* Anchor the one floating navigation bar to the visible viewport on mobile Safari. */
-.bottom-nav[data-visual-viewport] {
-  top: var(--navigation-visible-bottom);
-  bottom: auto;
-  transform: translate(-50%, -100%);
+/* Keep document scrolling separate from the floating navigation. */
+html, body, #root { height: 100%; overflow: hidden; }
+.app {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
-:root[data-theme="dark"] .bottom-nav[data-visual-viewport] {
-  top: calc(var(--navigation-visible-bottom) - 12px - env(safe-area-inset-bottom));
-  bottom: auto;
-}
+body:has([role="dialog"][aria-modal="true"]) .app { overflow-y: hidden; }
 @media (max-width: 760px) {
   :root { scroll-padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
   .app { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
-  :root[data-theme="dark"] .bottom-nav[data-visual-viewport] {
-    top: calc(var(--navigation-visible-bottom) - 10px - env(safe-area-inset-bottom));
-  }
 }
