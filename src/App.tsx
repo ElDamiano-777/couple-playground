@@ -54,6 +54,40 @@ export default function App() {
   const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
   const appRef = useRef<HTMLDivElement>(null);
+  const navigationRef = useRef<HTMLElement>(null);
+  const navigationRegionRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const scroll = appRef.current;
+    const navigation = navigationRef.current;
+    const region = navigationRegionRef.current;
+    if (!profile || !scroll || !navigation || !region) return;
+    const viewport = window.visualViewport;
+    const updateClearance = () => {
+      const navTop = navigation.getBoundingClientRect().top;
+      const heartTop = navigation.querySelector('.nav-us svg')?.getBoundingClientRect().top ?? navTop;
+      const visibleBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+      // The region already reserves the actual bar height and safe-area inset.
+      // Add only the part that still intrudes into the visible scrolling area.
+      const obstruction = Math.min(navTop, heartTop, visibleBottom);
+      const overlap = Math.max(0, Math.ceil(scroll.getBoundingClientRect().bottom - obstruction));
+      scroll.style.setProperty('--navigation-overlap', `${overlap}px`);
+    };
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateClearance);
+    observer?.observe(scroll);
+    observer?.observe(navigation);
+    observer?.observe(region);
+    viewport?.addEventListener('resize', updateClearance);
+    viewport?.addEventListener('scroll', updateClearance);
+    window.addEventListener('resize', updateClearance);
+    updateClearance();
+    return () => {
+      observer?.disconnect();
+      viewport?.removeEventListener('resize', updateClearance);
+      viewport?.removeEventListener('scroll', updateClearance);
+      window.removeEventListener('resize', updateClearance);
+      scroll.style.removeProperty('--navigation-overlap');
+    };
+  }, [profile]);
   const [theme, setTheme] = useState<Theme>(() => readTheme(readProfile()));
   useEffect(() => { const next = readTheme(profile); setTheme(next); applyTheme(next); }, [profile]);
   const changeTheme = (next: Theme) => { setTheme(next); if (profile) saveTheme(profile, next); else applyTheme(next); };
@@ -305,7 +339,7 @@ export default function App() {
 
     {page !== `home` && page !== `tasks` && <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>}
     </div>
-    {profile && <div className="bottom-nav-region"><nav className="bottom-nav" aria-label="Main navigation" lang="en">
+    {profile && <div className="bottom-nav-region" ref={navigationRegionRef}><nav ref={navigationRef} className="bottom-nav" aria-label="Main navigation" lang="en">
       {([{ id: `home`, icon: `home`, label: `Home` }, { id: `shopping`, icon: `shopping`, label: `Shopping` }, { id: `folders`, icon: `heart`, label: `Us` }, { id: `places`, icon: `pin`, label: `Places` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={`${item.id === `folders` ? `nav-us ` : ``}${activeFolder === item.id ? `active` : ``}`} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
     </nav></div>}
   </div>;

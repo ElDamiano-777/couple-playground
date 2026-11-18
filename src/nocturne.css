@@ -387,6 +387,8 @@ html, body, #root { height: 100%; overflow: hidden; }
 .page-scroll {
   flex: 1 1 auto;
   min-height: 0;
+  padding-bottom: calc(12px + var(--navigation-overlap, 0px));
+  scroll-padding-bottom: calc(12px + var(--navigation-overlap, 0px));
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
