@@ -11,7 +11,7 @@ test('task editor scrolls within the visible viewport when the keyboard opens', 
   await page.getByRole('button', { name: '+ Add task' }).click();
   const editor = page.getByRole('dialog', { name: 'New task' });
   await expect(page.locator('body')).toHaveCSS('position', 'fixed');
-  const app = page.locator('.app');
+  const app = page.locator('.page-scroll');
   const appScroll = await app.evaluate(el => el.scrollTop);
   const frozenTop = await page.locator('body').evaluate(el => el.style.top);
   const scrollBeforeWheel = await page.evaluate(() => window.scrollY);

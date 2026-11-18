@@ -31,9 +31,14 @@ test('sticky header, floating navigation and offers remain usable on narrow phon
     expect(await page.locator('.our-time-duration').evaluate(el => el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight))).toBeLessThan(1.2);
     await nav.getByRole('button', { name: 'Shopping', exact: true }).click();
     expect((await page.getByRole('heading', { name: 'Shopping.' }).boundingBox())!.y).toBeGreaterThanOrEqual((await header.boundingBox())!.y + (await header.boundingBox())!.height);
-    await page.locator('.app').evaluate(el => el.scrollTo(0, el.scrollHeight));
+    await page.locator('.page-scroll').evaluate(el => el.scrollTo(0, el.scrollHeight));
     const row = page.locator('.shopping-list-row').filter({ hasText: 'Milk' });
     expect((await row.boundingBox())!.y + (await row.boundingBox())!.height).toBeLessThan((await nav.boundingBox())!.y);
+    const rowButton = row.locator('.shopping-row-open');
+    expect(await rowButton.evaluate(el => {
+      const box = el.getBoundingClientRect();
+      return el.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2));
+    })).toBe(true);
     await page.getByRole('button', { name: /This week’s offers/ }).click();
     const search = page.getByRole('searchbox', { name: 'Search offers' });
     const searchBox = await search.boundingBox(), filters = await page.getByRole('group', { name: 'Stores' }).boundingBox();
@@ -47,9 +52,21 @@ test('sticky header, floating navigation and offers remain usable on narrow phon
       await nav.getByRole('button', { name, exact: true }).click();
       await expect(nav.getByRole('button', { name, exact: true })).toHaveAttribute('aria-current', 'page');
       await expect(page.locator('.bottom-nav')).toHaveCount(1);
-      const app = page.locator('.app');
+      const app = page.locator('.page-scroll');
       await app.evaluate(el => el.scrollTo(0, 0));
       const initial = await nav.boundingBox();
+      expect((await app.boundingBox())!.y + (await app.boundingBox())!.height).toBeLessThanOrEqual(initial!.y);
+      if (name === 'Home') {
+        const add = page.locator('.home-shopping-add');
+        await add.scrollIntoViewIfNeeded();
+        const box = await add.boundingBox();
+        const scrollBox = await app.boundingBox();
+        expect(box!.y).toBeGreaterThanOrEqual(scrollBox!.y);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(scrollBox!.y + scrollBox!.height);
+        await add.click();
+        await expect(page.locator('.quick-add')).toBeVisible();
+        await page.locator('.quick-add').getByRole('button', { name: 'Close', exact: true }).click();
+      }
       for (let pass = 0; pass < 3; pass++) {
         await app.evaluate(el => el.scrollTo(0, el.scrollHeight));
         expect(Math.abs((await nav.boundingBox())!.y - initial!.y)).toBeLessThan(1);

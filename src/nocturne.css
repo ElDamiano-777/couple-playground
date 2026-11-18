@@ -373,17 +373,45 @@
   color: #fff; font: 600 14px/20px var(--n-sans); box-shadow: 0 4px 16px rgba(147, 83, 211, 0.25);
 }
 
-/* Keep document scrolling separate from the floating navigation. */
+/* The header and navigation reserve their own space outside the scrolling page. */
 html, body, #root { height: 100%; overflow: hidden; }
 .app {
   position: fixed;
   inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+.header { flex: none; }
+.page-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
-body:has([role="dialog"][aria-modal="true"]) .app { overflow-y: hidden; }
+.bottom-nav-region {
+  flex: none;
+  margin-inline: -48px;
+  padding-top: 24px; /* Room for the raised heart. */
+}
+.bottom-nav {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  margin: 0 auto;
+}
+:root[data-theme="dark"] .bottom-nav-region { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+:root[data-theme="dark"] .bottom-nav { bottom: auto; }
+body:has([role="dialog"][aria-modal="true"]) .page-scroll { overflow-y: hidden; }
 @media (max-width: 760px) {
-  :root { scroll-padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
-  .app { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
+  .bottom-nav-region { margin-inline: -20px; }
+  :root[data-theme="dark"] .app, .app { padding-bottom: 0; }
+  :root[data-theme="dark"] .bottom-nav-region { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  :root[data-theme="dark"] .bottom-nav { bottom: auto; }
+}
+@media (max-width: 350px) {
+  .bottom-nav-region { margin-inline: -15px; }
 }

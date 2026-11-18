@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { createPortal } from 'react-dom';
 import config from '../app.config.json';
 import HouseholdPreview, { Symbol, type HouseholdPage } from './HouseholdPreview';
 import { readNotes, saveNotes, type Note } from './storage';
@@ -204,13 +203,14 @@ export default function App() {
 
   const activeFolder = roots.includes(page) ? page : [...history].reverse().find(item => roots.includes(item)) ?? (page === 'offers' ? 'shopping' : ['pets', 'partner-notes', 'wishlist'].includes(page) ? 'folders' : 'more');
 
-  return <div className="app" ref={appRef}>
+  return <div className="app">
     <a className="skip-link" href="#main">Skip to content</a>
     <header className={`header${page === 'home' ? ' home-header' : ''}`}>
       <a className="wordmark" href={config.basePath} aria-label="Together — Home" onClick={event => { event.preventDefault(); navigate(`home`); }}><img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" /><span className="wordmark-copy"><span className="wordmark-name">{config.name}<i className={`wordmark-status${online ? `` : ` offline`}`} role="img" aria-label={online ? `Device online` : `Device offline`} /></span><small>Damian &amp; Masha</small></span></a>
       <div className="header-tools">{profile ? <><button aria-label="Example updates" onClick={() => navigate(`activity`)}><Symbol name="bell" /></button><button className="header-avatar" aria-label="Open settings" title={`Hi, ${profile === `masha` ? `Masha` : `Damian`}`} onClick={() => navigate(`settings`)}>{profile === `masha` ? `M` : `D`}</button></> : <span className="edition">Your story starts here</span>}</div>
     </header>
 
+    <div className="page-scroll" ref={appRef}>
     {!online && <div className="notice" role="status">You’re offline. You can still save notes on this phone.</div>}
     {updateReady && <div className="notice update" role="status">
       <span>{hasDraft ? `There’s an update. Finish your text first.` : `There’s a little update for you.`}</span>
@@ -304,8 +304,9 @@ export default function App() {
     </main>
 
     {page !== `home` && page !== `tasks` && <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>}
-    {profile && createPortal(<nav className="bottom-nav" aria-label="Main navigation" lang="en">
+    </div>
+    {profile && <div className="bottom-nav-region"><nav className="bottom-nav" aria-label="Main navigation" lang="en">
       {([{ id: `home`, icon: `home`, label: `Home` }, { id: `shopping`, icon: `shopping`, label: `Shopping` }, { id: `folders`, icon: `heart`, label: `Us` }, { id: `places`, icon: `pin`, label: `Places` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={`${item.id === `folders` ? `nav-us ` : ``}${activeFolder === item.id ? `active` : ``}`} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
-    </nav>, document.body)}
+    </nav></div>}
   </div>;
 }
