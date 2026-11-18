@@ -46,7 +46,29 @@ test('sticky header, floating navigation and offers remain usable on narrow phon
     for (const name of ['Home', 'Us', 'Shopping', 'Places', 'More']) {
       await nav.getByRole('button', { name, exact: true }).click();
       await expect(nav.getByRole('button', { name, exact: true })).toHaveAttribute('aria-current', 'page');
+      await expect(page.locator('.bottom-nav')).toHaveCount(1);
+      const initial = await nav.boundingBox();
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      const bottom = await nav.boundingBox();
+      expect(Math.abs(bottom!.y - initial!.y)).toBeLessThan(1);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      expect(Math.abs((await nav.boundingBox())!.y - initial!.y)).toBeLessThan(1);
     }
+    // Model the visible viewport changing as browser chrome or the keyboard moves.
+    await page.evaluate(() => {
+      const viewport = window.visualViewport!;
+      Object.defineProperty(viewport, 'height', { configurable: true, value: 640 });
+      Object.defineProperty(viewport, 'offsetTop', { configurable: true, value: 20 });
+      viewport.dispatchEvent(new Event('resize'));
+    });
+    expect(Math.abs((await nav.boundingBox())!.y + (await nav.boundingBox())!.height - 650)).toBeLessThan(1);
+    await page.evaluate(() => {
+      const viewport = window.visualViewport!;
+      delete (viewport as unknown as Record<string, unknown>).height;
+      delete (viewport as unknown as Record<string, unknown>).offsetTop;
+      viewport.dispatchEvent(new Event('resize'));
+    });
+    expect((await nav.boundingBox())!.y + (await nav.boundingBox())!.height).toBeLessThanOrEqual(844);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await context.close();
   }

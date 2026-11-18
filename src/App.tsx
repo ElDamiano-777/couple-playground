@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import config from '../app.config.json';
 import HouseholdPreview, { Symbol, type HouseholdPage } from './HouseholdPreview';
 import { readNotes, saveNotes, type Note } from './storage';
@@ -53,6 +54,27 @@ export default function App() {
   const [page, setPage] = useState<Page>(sharedRecipe ? `recipes` : new URLSearchParams(window.location.search).has(`calendar`) ? `calendar` : new URLSearchParams(window.location.search).has(`offers`) ? `offers` : `home`);
   const [shoppingCategory, setShoppingCategory] = useState<ShoppingItem['category'] | null>(null);
   const [profile, setProfile] = useState<Profile | null>(readProfile);
+  const navigationRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const navigation = navigationRef.current;
+    const viewport = window.visualViewport;
+    if (!profile || !navigation || !viewport) return;
+    // Safari's visible viewport can change independently of the layout viewport
+    // as its browser chrome or the keyboard opens and closes.
+    const positionNavigation = () => {
+      navigation.style.setProperty(`--navigation-visible-bottom`, `${viewport.offsetTop + viewport.height}px`);
+    };
+    positionNavigation();
+    navigation.setAttribute(`data-visual-viewport`, ``);
+    viewport.addEventListener(`resize`, positionNavigation);
+    viewport.addEventListener(`scroll`, positionNavigation);
+    window.addEventListener(`resize`, positionNavigation);
+    return () => {
+      viewport.removeEventListener(`resize`, positionNavigation);
+      viewport.removeEventListener(`scroll`, positionNavigation);
+      window.removeEventListener(`resize`, positionNavigation);
+    };
+  }, [profile]);
   const [theme, setTheme] = useState<Theme>(() => readTheme(readProfile()));
   useEffect(() => { const next = readTheme(profile); setTheme(next); applyTheme(next); }, [profile]);
   const changeTheme = (next: Theme) => { setTheme(next); if (profile) saveTheme(profile, next); else applyTheme(next); };
@@ -302,8 +324,8 @@ export default function App() {
     </main>
 
     {page !== `home` && page !== `tasks` && <footer className="footer"><span>Little things bring us closer.</span><span className="footer-heart">♡</span><span>Together · the beginning</span></footer>}
-    {profile && <nav className="bottom-nav" aria-label="Main navigation" lang="en">
+    {profile && createPortal(<nav ref={navigationRef} className="bottom-nav" aria-label="Main navigation" lang="en">
       {([{ id: `home`, icon: `home`, label: `Home` }, { id: `shopping`, icon: `shopping`, label: `Shopping` }, { id: `folders`, icon: `heart`, label: `Us` }, { id: `places`, icon: `pin`, label: `Places` }, { id: `more`, icon: `more`, label: `More` }] as const).map(item => <button key={item.id} className={`${item.id === `folders` ? `nav-us ` : ``}${activeFolder === item.id ? `active` : ``}`} aria-current={activeFolder === item.id ? `page` : undefined} onClick={() => navigate(item.id)}><Symbol name={item.icon} /><span>{item.label}</span></button>)}
-    </nav>}
+    </nav>, document.body)}
   </div>;
 }

@@ -372,3 +372,21 @@
   background: linear-gradient(90deg, var(--n-primary-container), var(--n-inverse-primary));
   color: #fff; font: 600 14px/20px var(--n-sans); box-shadow: 0 4px 16px rgba(147, 83, 211, 0.25);
 }
+
+/* Anchor the one floating navigation bar to the visible viewport on mobile Safari. */
+.bottom-nav[data-visual-viewport] {
+  top: var(--navigation-visible-bottom);
+  bottom: auto;
+  transform: translate(-50%, -100%);
+}
+:root[data-theme="dark"] .bottom-nav[data-visual-viewport] {
+  top: calc(var(--navigation-visible-bottom) - 12px - env(safe-area-inset-bottom));
+  bottom: auto;
+}
+@media (max-width: 760px) {
+  :root { scroll-padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
+  .app { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
+  :root[data-theme="dark"] .bottom-nav[data-visual-viewport] {
+    top: calc(var(--navigation-visible-bottom) - 10px - env(safe-area-inset-bottom));
+  }
+}
