@@ -76,7 +76,8 @@ export default function App() {
       scroll.style.setProperty('--navigation-overlap', `${overlap}px`);
     };
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateClearance);
-    observer?.observe(scroll);
+    // Clearance changes padding, not the outer bounds; avoid observing our own writes.
+    observer?.observe(scroll, { box: 'border-box' });
     observer?.observe(navigation);
     observer?.observe(region);
     viewport?.addEventListener('resize', updateClearance);

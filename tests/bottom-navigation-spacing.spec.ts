@@ -6,6 +6,8 @@ test.use({ viewport: devices['iPhone 13'].viewport, userAgent: devices['iPhone 1
 
 for (const theme of ['dark', 'light']) {
   test(`last cards clear the docked ${theme} navigation and a reduced visible viewport`, async ({ page, context }) => {
+    const resizeErrors: string[] = [];
+    page.on('pageerror', error => { if (error.message.includes('ResizeObserver')) resizeErrors.push(error.message); });
     await context.addInitScript(theme => localStorage.setItem('together.theme.v1.masha', theme), theme);
     const server = transport();
     for (let i = 0; i < 10; i++) {
@@ -75,5 +77,6 @@ for (const theme of ['dark', 'light']) {
     }
     await page.locator('.task-dashboard').getByRole('button', { name: 'View all' }).click();
     await checkBottom('.task-row:last-child');
+    expect(resizeErrors).toEqual([]);
   });
 }
