@@ -383,7 +383,11 @@ html, body, #root { height: 100%; overflow: hidden; }
   overflow: hidden;
   padding-bottom: 0;
 }
-.header { flex: none; }
+.header, :root[data-theme="dark"] .header {
+  position: relative; /* The header sits outside the scroller; sticky causes WebKit paint glitches. */
+  flex: none;
+  transform: translateZ(0);
+}
 .page-scroll {
   position: relative; /* Keep WebKit's scrolling layer below the fixed chrome. */
   flex: 1 1 auto;
