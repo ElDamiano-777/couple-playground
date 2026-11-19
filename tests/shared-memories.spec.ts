@@ -38,6 +38,23 @@ test('partners create and edit a memory with five persistent photos', async ({ b
   await form.getByRole('button', { name: 'Set as cover' }).nth(1).click(); await form.getByRole('button', { name: 'Move photo 3 earlier' }).click();
   await form.getByRole('button', { name: 'Save memory' }).click(); await expect(page.locator('.memory-card')).toContainText('A little trip'); expect(rows[0].photos).toHaveLength(5); expect(rows[0].cover_index).toBe(1);
   await page.locator('.memory-card').click(); const detail = page.getByRole('dialog', { name: 'Memory details' }); await expect(detail.locator('.memory-gallery img')).toHaveCount(5); await expect(detail.locator('.memory-gallery img').first()).toHaveCSS('object-fit', 'contain');
+  await page.evaluate(() => { Object.defineProperty(window.visualViewport!, 'height', { configurable: true, value: 650 }); Object.defineProperty(window.visualViewport!, 'offsetTop', { configurable: true, value: 44 }); window.visualViewport!.dispatchEvent(new Event('resize')); });
+  await expect.poll(async () => (await page.locator('.memory-overlay').boundingBox())!.y).toBe(44);
+  const close = detail.getByRole('button', { name: 'Close' });
+  const closeTop = (await close.boundingBox())!.y;
+  expect(closeTop).toBeGreaterThanOrEqual(44);
+  expect(closeTop + (await close.boundingBox())!.height).toBeLessThanOrEqual(694);
+  const backgroundTop = await page.locator('.page-scroll').evaluate(el => el.scrollTop);
+  await page.mouse.move(2, 200); await page.mouse.wheel(0, 500);
+  expect(await page.locator('.page-scroll').evaluate(el => el.scrollTop)).toBe(backgroundTop);
+  await detail.evaluate(el => el.scrollTo(0, el.scrollHeight));
+  expect(await detail.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  expect(Math.abs((await close.boundingBox())!.y - closeTop)).toBeLessThan(1);
+  await expect(detail.getByRole('button', { name: 'Edit memory' })).toBeInViewport();
+  await detail.evaluate(el => el.scrollTo(0, 0));
+  expect(Math.abs((await close.boundingBox())!.y - closeTop)).toBeLessThan(1);
+  for (let i = 0; i < 3; i++) { await close.click(); await expect(detail).toHaveCount(0); await page.locator('.memory-card').click(); await expect(close).toBeVisible(); }
+  await page.evaluate(() => { delete (window.visualViewport as unknown as { height?: number }).height; delete (window.visualViewport as unknown as { offsetTop?: number }).offsetTop; window.visualViewport!.dispatchEvent(new Event('resize')); });
   await detail.getByRole('button', { name: 'Edit memory' }).click(); const edit = page.getByRole('dialog', { name: 'Edit memory' }); await edit.getByLabel('Title', { exact: true }).fill('A little trip together'); await edit.getByLabel('Our story (optional)').fill('A lovely day together'); await edit.getByRole('button', { name: 'Save memory' }).click(); expect(rows[0].photos).toHaveLength(5);
   await page.reload(); await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Us', exact: true }).click(); await page.getByRole('button', { name: /Shared Memories/ }).click(); await expect(page.locator('.memory-card')).toContainText('A little trip together');
   const second = await browser.newContext({ ...devices['iPhone 13'], serviceWorkers: 'block' }); await setup(second); const partner = await signIn(second, 'Damian'); await partner.locator('.memory-card').click(); await expect(partner.getByText('A lovely day together')).toBeVisible(); await partner.getByRole('button', { name: 'Edit memory' }).click(); await partner.getByLabel('Our story (optional)').fill('Both of our stories'); await partner.getByRole('button', { name: 'Save memory' }).click(); expect(rows[0].photos).toHaveLength(5); expect(rows[0].story).toBe('Both of our stories');
