@@ -23,7 +23,7 @@ test('personal wishes and private plans remain available after refresh', async (
   await page.goto('./'); await page.getByRole('button', { name: 'Masha', exact: true }).click(); await page.getByLabel('Password', { exact: true }).fill(pocPassword); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Us', exact: true }).click(); await page.getByRole('button', { name: /Wishlist/ }).click();
   await page.getByRole('button', { name: '+ Add wish' }).click();
-  await page.getByLabel('Wish name').fill('New camera'); await page.getByLabel('Product link (optional)').fill('https://example.com/camera'); await page.getByLabel('Estimated price in EUR (optional)').fill('25.50'); await page.getByLabel('Notes (optional)').fill('Black'); await page.getByLabel('Priority').selectOption('dream');
+  await page.getByLabel('Wish name').fill('New camera'); await page.getByLabel('Product link (optional)').fill('https://example.com/camera'); await page.getByLabel('Estimated price (optional)').fill('25.50'); await page.getByLabel('Notes (optional)').fill('Black'); await page.getByLabel('Priority').selectOption('dream');
   await page.evaluate(() => { Object.defineProperty(window.visualViewport!, 'height', { value: 420, configurable: true }); Object.defineProperty(window.visualViewport!, 'offsetTop', { value: 32, configurable: true }); window.visualViewport!.dispatchEvent(new Event('resize')); });
   await page.getByLabel('Notes (optional)').focus();
   await expect.poll(async () => (await page.getByLabel('Notes (optional)').boundingBox())!.y + (await page.getByLabel('Notes (optional)').boundingBox())!.height).toBeLessThanOrEqual(452);

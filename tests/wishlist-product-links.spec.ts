@@ -24,13 +24,21 @@ test('full photos, product lookup, manual edits and exact store link', async ({ 
     return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'access-control-allow-origin': '*' }, body: `<script type="application/ld+json">{"@type":"Product","name":"Imported camera","image":"/camera.png","offers":{"price":"29.95","priceCurrency":"EUR"}}</script>` });
   });
   await context.route('https://blocked.example/**', route => route.abort('failed'));
+  await context.route('https://r.jina.ai/https://blocked.example/**', route => route.fulfill({ status: 403, headers: { 'access-control-allow-origin': '*' }, body: 'Unavailable' }));
   await page.goto('./'); await page.getByRole('button', { name: 'Masha', exact: true }).click(); await page.getByLabel('Password', { exact: true }).fill(pocPassword); await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Us', exact: true }).click(); await page.getByRole('button', { name: /Wishlist/ }).click(); await page.getByRole('button', { name: '+ Add wish' }).click();
   const url = 'https://store.example/products/camera?model=42';
   await page.getByLabel('Product link (optional)').fill(url);
   await expect(page.getByLabel('Wish name')).toHaveValue('Imported camera');
-  await expect(page.getByLabel('Estimated price in EUR (optional)')).toHaveValue('29.95');
+  await expect(page.getByLabel('Estimated price (optional)')).toHaveValue('29.95');
+  await expect(page.getByLabel('Currency')).toHaveValue('EUR');
+  await expect(page.getByLabel('Store (optional)')).toHaveValue('store.example');
   await expect(page.getByAltText('Selected wish')).toBeVisible();
+  const removePhoto = page.getByRole('button', { name: 'Remove photo' });
+  const removeBox = await removePhoto.boundingBox();
+  expect(removeBox!.width).toBeLessThanOrEqual(44);
+  await removePhoto.click();
+  await expect(page.getByAltText('Selected wish')).toHaveCount(0);
   const assertContained = async (selector: string) => {
     const image = page.locator(selector), info = await image.evaluate(el => { const img = el as HTMLImageElement, box = img.getBoundingClientRect(), frame = img.parentElement!.getBoundingClientRect(); return { fit: getComputedStyle(img).objectFit, iw: img.naturalWidth, ih: img.naturalHeight, width: box.width, height: box.height, frameWidth: frame.width, frameHeight: frame.height }; });
     expect(info.fit).toBe('contain'); expect(info.iw).toBeGreaterThan(0); expect(info.ih).toBeGreaterThan(0); expect(info.width).toBeLessThanOrEqual(info.frameWidth); expect(info.height).toBeLessThanOrEqual(info.frameHeight);
@@ -45,15 +53,18 @@ test('full photos, product lookup, manual edits and exact store link', async ({ 
     else expect(ratio).toBe(1);
   }
   const chosenPhoto = await page.locator('.preview-photo img').getAttribute('src');
-  await page.getByLabel('Wish name').fill('My camera'); await page.getByLabel('Estimated price in EUR (optional)').fill('45.00');
+  await page.getByLabel('Wish name').fill('My camera'); await page.getByLabel('Estimated price (optional)').fill('45.00');
+  await page.getByLabel('Currency').fill('USD'); await page.getByLabel('Store (optional)').fill('My shop');
   await page.getByLabel('Product link (optional)').fill('https://store.example/products/camera?model=43');
   await expect(page.getByText('Available product details added. You can edit them.')).toBeVisible();
-  await expect(page.getByLabel('Wish name')).toHaveValue('My camera'); await expect(page.getByLabel('Estimated price in EUR (optional)')).toHaveValue('45.00');
+  await expect(page.getByLabel('Wish name')).toHaveValue('My camera'); await expect(page.getByLabel('Estimated price (optional)')).toHaveValue('45.00');
+  await expect(page.getByLabel('Currency')).toHaveValue('USD'); await expect(page.getByLabel('Store (optional)')).toHaveValue('My shop');
   await expect(page.locator('.preview-photo img')).toHaveAttribute('src', chosenPhoto!);
   await page.getByRole('button', { name: 'Save wish' }).click(); await assertContained('.wish-card .wish-photo img');
   await page.getByRole('button', { name: /My camera/ }).click(); await assertContained('.wish-detail .wish-photo img');
   await expect(page.getByRole('link', { name: 'View in store' })).toHaveAttribute('href', 'https://store.example/products/camera?model=43');
   expect(wishes[0].wish_url).toBe('https://store.example/products/camera?model=43');
+  expect(wishes[0].wish_currency).toBe('USD'); expect(wishes[0].wish_store).toBe('My shop');
   await page.getByRole('dialog', { name: 'Wish details' }).getByRole('button', { name: 'Close' }).click();
   await page.getByRole('button', { name: '+ Add wish' }).click();
   await page.getByLabel('Product link (optional)').fill('https://blocked.example/item/123');

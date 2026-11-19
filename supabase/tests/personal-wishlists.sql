@@ -17,9 +17,10 @@ insert into public.folder_entries(household_id,kind,title,notes) values(public.c
 insert into public.folder_entries(household_id,kind,title) values(public.current_household(),'place','Shared place') returning id as sharedplace \gset
 reset role;
 \ir ../migrations/20261119010000_personal_wishlists.sql
+\ir ../migrations/20261119020000_wish_product_details.sql
 create function pg_temp.check_true(value boolean) returns void language plpgsql as $$ begin if value is distinct from true then raise exception 'Wishlist assertion failed'; end if; end $$;
 set role authenticated;
-select pg_temp.check_true((select title='Existing' and notes='Preserved' and wish_priority='idea' from public.folder_entries where id=:'oldwish'));
+select pg_temp.check_true((select title='Existing' and notes='Preserved' and wish_priority='idea' and wish_currency is null and wish_store is null from public.folder_entries where id=:'oldwish'));
 insert into public.folder_entries(household_id,kind,title,wish_url,wish_photo,wish_price_cents,wish_priority,notes) values(public.current_household(),'wish','Masha wish','https://example.com/item','data:image/jpeg;base64,dGVzdA==',2500,'dream','Blue') returning id as mashawish \gset
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000002',false);
 select public.join_household(:'invitation');
