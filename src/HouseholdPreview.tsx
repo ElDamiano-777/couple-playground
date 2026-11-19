@@ -10,6 +10,7 @@ import FolderPages, { type FolderPage } from './folders/FolderPages';
 import { Symbol } from './ui/Symbol';
 import FolderEntries from './collections/FolderEntries';
 import Wishlist from './wishlist/Wishlist';
+import SharedMemories from './memories/SharedMemories';
 import Recipes from './collections/Recipes';
 import type { FolderEntriesState } from './collections/useFolderEntries';
 import { publicUrl } from './collections/recipeImport';
@@ -77,12 +78,12 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
     return <section className="preview-page couple-page"><p className="eyebrow">A LITTLE SPACE FOR TWO</p><h1>Us<span>.</span></h1><OurTimeTogether key={`${shopping.session?.user.id ?? 'guest'}:${shopping.household ?? ''}`} userId={shopping.session?.user.id} household={shopping.household} onSignIn={() => navigate('shopping')} /><h2 className="couple-spaces-heading">Shared Spaces</h2>
       <div className="couple-grid"><button className="couple-card couple-people" onClick={() => navigate('partner-notes')}><span className="dashboard-icon"><Symbol name="heart" /></span><strong>Love Notes</strong><small>Little notes for each other</small>{loveNotes.unread > 0 && <span className="love-note-count">{loveNotes.unread} new</span>}<span className="couple-link">Open love notes →</span></button>
       <button className="couple-card couple-pets" onClick={() => navigate('pets')}><span className="dashboard-icon"><Symbol name="pet" /></span><strong>Pets</strong><small>{pets.length ? pets.join(' · ') : 'Your pets, together'}</small><span className="couple-link">View pets →</span></button>
-      <div className="couple-card couple-memories"><span className="dashboard-icon"><Symbol name="folder" /></span><strong>Shared Memories</strong><small>A little space for memories, coming later.</small></div>
+      <button className="couple-card couple-memories" onClick={() => navigate('memories')}><span className="dashboard-icon"><Symbol name="folder" /></span><strong>Shared Memories</strong><small>Moments to revisit together</small><span className="couple-link">View memories →</span></button>
       <button className="couple-card couple-wishlist" onClick={() => navigate('wishlist')}><span className="dashboard-icon"><Symbol name="wishlist" /></span><strong>Wishlist</strong><small>Your wishes for each other</small><span className="couple-link">Open wishlist →</span></button></div></section>;
   }
 
   return <div className="household-preview">
-    {[`tasks`, `expenses`, `calendar`, `children`, `wishlist`].includes(page) && <button className="text-action navigation-back" onClick={onBack}>← {backLabel}</button>}
+    {[`tasks`, `expenses`, `calendar`, `children`, `wishlist`, `memories`].includes(page) && <button className="text-action navigation-back" onClick={onBack}>← {backLabel}</button>}
     {page === `shopping` ? <SharedShopping state={shopping} initialCategory={shoppingCategory} offersStrip={<OffersStrip offers={offers} onOpen={() => navigate('offers')} />} />
       : page === `pets` ? <Pets onBack={onBack} backLabel={backLabel} key={`${family.userId}:${family.household}`} state={family} onSignIn={() => navigate(`shopping`)} />
       : page === `children` ? <FamilyProfiles state={family} fixedKind="child" onSignIn={() => navigate(`shopping`)} />
@@ -92,6 +93,7 @@ export default function HouseholdPreview({ page, navigate, shopping, family, col
       : page === `expenses` ? <Expenses userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} />
       : page === `partner-notes` ? <PartnerNotes userId={shopping.session?.user.id} household={shopping.household} viewer={viewer} state={loveNotes} onBack={onBack} backLabel={backLabel} onDirty={onNotesDirty} />
       : page === `calendar` ? <Calendar shopping={shopping} />
+      : page === `memories` ? <SharedMemories key={`${shopping.session?.user.id ?? ''}:${shopping.household ?? ''}`} userId={shopping.session?.user.id} household={shopping.household} onSignIn={() => navigate(`shopping`)} />
       : page === `wishlist` ? <Wishlist key={`${shopping.session?.user.id ?? ''}:${shopping.household ?? ''}`} userId={shopping.session?.user.id} household={shopping.household} onSignIn={() => navigate(`shopping`)} />
       : page === `places` ? <FolderEntries state={collections} onSignIn={() => navigate(`shopping`)} />
       : <FolderPages page={page} navigate={navigate} />}

@@ -213,8 +213,8 @@ export default function App() {
 
   const [history, setHistory] = useState<Page[]>([]);
   const roots: Page[] = ['home', 'shopping', 'folders', 'places', 'more'];
-  const parent = history.at(-1) ?? (page === 'offers' ? 'shopping' : ['pets', 'partner-notes', 'wishlist'].includes(page) ? 'folders' : 'more');
-  const labels: Partial<Record<Page, string>> = { home: 'Home', shopping: 'Shopping', offers: 'Offers', folders: 'Us', places: 'Places', more: 'More', recipes: 'Recipes', meals: 'Meals', tasks: 'Tasks', expenses: 'Expenses', calendar: 'Calendar', children: 'Children', pets: 'Pets', wishlist: 'Wishlist', 'partner-notes': 'Love Notes', notes: 'Personal notes', settings: 'Settings', search: 'Search', activity: 'Example updates', welcome: 'Welcome' };
+  const parent = history.at(-1) ?? (page === 'offers' ? 'shopping' : ['pets', 'partner-notes', 'wishlist', 'memories'].includes(page) ? 'folders' : 'more');
+  const labels: Partial<Record<Page, string>> = { home: 'Home', shopping: 'Shopping', offers: 'Offers', folders: 'Us', places: 'Places', more: 'More', recipes: 'Recipes', meals: 'Meals', tasks: 'Tasks', expenses: 'Expenses', calendar: 'Calendar', children: 'Children', pets: 'Pets', wishlist: 'Wishlist', memories: 'Shared Memories', 'partner-notes': 'Love Notes', notes: 'Personal notes', settings: 'Settings', search: 'Search', activity: 'Example updates', welcome: 'Welcome' };
   const backLabel = labels[parent] ?? 'More';
   const goBack = () => navigate(parent, true);
 
@@ -239,7 +239,7 @@ export default function App() {
     appRef.current?.scrollTo({ top: 0, behavior: `instant` });
   }
 
-  const activeFolder = roots.includes(page) ? page : [...history].reverse().find(item => roots.includes(item)) ?? (page === 'offers' ? 'shopping' : ['pets', 'partner-notes', 'wishlist'].includes(page) ? 'folders' : 'more');
+  const activeFolder = roots.includes(page) ? page : [...history].reverse().find(item => roots.includes(item)) ?? (page === 'offers' ? 'shopping' : ['pets', 'partner-notes', 'wishlist', 'memories'].includes(page) ? 'folders' : 'more');
 
   return <div className="app">
     {showLayoutDiagnostics && <LayoutDiagnostics />}
@@ -268,7 +268,7 @@ export default function App() {
         </div>
         <p className="small-print">Your name fills in the login. Shopping still needs your password.</p>
       </section> : <>
-      {([`folders`, `home`, `shopping`, `offers`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} onBack={goBack} backLabel={backLabel} shopping={shopping} family={family} onNotesDirty={setLoveNotesDirty} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
+      {([`folders`, `home`, `shopping`, `offers`, `recipes`, `meals`, `tasks`, `expenses`, `partner-notes`, `calendar`, `children`, `pets`, `wishlist`, `memories`, `places`, `activity`] as Page[]).includes(page) && <HouseholdPreview page={page as HouseholdPage} navigate={navigate} onBack={goBack} backLabel={backLabel} shopping={shopping} family={family} onNotesDirty={setLoveNotesDirty} collections={collections} meals={meals} tasks={tasks} viewer={profile ?? `masha`} shoppingCategory={shoppingCategory} sharedRecipe={sharedRecipe} onClearSharedRecipe={clearSharedRecipe} onShoppingCategory={category => { navigate(`shopping`); setShoppingCategory(category); }} />}
       {page === `settings` && profile && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button><Settings signedIn={!!shopping.session} onSignOut={() => { if (!hasDraft || window.confirm(`Sign out and discard unfinished text? Your saved items stay in your home.`)) void shopping.signOut().then(success => { if (success) navigate(`shopping`); }); }} theme={theme} onThemeChange={changeTheme} name={profile === `masha` ? `Masha` : `Damian`} notificationsActive={!!shopping.household} poc={shopping.isPoc} busy={shopping.busy} onChangeName={() => { setProfile(null); setPage(`folders`); appRef.current?.scrollTo({ top: 0, behavior: `instant` }); }} onDeleteAccount={() => { if (window.confirm(`Permanently delete your account? This cannot be undone.`)) void shopping.deleteAccount(); }} /></>}
       {page === `welcome` && <><button className="text-action navigation-back" onClick={goBack}>← {backLabel}</button>
         <section className="hero welcome-hero" lang="en">
