@@ -27,3 +27,5 @@
 :root[data-theme=dark] .wish-photo { background: #302737; color: #c9a2da; }
 :root[data-theme=dark] .wish-open > span:not(.wish-photo), :root[data-theme=dark] .wish-card small { color: #c9b5d2; }
 :root[data-theme=dark] .wish-editor :is(input, textarea, select) { background: #17171e; color: #f7f5fa; border-color: #51435e; }
+.wish-product-link { display: inline-flex; align-items: center; min-height: 40px; font-size: 12px; color: #79509a; }
+:root[data-theme=dark] .wish-product-link { color: #cba9ed; }
