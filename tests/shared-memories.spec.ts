@@ -37,7 +37,11 @@ test('partners create and edit a memory with five persistent photos', async ({ b
   await expect(form.getByText('Preparing photos…')).toHaveCount(0); await expect(form.locator('.memory-photo-edit')).toHaveCount(5);
   await form.getByRole('button', { name: 'Set as cover' }).nth(1).click(); await form.getByRole('button', { name: 'Move photo 3 earlier' }).click();
   await form.getByRole('button', { name: 'Save memory' }).click(); await expect(page.locator('.memory-card')).toContainText('A little trip'); expect(rows[0].photos).toHaveLength(5); expect(rows[0].cover_index).toBe(1);
+  await expect(page.locator('.memory-card .memory-date')).toHaveCSS('color', 'rgb(201, 167, 240)');
+  await expect(page.locator('.memory-card .memory-location')).toHaveCSS('color', 'rgb(117, 217, 189)');
+  await expect(page.locator('.memory-card .memory-category')).toHaveCSS('color', 'rgb(243, 181, 155)');
   await page.locator('.memory-card').click(); const detail = page.getByRole('dialog', { name: 'Memory details' }); await expect(detail.locator('.memory-gallery img')).toHaveCount(5); await expect(detail.locator('.memory-gallery img').first()).toHaveCSS('object-fit', 'contain');
+  await expect(detail.locator('.memory-date')).toHaveCSS('color', 'rgb(201, 167, 240)'); await expect(detail.locator('.memory-location')).toHaveCSS('color', 'rgb(117, 217, 189)'); await expect(detail.locator('.memory-category')).toHaveCSS('color', 'rgb(243, 181, 155)');
   await page.evaluate(() => { Object.defineProperty(window.visualViewport!, 'height', { configurable: true, value: 650 }); Object.defineProperty(window.visualViewport!, 'offsetTop', { configurable: true, value: 44 }); window.visualViewport!.dispatchEvent(new Event('resize')); });
   await expect.poll(async () => (await page.locator('.memory-overlay').boundingBox())!.y).toBe(44);
   const close = detail.getByRole('button', { name: 'Close' });
