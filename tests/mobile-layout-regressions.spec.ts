@@ -55,7 +55,9 @@ test('sticky header, floating navigation and offers remain usable on narrow phon
       const app = page.locator('.page-scroll');
       await app.evaluate(el => el.scrollTo(0, 0));
       const initial = await nav.boundingBox();
-      expect((await app.boundingBox())!.y + (await app.boundingBox())!.height).toBeLessThanOrEqual(initial!.y);
+      // The page reaches the screen edge behind the translucent navigation.
+      expect((await app.boundingBox())!.y + (await app.boundingBox())!.height).toBe(844);
+      expect(initial!.y + initial!.height).toBe(844);
       if (name === 'Home') {
         const add = page.locator('.home-shopping-add');
         await add.scrollIntoViewIfNeeded();

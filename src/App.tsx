@@ -69,8 +69,8 @@ export default function App() {
       const navTop = navigation.getBoundingClientRect().top;
       const heartTop = navigation.querySelector('.nav-us svg')?.getBoundingClientRect().top ?? navTop;
       const visibleBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
-      // The region already reserves the actual bar height and safe-area inset.
-      // Add only the part that still intrudes into the visible scrolling area.
+      // Content scrolls behind the bar; reserve its full overlap only at the end
+      // so the final control can clear the raised heart and safe-area inset.
       const obstruction = Math.min(navTop, heartTop, visibleBottom);
       const overlap = Math.max(0, Math.ceil(scroll.getBoundingClientRect().bottom - obstruction));
       scroll.style.setProperty('--navigation-overlap', `${overlap}px`);
