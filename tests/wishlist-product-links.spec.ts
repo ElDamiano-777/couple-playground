@@ -73,3 +73,40 @@ test('full photos, product lookup, manual edits and exact store link', async ({ 
   await page.getByRole('button', { name: 'Save wish' }).click();
   expect(wishes[0].wish_url).toBe('https://blocked.example/item/123');
 });
+
+test('Amazon photo survives blocked metadata and ignores missing-image placeholders', async ({ page, context }) => {
+  await transport().attach(context);
+  await context.route('**/rest/v1/household_member_profiles?*', route => route.fulfill({ json: [{ user_id: pocMasha, display_name: 'Masha' }, { user_id: pocDamian, display_name: 'Damian' }] }));
+  await context.route('**/rest/v1/wish_gift_plans*', route => route.fulfill({ json: [] }));
+  await context.route('**/rest/v1/folder_entries*', route => route.request().method() === 'GET' && new URL(route.request().url()).searchParams.get('kind') === 'eq.wish' ? route.fulfill({ json: [] }) : route.fallback());
+  await context.route('https://www.amazon.de/**', route => route.request().url().endsWith('?fixture=raw')
+    ? route.fulfill({ contentType: 'text/html', headers: { 'access-control-allow-origin': '*' }, body: '<span id="productTitle">Kingdomino</span><img id="landingImage" data-old-hires="https://images-eu.ssl-images-amazon.com/images/P/B0742XTFT7.01.LZZZZZZZ.jpg">' })
+    : route.abort('failed'));
+  await context.route('https://r.jina.ai/https://www.amazon.de/**', route => route.fulfill({ contentType: 'text/html', headers: { 'access-control-allow-origin': '*' }, body: '<title>Tut uns Leid!</title><p>Product page unavailable.</p>' }));
+  await context.route('https://images-eu.ssl-images-amazon.com/images/P/**', route => route.fulfill({ contentType: 'image/png', headers: { 'access-control-allow-origin': '*' }, body: Buffer.from(route.request().url().includes('B000000000') ? 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=' : pictures[0][1], 'base64') }));
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Masha', exact: true }).click();
+  await page.getByLabel('Password', { exact: true }).fill(pocPassword);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Us', exact: true }).click();
+  await page.getByRole('button', { name: /Wishlist/ }).click();
+  await page.getByRole('button', { name: '+ Add wish' }).click();
+  const source = 'https://www.amazon.de/gp/product/B0742XTFT7/ref=ox_sc_act_title_1?smid=EXAMPLE&psc=1';
+  await page.getByLabel('Product link (optional)').fill(source);
+  await page.getByLabel('Wish name').fill('My Kingdomino');
+  await expect(page.getByAltText('Selected wish')).toBeVisible();
+  await expect(page.getByText('Available product details added. You can edit them.')).toBeVisible();
+  await expect(page.getByLabel('Wish name')).toHaveValue('My Kingdomino');
+  await expect(page.getByLabel('Product link (optional)')).toHaveValue(source);
+  await expect(page.getByLabel('Estimated price (optional)')).toHaveValue('');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('button', { name: '+ Add wish' }).click();
+  await page.getByLabel('Product link (optional)').fill('https://www.amazon.de/dp/B000000000');
+  await expect(page.getByText('Could not read product details. You can enter them manually.')).toBeVisible();
+  await expect(page.getByAltText('Selected wish')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('button', { name: '+ Add wish' }).click();
+  await page.getByLabel('Product link (optional)').fill('https://www.amazon.de/dp/B0742XTFT7?fixture=raw');
+  await expect(page.getByLabel('Wish name')).toHaveValue('Kingdomino');
+  await expect(page.getByAltText('Selected wish')).toBeVisible();
+});

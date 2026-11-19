@@ -2,6 +2,12 @@ import { publicUrl } from '../collections/recipeImport';
 import { prepareNotePhoto } from '../notes/notePhotos';
 
 type Product = { title: string; price: string; image: string; currency: string; store: string };
+function amazonPhoto(source: string): string {
+  const url = new URL(source);
+  if (url.hostname !== 'amazon.de' && !url.hostname.endsWith('.amazon.de')) return '';
+  const asin = /\/(?:dp|gp\/product|gp\/aw\/d)\/([a-z0-9]{10})(?:\/|$)/i.exec(url.pathname)?.[1];
+  return asin ? `https://images-eu.ssl-images-amazon.com/images/P/${asin.toUpperCase()}.01.LZZZZZZZ.jpg` : '';
+}
 function findProduct(value: unknown): Record<string, unknown> | null {
   if (Array.isArray(value)) { for (const item of value) { const result = findProduct(item); if (result) return result; } }
   else if (value && typeof value === 'object') {
@@ -36,11 +42,13 @@ export function parseProduct(html: string, source: string): Product {
   const variant = (Array.isArray(variants) ? variants[0] : variants) as Record<string, unknown> | undefined;
   const offers = product?.offers ?? variant?.offers;
   const offer = (Array.isArray(offers) ? offers[0] : offers) as Record<string, unknown> | undefined;
-  const title = (typeof product?.name === 'string' ? product.name : meta('og:title')).trim().slice(0, 150);
+  const amazon = !!amazonPhoto(source);
+  const title = (typeof product?.name === 'string' ? product.name : meta('og:title') || (amazon ? doc.querySelector('#productTitle')?.textContent ?? '' : '')).trim().slice(0, 150);
   const rawCurrency = offer?.priceCurrency ?? meta('product:price:currency');
   const currency = typeof rawCurrency === 'string' && /^[A-Z]{3}$/i.test(rawCurrency) ? rawCurrency.toUpperCase() : '';
   const price = productPrice(offer?.price ?? meta('product:price:amount'), currency);
-  const image = imageUrl(product?.image ?? variant?.image ?? meta('og:image'), source);
+  const amazonImage = amazon ? doc.querySelector<HTMLImageElement>('#landingImage, #imgBlkFront') : null;
+  const image = imageUrl(product?.image ?? variant?.image ?? (meta('og:image') || amazonImage?.getAttribute('data-old-hires') || amazonImage?.getAttribute('src')), source);
   const store = (meta('og:site_name') || new URL(source).hostname.replace(/^www\./, '')).slice(0, 150);
   return { title, price, image, currency, store };
 }
@@ -66,7 +74,14 @@ export async function importProductLink(value: string, signal: AbortSignal): Pro
     if (signal.aborted) throw error;
     const parsed = new URL(source);
     if ([...parsed.searchParams.keys()].some(key => /token|auth|session|email|secret|password|key/i.test(key))) throw error;
-    return load(`https://r.jina.ai/${source}`, true);
+    try { return await load(`https://r.jina.ai/${source}`, true); }
+    catch (readerError) {
+      if (signal.aborted) throw readerError;
+      // Amazon's public ASIN image can still be available when its product page is blocked.
+      const image = amazonPhoto(source);
+      if (!image) throw readerError;
+      return { title: '', price: '', image, currency: '', store: parsed.hostname.replace(/^www\./, '') };
+    }
   }
 }
 
@@ -75,5 +90,10 @@ export async function importProductPhoto(url: string, signal: AbortSignal): Prom
   if (!image.ok || Number(image.headers.get('content-length') || 0) > 20 * 1024 * 1024) throw new Error('Product image unavailable');
   const blob = await image.blob();
   if (!blob.type.startsWith('image/') || blob.size > 20 * 1024 * 1024) throw new Error('Product image unavailable');
+  const bitmap = await createImageBitmap(blob);
+  try {
+    // Amazon returns a one-pixel placeholder for ASINs without a public image.
+    if (bitmap.width < 2 || bitmap.height < 2) throw new Error('Product image unavailable');
+  } finally { bitmap.close(); }
   return prepareNotePhoto(new File([blob], 'product', { type: blob.type }));
 }
