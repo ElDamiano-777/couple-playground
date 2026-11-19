@@ -1,7 +1,7 @@
 import { publicUrl } from '../collections/recipeImport';
 import { prepareNotePhoto } from '../notes/notePhotos';
 
-type Product = { title: string; price: string; image: string; currency: string; store: string };
+type Product = { title: string; price: string; image: string; currency: string; store: string; description: string };
 function amazonPhoto(source: string): string {
   const url = new URL(source);
   if (url.hostname !== 'amazon.de' && !url.hostname.endsWith('.amazon.de')) return '';
@@ -44,13 +44,17 @@ export function parseProduct(html: string, source: string): Product {
   const offer = (Array.isArray(offers) ? offers[0] : offers) as Record<string, unknown> | undefined;
   const amazon = !!amazonPhoto(source);
   const title = (typeof product?.name === 'string' ? product.name : meta('og:title') || (amazon ? doc.querySelector('#productTitle')?.textContent ?? '' : '')).trim().slice(0, 150);
-  const rawCurrency = offer?.priceCurrency ?? meta('product:price:currency');
+  // Keep Amazon prices scoped to the main offer, never recommendations or crossed-out prices.
+  const amazonPrice = amazon ? doc.querySelector('#corePriceDisplay_desktop_feature_div .a-price:not(.a-text-price) .a-offscreen, #corePrice_feature_div .a-price:not(.a-text-price) .a-offscreen, #priceblock_ourprice, #priceblock_dealprice')?.textContent?.trim() ?? '' : '';
+  const rawCurrency = offer?.priceCurrency ?? (meta('product:price:currency') || (/€/.test(amazonPrice) ? 'EUR' : ''));
   const currency = typeof rawCurrency === 'string' && /^[A-Z]{3}$/i.test(rawCurrency) ? rawCurrency.toUpperCase() : '';
-  const price = productPrice(offer?.price ?? meta('product:price:amount'), currency);
+  const price = productPrice(offer?.price ?? (meta('product:price:amount') || amazonPrice.replace(/\s|€/g, '').replace(/\.(?=\d{3}(?:[,.]|$))/g, '')), currency);
   const amazonImage = amazon ? doc.querySelector<HTMLImageElement>('#landingImage, #imgBlkFront') : null;
   const image = imageUrl(product?.image ?? variant?.image ?? (meta('og:image') || amazonImage?.getAttribute('data-old-hires') || amazonImage?.getAttribute('src')), source);
   const store = (meta('og:site_name') || new URL(source).hostname.replace(/^www\./, '')).slice(0, 150);
-  return { title, price, image, currency, store };
+  const rawDescription = typeof product?.description === 'string' ? product.description : meta('og:description') || meta('description');
+  const description = (new DOMParser().parseFromString(rawDescription, 'text/html').body.textContent ?? '').trim().slice(0, 20000);
+  return { title, price, image, currency, store, description };
 }
 
 /** Browsers can read only pages and images that explicitly permit cross-origin access. */
@@ -80,7 +84,7 @@ export async function importProductLink(value: string, signal: AbortSignal): Pro
       // Amazon's public ASIN image can still be available when its product page is blocked.
       const image = amazonPhoto(source);
       if (!image) throw readerError;
-      return { title: '', price: '', image, currency: '', store: parsed.hostname.replace(/^www\./, '') };
+      return { title: '', price: '', image, currency: '', store: parsed.hostname.replace(/^www\./, ''), description: '' };
     }
   }
 }

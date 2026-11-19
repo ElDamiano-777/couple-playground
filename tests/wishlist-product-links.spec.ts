@@ -10,6 +10,8 @@ const pictures = [
 
 test('full photos, product lookup, manual edits and exact store link', async ({ page, context }) => {
   const server = transport(); await server.attach(context);
+  let releaseLookup!: () => void;
+  const lookupGate = new Promise<void>(resolve => { releaseLookup = resolve; });
   const wishes: Record<string, unknown>[] = [];
   await context.route('**/rest/v1/household_member_profiles?*', route => route.fulfill({ json: [{ user_id: pocMasha, display_name: 'Masha' }, { user_id: pocDamian, display_name: 'Damian' }] }));
   await context.route('**/rest/v1/wish_gift_plans*', route => route.fulfill({ json: [] }));
@@ -21,7 +23,8 @@ test('full photos, product lookup, manual edits and exact store link', async ({ 
   });
   await context.route('https://store.example/**', async route => {
     if (route.request().url().endsWith('.png')) return route.fulfill({ status: 200, contentType: 'image/png', headers: { 'access-control-allow-origin': '*' }, body: Buffer.from(pictures[0][1], 'base64') });
-    return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'access-control-allow-origin': '*' }, body: `<script type="application/ld+json">{"@type":"Product","name":"Imported camera","image":"/camera.png","offers":{"price":"29.95","priceCurrency":"EUR"}}</script>` });
+    await lookupGate;
+    return route.fulfill({ status: 200, contentType: 'text/html', headers: { 'access-control-allow-origin': '*' }, body: `<script type="application/ld+json">{"@type":"Product","name":"Imported camera","description":"<p>A small camera.</p>","image":"/camera.png","offers":{"price":"29.95","priceCurrency":"EUR"}}</script>` });
   });
   await context.route('https://blocked.example/**', route => route.abort('failed'));
   await context.route('https://r.jina.ai/https://blocked.example/**', route => route.fulfill({ status: 403, headers: { 'access-control-allow-origin': '*' }, body: 'Unavailable' }));
@@ -29,11 +32,20 @@ test('full photos, product lookup, manual edits and exact store link', async ({ 
   await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: 'Us', exact: true }).click(); await page.getByRole('button', { name: /Wishlist/ }).click(); await page.getByRole('button', { name: '+ Add wish' }).click();
   const url = 'https://store.example/products/camera?model=42';
   await page.getByLabel('Product link (optional)').fill(url);
+  const loadingButton = page.getByRole('button', { name: 'Loading product details…' });
+  await expect(loadingButton).toBeVisible();
+  await expect(loadingButton).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Save wish' })).toBeDisabled();
+  await page.screenshot({ path: '/tmp/wish-product-loading.png' });
+  releaseLookup();
   await expect(page.getByLabel('Wish name')).toHaveValue('Imported camera');
   await expect(page.getByLabel('Estimated price (optional)')).toHaveValue('29.95');
   await expect(page.getByLabel('Currency')).toHaveValue('EUR');
   await expect(page.getByLabel('Store (optional)')).toHaveValue('store.example');
   await expect(page.getByAltText('Selected wish')).toBeVisible();
+  await expect(loadingButton).toHaveCount(0);
+  await expect(page.getByLabel('Notes (optional)')).toHaveValue('A small camera.');
+  await page.screenshot({ path: '/tmp/wish-product-prefilled.png' });
   const removePhoto = page.getByRole('button', { name: 'Remove photo' });
   const removeBox = await removePhoto.boundingBox();
   expect(removeBox!.width).toBeLessThanOrEqual(44);
@@ -54,17 +66,20 @@ test('full photos, product lookup, manual edits and exact store link', async ({ 
   }
   const chosenPhoto = await page.locator('.preview-photo img').getAttribute('src');
   await page.getByLabel('Wish name').fill('My camera'); await page.getByLabel('Estimated price (optional)').fill('45.00');
+  await page.getByLabel('Notes (optional)').fill('My personal note');
   await page.getByLabel('Currency').fill('USD'); await page.getByLabel('Store (optional)').fill('My shop');
   await page.getByLabel('Product link (optional)').fill('https://store.example/products/camera?model=43');
   await expect(page.getByText('Available product details added. You can edit them.')).toBeVisible();
   await expect(page.getByLabel('Wish name')).toHaveValue('My camera'); await expect(page.getByLabel('Estimated price (optional)')).toHaveValue('45.00');
   await expect(page.getByLabel('Currency')).toHaveValue('USD'); await expect(page.getByLabel('Store (optional)')).toHaveValue('My shop');
+  await expect(page.getByLabel('Notes (optional)')).toHaveValue('My personal note');
   await expect(page.locator('.preview-photo img')).toHaveAttribute('src', chosenPhoto!);
   await page.getByRole('button', { name: 'Save wish' }).click(); await assertContained('.wish-card .wish-photo img');
   await page.getByRole('button', { name: /My camera/ }).click(); await assertContained('.wish-detail .wish-photo img');
   await expect(page.getByRole('link', { name: 'View in store' })).toHaveAttribute('href', 'https://store.example/products/camera?model=43');
   expect(wishes[0].wish_url).toBe('https://store.example/products/camera?model=43');
   expect(wishes[0].wish_currency).toBe('USD'); expect(wishes[0].wish_store).toBe('My shop');
+  expect(wishes[0].notes).toBe('My personal note');
   await page.getByRole('dialog', { name: 'Wish details' }).getByRole('button', { name: 'Close' }).click();
   await page.getByRole('button', { name: '+ Add wish' }).click();
   await page.getByLabel('Product link (optional)').fill('https://blocked.example/item/123');
@@ -80,7 +95,7 @@ test('Amazon photo survives blocked metadata and ignores missing-image placehold
   await context.route('**/rest/v1/wish_gift_plans*', route => route.fulfill({ json: [] }));
   await context.route('**/rest/v1/folder_entries*', route => route.request().method() === 'GET' && new URL(route.request().url()).searchParams.get('kind') === 'eq.wish' ? route.fulfill({ json: [] }) : route.fallback());
   await context.route('https://www.amazon.de/**', route => route.request().url().endsWith('?fixture=raw')
-    ? route.fulfill({ contentType: 'text/html', headers: { 'access-control-allow-origin': '*' }, body: '<span id="productTitle">Kingdomino</span><img id="landingImage" data-old-hires="https://images-eu.ssl-images-amazon.com/images/P/B0742XTFT7.01.LZZZZZZZ.jpg">' })
+    ? route.fulfill({ contentType: 'text/html', headers: { 'access-control-allow-origin': '*' }, body: '<span id="productTitle">Kingdomino</span><img id="landingImage" data-old-hires="https://images-eu.ssl-images-amazon.com/images/P/B0742XTFT7.01.LZZZZZZZ.jpg"><aside><span class="a-price"><span class="a-offscreen">99,00 €</span></span></aside><div id="corePrice_feature_div"><span class="a-price a-text-price"><span class="a-offscreen">29,99 €</span></span><span class="a-price"><span class="a-offscreen">19,99 €</span></span></div>' })
     : route.abort('failed'));
   await context.route('https://r.jina.ai/https://www.amazon.de/**', route => route.fulfill({ contentType: 'text/html', headers: { 'access-control-allow-origin': '*' }, body: '<title>Tut uns Leid!</title><p>Product page unavailable.</p>' }));
   await context.route('https://images-eu.ssl-images-amazon.com/images/P/**', route => route.fulfill({ contentType: 'image/png', headers: { 'access-control-allow-origin': '*' }, body: Buffer.from(route.request().url().includes('B000000000') ? 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=' : pictures[0][1], 'base64') }));
@@ -95,7 +110,7 @@ test('Amazon photo survives blocked metadata and ignores missing-image placehold
   await page.getByLabel('Product link (optional)').fill(source);
   await page.getByLabel('Wish name').fill('My Kingdomino');
   await expect(page.getByAltText('Selected wish')).toBeVisible();
-  await expect(page.getByText('Available product details added. You can edit them.')).toBeVisible();
+  await expect(page.getByText('Available details added. Missing: price. You can add these manually.')).toBeVisible();
   await expect(page.getByLabel('Wish name')).toHaveValue('My Kingdomino');
   await expect(page.getByLabel('Product link (optional)')).toHaveValue(source);
   await expect(page.getByLabel('Estimated price (optional)')).toHaveValue('');
@@ -108,5 +123,7 @@ test('Amazon photo survives blocked metadata and ignores missing-image placehold
   await page.getByRole('button', { name: '+ Add wish' }).click();
   await page.getByLabel('Product link (optional)').fill('https://www.amazon.de/dp/B0742XTFT7?fixture=raw');
   await expect(page.getByLabel('Wish name')).toHaveValue('Kingdomino');
+  await expect(page.getByLabel('Estimated price (optional)')).toHaveValue('19.99');
+  await expect(page.getByLabel('Currency')).toHaveValue('EUR');
   await expect(page.getByAltText('Selected wish')).toBeVisible();
 });
